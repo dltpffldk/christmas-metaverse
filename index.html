@@ -6318,7 +6318,7 @@ function updateCamera(dt) {
   }
   /* 멀리 줌아웃할수록 시선을 조금씩 위에서 내려다보게 들어올린다.
      그대로 두면 시야가 담장·코티지 뒷벽에 막혀 광장이 보이지 않는다. */
-  const lift = smoothstep(CAM_FAR * 0.8, CAM_MAX, rig.dist) * 0.46;
+  const lift = smoothstep(CAM_FAR * 0.8, CAM_MAX, rig.dist) * 0.62;
   const pitch = clamp(rig.pitch + lift, -0.12, 1.15);
   const cosP = Math.cos(pitch);
   const ox = Math.sin(rig.yaw) * cosP * rig.dist;
@@ -6338,7 +6338,10 @@ function updateCamera(dt) {
 /* 카메라가 광장 밖(담장·건물)으로 나가지 않도록 시선 방향으로 당겨 온다 */
 function limitCamera(desired) {
   const floorY = bgFloorY(desired.x, desired.z);
-  if (desired.y > floorY + 5.2 * MAP) return;      // 지붕 위에서 내려다보는 시점은 그대로
+  /* 멀리 줌아웃한 상태에서는 지붕 위라도 광장 밖(코티지 위)으로 나가지 않게 잡아 준다.
+     그대로 두면 시야 아래쪽이 코티지 지붕으로 가득 찬다. */
+  const farOut = rig.dist > CAM_FAR;
+  if (!farOut && desired.y > floorY + 5.2 * MAP) return;   // 가까이 볼 때의 지붕 위 시점은 그대로
   if (bgWalkable(desired.x, desired.z)) return;
   const dx = desired.x - rig.lookAt.x;
   const dz = desired.z - rig.lookAt.z;
