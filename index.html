@@ -2720,162 +2720,410 @@ function buildGrandTree() {
 }
 
 /* ---------------------------------------------------------------
-   광장 중앙 대형 트리 — .glb 단상 위에 세우는 7단 엘프 트리
+   중앙 대형 트리 — 참고 사진의 풍성한 소나무로 재작성
    ---------------------------------------------------------------
-   background.glb 의 중앙 단상(윗면 world y≈2.78, 반경≈4.5)에는
-   Tripo 생성물 특유의 뭉개진 나무 덩어리가 구워져 있었다. 그 삼각형은
-   assets/background.glb 에서 미리 제거했고, 그 자리에 아래 절차적
-   트리를 세운다(7단 잎 + 벨벳 리본 + 금색 별 + 오너먼트 + 전구 300개
-   + 단상 위 선물·랜턴).
-   ------------------------------------------------------------- */
+   납작한 원뿔 7단 + 하얀 원반 눈덮개를 버리고, 실제 전나무처럼
+   · 수백 개의 3D 가지(잎 침 3D 삼각형)를 하나의 병합 지오메트리로
+   · 가지 끝마다 얹힌 3D 눈 뭉치
+   · 나선으로 휘감아 내려오는 붉은 벨벳 리본 + 큼직한 보우
+   · 광택 오너먼트(InstancedMesh) · 수백 개 전구(Points + 블룸)
+   · 꼭대기 8각 황금 별, 석조 단상 + 화환 + 선물 + 랜턴
+   드로우콜은 병합/인스턴싱으로 최소화한다.
+--------------------------------------------------------------- */
+
+/* ---------- 병합 지오메트리 빌더 (비인덱스 삼각형 + 정점 색) ---------- */
+function TriSink() { this.p = []; this.n = []; this.c = []; }
+TriSink.prototype.tri = function (a, b, c, col) {
+  const ux = b.x - a.x, uy = b.y - a.y, uz = b.z - a.z;
+  const vx = c.x - a.x, vy = c.y - a.y, vz = c.z - a.z;
+  let nx = uy * vz - uz * vy, ny = uz * vx - ux * vz, nz = ux * vy - uy * vx;
+  const l = Math.hypot(nx, ny, nz);
+  if (l < 1e-8) return;
+  nx /= l; ny /= l; nz /= l;
+  this.p.push(a.x, a.y, a.z, b.x, b.y, b.z, c.x, c.y, c.z);
+  this.n.push(nx, ny, nz, nx, ny, nz, nx, ny, nz);
+  this.c.push(col.r, col.g, col.b, col.r, col.g, col.b, col.r, col.g, col.b);
+};
+TriSink.prototype.quad = function (a, b, c, d, col) {
+  this.tri(a, b, c, col);
+  this.tri(a, c, d, col);
+};
+const _sinkCache = new WeakMap();
+TriSink.prototype.append = function (geo, mtx, col) {
+  let g = _sinkCache.get(geo);
+  if (!g) {
+    g = geo.index ? geo.toNonIndexed() : geo;
+    _sinkCache.set(geo, g);
+  }
+  const p = g.attributes.position.array;
+  const A = new THREE.Vector3(), B = new THREE.Vector3(), C = new THREE.Vector3();
+  for (let i = 0; i < p.length; i += 9) {
+    A.set(p[i], p[i + 1], p[i + 2]).applyMatrix4(mtx);
+    B.set(p[i + 3], p[i + 4], p[i + 5]).applyMatrix4(mtx);
+    C.set(p[i + 6], p[i + 7], p[i + 8]).applyMatrix4(mtx);
+    this.tri(A, B, C, col);
+  }
+};
+TriSink.prototype.mesh = function (mat) {
+  const g = new THREE.BufferGeometry();
+  g.setAttribute('position', new THREE.Float32BufferAttribute(this.p, 3));
+  g.setAttribute('normal', new THREE.Float32BufferAttribute(this.n, 3));
+  g.setAttribute('color', new THREE.Float32BufferAttribute(this.c, 3));
+  g.computeBoundingSphere();
+  return new THREE.Mesh(g, mat);
+};
+
+/* ---------- 가지 하나: 줄기 + 잎 침 + 눈 ---------- */
+const _C = {
+  stem:    new THREE.Color(0x2c1f16),
+  needleA: new THREE.Color(0x15553a),   // 그늘진 안쪽
+  needleB: new THREE.Color(0x2f8a5c),   // 햇빛 든 끝
+  needleC: new THREE.Color(0x1d6b48),
+  snow:    new THREE.Color(0xeaf2fd),
+  snowSh:  new THREE.Color(0xc9d9ef),
+  velvet:  new THREE.Color(0x9d1120),
+  velvetHi:new THREE.Color(0xc42433),
+  gold:    new THREE.Color(0xffcf6b),
+  goldDeep:new THREE.Color(0xc8942c),
+  bark:    new THREE.Color(0x4a3223),
+  barkLo:  new THREE.Color(0x2f2015),
+};
+const _SNOW_BLOB = new THREE.IcosahedronGeometry(1, 0);
+
+function addSprig(sink, snow, origin, dir, len, opt) {
+  const o = opt || {};
+  const D = dir.clone().normalize();
+  const upRef = Math.abs(D.y) > 0.93 ? new THREE.Vector3(1, 0, 0) : new THREE.Vector3(0, 1, 0);
+  const S = new THREE.Vector3().crossVectors(D, upRef).normalize();
+  const U = new THREE.Vector3().crossVectors(S, D).normalize();
+  const tip = origin.clone().addScaledVector(D, len);
+
+  /* 줄기 — 가는 사각 기둥 2장 */
+  const w = Math.max(0.009, len * 0.016);
+  [S, U].forEach((e) => {
+    const a = origin.clone().addScaledVector(e, w);
+    const b = origin.clone().addScaledVector(e, -w);
+    const c = tip.clone().addScaledVector(e, -w * 0.35);
+    const d = tip.clone().addScaledVector(e, w * 0.35);
+    sink.quad(a, b, c, d, _C.stem);
+  });
+
+  /* 잎 침 — 줄기를 따라 촘촘한 단(약 13cm 간격), 단마다 5장이 사방으로 뻗는다 */
+  const CL = Math.max(5, Math.round(len / 0.15));
+  const NE = o.perCluster || 5;
+  const twist = rand(0, TAU);
+  const droop = o.droop ?? 0.5;
+  const baseLen = o.needleLen || 0.062;
+  for (let ci = 0; ci < CL; ci++) {
+    const t = (ci + 0.5) / CL;
+    const c0 = origin.clone().addScaledVector(D, len * t);
+    const rot = twist + t * 2.6 + ci * 0.7;
+    const nc = _C.needleA.clone().lerp(_C.needleB, Math.min(1, t * 1.15)).multiplyScalar(rand(0.84, 1.14));
+    if (Math.random() < 0.4) nc.lerp(_C.needleC, 0.55);
+    for (let k = 0; k < NE; k++) {
+      const ang = rot + (k / NE) * TAU + rand(-0.3, 0.3);
+      const nd = new THREE.Vector3()
+        .addScaledVector(D, 0.52)
+        .addScaledVector(S, Math.cos(ang) * 0.9)
+        .addScaledVector(U, Math.sin(ang) * 0.9 - droop * 0.42)
+        .normalize();
+      const nl = baseLen * rand(0.7, 1.3) * (1 + 0.25 * t);
+      const tipp = c0.clone().addScaledVector(nd, nl);
+      const wv = new THREE.Vector3().crossVectors(nd, U).normalize().multiplyScalar(nl * 0.155 + 0.006);
+      sink.tri(c0.clone().add(wv), c0.clone().sub(wv), tipp, nc);
+    }
+    /* 가지 위쪽에 쌓인 눈 — 줄기를 따라 길게 얹힌다 */
+    if (snow && Math.random() < (o.snowChance ?? 0.22)) {
+      const s0 = (o.snowSize || 0.055) * rand(0.85, 1.25);
+      const m = new THREE.Matrix4().makeBasis(
+        S.clone().multiplyScalar(s0 * rand(0.9, 1.2)),
+        U.clone().multiplyScalar(s0 * rand(0.42, 0.6)),
+        D.clone().multiplyScalar(s0 * rand(1.0, 1.5))
+      );
+      m.setPosition(c0.clone().addScaledVector(U, s0 * 0.3).addScaledVector(S, rand(-0.02, 0.02)));
+      snow.append(_SNOW_BLOB, m, Math.random() < 0.6 ? _C.snow : _C.snowSh);
+    }
+  }
+  /* 가지 끝 잎 뭉치 — 전나무 특유의 뾰족한 끝 */
+  for (let k = 0; k < 4; k++) {
+    const ang = twist + (k / 4) * TAU;
+    const nd = new THREE.Vector3()
+      .addScaledVector(D, 1.0)
+      .addScaledVector(S, Math.cos(ang) * 0.42)
+      .addScaledVector(U, Math.sin(ang) * 0.42 - droop * 0.22)
+      .normalize();
+    const nl = baseLen * rand(1.1, 1.6);
+    const tipp = tip.clone().addScaledVector(nd, nl);
+    const wv = new THREE.Vector3().crossVectors(nd, U).normalize().multiplyScalar(nl * 0.155 + 0.006);
+    sink.tri(tip.clone().add(wv), tip.clone().sub(wv), tipp, _C.needleB.clone().multiplyScalar(rand(0.9, 1.1)));
+  }
+
+}
+
+/* ---------- 리본 보우 (병합용) ---------- */
+const BOW_GEO = {
+  loop: new THREE.TorusGeometry(0.17, 0.062, 6, 14, Math.PI * 1.3),
+  knot: new THREE.SphereGeometry(0.085, 8, 6),
+  tail: new THREE.BoxGeometry(0.1, 0.46, 0.045),
+  tail2: new THREE.BoxGeometry(0.1, 0.3, 0.045),
+};
+function appendBow(sink, pos, yaw, sc, tone) {
+  const col = tone || _C.velvet;
+  const hi = _C.velvetHi;
+  const q = new THREE.Quaternion().setFromEuler(new THREE.Euler(rand(-0.2, 0.2), yaw, rand(-0.15, 0.15)));
+  const mk = (geo, off, rot, scl, c) => {
+    const m = new THREE.Matrix4().compose(
+      pos.clone().add(new THREE.Vector3(off[0], off[1], off[2]).multiplyScalar(sc).applyQuaternion(q)),
+      q.clone().multiply(new THREE.Quaternion().setFromEuler(new THREE.Euler(rot[0], rot[1], rot[2]))),
+      new THREE.Vector3(scl[0], scl[1], scl[2]).multiplyScalar(sc)
+    );
+    sink.append(geo, m, c);
+  };
+  [-1, 1].forEach((s) => {
+    mk(BOW_GEO.loop, [s * 0.145, 0.03, s * 0.012], [0, s * 0.5, s * 1.18], [1, 0.82, 0.34], s > 0 ? hi : col);
+  });
+  mk(BOW_GEO.knot, [0, 0.02, 0], [0, 0, 0], [1.1, 0.95, 0.7], hi);
+  [-1, 1].forEach((s) => {
+    mk(BOW_GEO.tail, [s * 0.1, -0.26, -0.015], [0.1, 0, s * 0.3], [1, 1, 0.6], col);
+    mk(BOW_GEO.tail2, [s * 0.17, -0.44, 0.05], [0.05, 0, s * 0.55], [1, 0.95, 0.6], hi);
+  });
+}
+
+/* ---------- 광장 중앙 대형 트리 ---------- */
 function buildPlazaTree() {
   const group = new THREE.Group();
   group.name = 'plaza-tree';
-  const BASE = 0.62;                 // 광장 바닥 (트리 밑동이 눈에 살짝 묻히도록)
 
-  /* --- 기둥 --- */
+  const GROUND = 0.55;          // 광장 눈 바닥(로컬 y)
+  const H = 8.55;               // 잎이 있는 부분의 높이
+  const BASE_R = 3.95;          // 밑동 반경
+  const FOL_Y = GROUND + 0.95;  // 첫 가지 높이
+
+  /* 높이 비율 u(0=밑동,1=꼭대기)에 따른 실루엣 반경 — 층이 진 전나무 */
+  function radiusAt(u) {
+    const t = clamp(u, 0, 1);
+    const body = BASE_R * Math.pow(1 - t, 0.9);
+    const skirt = 1 + 0.085 * Math.cos(t * Math.PI * 2 * 3.4) * Math.pow(1 - t, 0.55);
+    const flare = 1 + 0.09 * Math.pow(Math.max(0, 0.16 - t) / 0.16, 2);
+    /* 밑동은 살짝 좁혀 단상이 보이게 (참고 사진의 화분 위 트리처럼) */
+    const foot = 0.86 + 0.14 * clamp(t / 0.1, 0, 1);
+    return Math.max(0, body * skirt * flare * foot);
+  }
+  const topY = FOL_Y + H;
+
+  /* ---------- 석조 단상 2단 ---------- */
+  const tier1 = new THREE.Mesh(new THREE.CylinderGeometry(3.78, 3.84, 0.3, 56), M.stone);
+  tier1.position.y = GROUND + 0.15;
+  tier1.castShadow = true; tier1.receiveShadow = true;
+  group.add(tier1);
+
+  const tier2 = new THREE.Mesh(new THREE.CylinderGeometry(3.3, 3.38, 0.27, 56), M.stoneWarm);
+  tier2.position.y = GROUND + 0.435;
+  tier2.castShadow = true; tier2.receiveShadow = true;
+  group.add(tier2);
+
+  [3.72, 3.24].forEach((r, i) => {
+    const cap = new THREE.Mesh(new THREE.CylinderGeometry(r, r + 0.02, 0.07, 48), M.snow);
+    cap.position.y = GROUND + (i ? 0.60 : 0.315);
+    cap.receiveShadow = true;
+    group.add(cap);
+  });
+
+  const PED_TOP = GROUND + 0.575;
+
+  /* ---------- 기둥 ---------- */
   const trunk = new THREE.Mesh(
-    new THREE.CylinderGeometry(0.62, 1.05, 2.6, 14),
-    new THREE.MeshStandardMaterial({ color: 0x4a3324, roughness: 0.9, flatShading: true })
+    new THREE.CylinderGeometry(0.5, 0.92, H * 0.55, 16),
+    new THREE.MeshStandardMaterial({ color: 0x4a3324, roughness: 0.92, envMapIntensity: 0.3 })
   );
-  trunk.position.y = BASE + 1.3;
+  trunk.position.y = PED_TOP + H * 0.27;
   trunk.castShadow = true;
   group.add(trunk);
 
-  /* --- 잎 7단 --- */
-  const layers = [
-    { r: 4.05, h: 3.55, y: 0.40, c: 0x0a422c },
-    { r: 3.95, h: 3.45, y: 1.85, c: 0x0e5035 },
-    { r: 3.50, h: 3.30, y: 3.30, c: 0x115f3e },
-    { r: 3.00, h: 3.10, y: 4.75, c: 0x146c47 },
-    { r: 2.45, h: 2.90, y: 6.10, c: 0x177a4f },
-    { r: 1.85, h: 2.65, y: 7.30, c: 0x1b8657 },
-    { r: 1.20, h: 2.35, y: 8.35, c: 0x1f9160 },
-  ];
-  layers.forEach((L, i) => {
-    const cone = new THREE.Mesh(
-      new THREE.ConeGeometry(L.r, L.h, 24, 1, false),
-      new THREE.MeshStandardMaterial({ color: L.c, roughness: 0.82, metalness: 0.02 })
-    );
-    cone.position.y = L.y + L.h / 2;
-    cone.rotation.y = i * 0.35;
-    cone.castShadow = true;
-    cone.receiveShadow = true;
-    group.add(cone);
-
-    /* 가지 끝에 앉은 눈 더미 — 겨울 광장의 톤을 맞춘다 */
-    const cap = new THREE.Mesh(
-      new THREE.ConeGeometry(L.r * 0.99, L.h * 0.34, 24, 1, true),
-      new THREE.MeshStandardMaterial({ color: 0xe8f2ff, roughness: 0.95, metalness: 0.0, flatShading: true })
-    );
-    cap.position.y = L.y + L.h * 0.66;
-    cap.rotation.y = i * 0.35;
-    group.add(cap);
-  });
-  const topY = layers[layers.length - 1].y + layers[layers.length - 1].h;
-
-  /* 특정 높이에서 보이는 바깥 표면 반경 */
-  function surfaceRadius(y) {
-    let r = 0;
-    for (const L of layers) {
-      if (y >= L.y && y <= L.y + L.h) {
-        const f = (y - L.y) / L.h;
-        r = Math.max(r, L.r * (1 - f));
-      }
-    }
-    return r;
+  /* ---------- 속이 비어 보이지 않게 하는 어두운 심 ---------- */
+  const corePts = [];
+  for (let i = 0; i <= 20; i++) {
+    const u = i / 20;
+    corePts.push(new THREE.Vector2(Math.max(0.03, radiusAt(u) * 0.76), FOL_Y + u * H));
   }
-
-  /* --- 빨간 벨벳 리본 (큰 매듬) --- */
-  const bowSpots = [
-    [1.15, 0.5, 0.50], [2.15, 2.6, 0.46], [3.35, 4.4, 0.48], [4.35, 1.1, 0.44],
-    [5.35, 3.4, 0.42], [6.35, 5.4, 0.40], [7.15, 0.3, 0.36], [8.05, 2.8, 0.32],
-    [2.75, 3.3, 0.40], [4.85, 5.5, 0.38], [6.85, 4.4, 0.32],
-  ];
-  bowSpots.forEach(([y, ang, sc]) => {
-    const R = Math.max(surfaceRadius(y) * 0.97, 0.35);
-    const b = makeBow(sc * 2.0, M.redVelvet);
-    b.position.set(Math.cos(ang) * R, y, Math.sin(ang) * R);
-    b.rotation.y = Math.atan2(Math.cos(ang), Math.sin(ang));
-    b.rotation.x = -0.4;
-    b.rotation.z = rand(-0.25, 0.25);
-    group.add(b);
-  });
-
-  /* --- 장식 볼 (인스턴스) --- */
-  const dummy = new THREE.Object3D();
-  const colTmp = new THREE.Color();
-  const ballCount = 150;
-  const balls = new THREE.InstancedMesh(
-    new THREE.SphereGeometry(0.185, 12, 10),
-    new THREE.MeshStandardMaterial({ roughness: 0.16, metalness: 0.5, envMapIntensity: 1.8 }),
-    ballCount
+  const core = new THREE.Mesh(
+    new THREE.LatheGeometry(corePts, 44),
+    new THREE.MeshStandardMaterial({ color: 0x0e3527, roughness: 0.95, envMapIntensity: 0.2 })
   );
-  const ballColors = [0xd41f2c, 0xb31522, 0xd41f2c, 0xffd479, 0xf7f3ff];
-  for (let i = 0; i < ballCount; i++) {
-    const y = rand(0.9, 9.6);
-    const R = surfaceRadius(y) * 1.02;
-    if (R < 0.15) { dummy.position.set(0, y, 0); dummy.scale.setScalar(0.001); }
-    else {
-      const a = rand(0, TAU);
-      dummy.position.set(Math.cos(a) * R, y, Math.sin(a) * R);
-      dummy.scale.setScalar(rand(0.65, 1.15));
+  core.receiveShadow = true;
+  group.add(core);
+
+  /* ---------- 가지 1,000여 개 (병합 1 드로우콜) ---------- */
+  const needleSink = new TriSink();
+  const snowSink = new TriSink();
+  const RINGS = 66;
+  for (let i = 0; i < RINGS; i++) {
+    const u = (i + 0.5) / RINGS;
+    const y = FOL_Y + u * H;
+    const R = radiusAt(u);
+    if (R < 0.16) continue;
+    /* 바깥 껍질 가지 — 표면 가까이에서 뻗어 나간다 */
+    const count = Math.max(6, Math.round((TAU * R) / 0.34));
+    const phase = i * 2.39996;
+    for (let k = 0; k < count; k++) {
+      const a = phase + (k / count) * TAU + rand(-0.05, 0.05);
+      const inner = R * (0.42 + rand(0, 0.22));
+      const origin = new THREE.Vector3(Math.cos(a) * inner, y + rand(-0.06, 0.06), Math.sin(a) * inner);
+      const droop = 0.1 + 0.24 * Math.pow(1 - u, 1.6);
+      const dir = new THREE.Vector3(Math.cos(a), -droop, Math.sin(a));
+      const reach = (R * 1.02 - inner) * rand(0.9, 1.04) + 0.08;
+      addSprig(needleSink, snowSink, origin, dir, Math.max(0.14, reach), {
+        droop, snowChance: 0.13 + 0.12 * u,
+        needleLen: 0.055 + 0.022 * (1 - u), snowSize: 0.058,
+      });
     }
-    dummy.rotation.set(0, 0, 0);
-    dummy.updateMatrix();
-    balls.setMatrixAt(i, dummy.matrix);
-    colTmp.setHex(pick(ballColors));
-    balls.setColorAt(i, colTmp);
+    /* 안쪽 채움 가지 — 위에서 내려다볼 때 속이 비지 않게 */
+    const count2 = Math.max(3, Math.round((TAU * R) / 0.95));
+    for (let k = 0; k < count2; k++) {
+      const a = phase * 1.7 + (k / count2) * TAU + rand(-0.1, 0.1);
+      const inner = R * rand(0.1, 0.3);
+      const origin = new THREE.Vector3(Math.cos(a) * inner, y + rand(-0.05, 0.05), Math.sin(a) * inner);
+      const dir = new THREE.Vector3(Math.cos(a), 0.05 - rand(0, 0.2), Math.sin(a));
+      addSprig(needleSink, snowSink, origin, dir, Math.max(0.12, R * rand(0.35, 0.55)), {
+        droop: 0.3, snowChance: 0.05, needleLen: 0.06, snowSize: 0.05,
+      });
+    }
   }
-  balls.instanceMatrix.needsUpdate = true;
-  group.add(balls);
+  /* 꼭대기 — 뾰족한 끝 */
+  for (let i = 0; i < 22; i++) {
+    const a = (i / 22) * TAU;
+    const yy = topY - 0.62 + (i % 3) * 0.14;
+    addSprig(needleSink, snowSink,
+      new THREE.Vector3(Math.cos(a) * 0.06, yy, Math.sin(a) * 0.06),
+      new THREE.Vector3(Math.cos(a) * 0.55, 1, Math.sin(a) * 0.55), 0.42 + rand(0, 0.2),
+      { clusters: 5, droop: 0.1, snowChance: 0.15, needleLen: 0.07 });
+  }
 
-  /* --- 금색 별 장식 --- */
-  const starGeo = new THREE.ExtrudeGeometry(starShape(0.22, 0.09, 5), {
-    depth: 0.05, bevelEnabled: true, bevelSize: 0.012, bevelThickness: 0.012, bevelSegments: 1, curveSegments: 1,
+  const MAT_NEEDLE = new THREE.MeshStandardMaterial({
+    vertexColors: true, roughness: 0.84, metalness: 0.0, envMapIntensity: 0.55,
+    side: THREE.DoubleSide,
   });
-  starGeo.center();
-  const starsOrn = new THREE.InstancedMesh(starGeo, M.gold, 30);
-  for (let i = 0; i < 30; i++) {
-    const y = rand(1.2, 9.4);
-    const R = surfaceRadius(y) * 1.03;
-    const a = rand(0, TAU);
-    dummy.position.set(Math.cos(a) * R, y, Math.sin(a) * R);
-    dummy.rotation.set(rand(0, TAU), rand(0, TAU), rand(0, TAU));
-    dummy.scale.setScalar(rand(0.9, 1.9));
-    dummy.updateMatrix();
-    starsOrn.setMatrixAt(i, dummy.matrix);
-  }
-  group.add(starsOrn);
+  const needles = needleSink.mesh(MAT_NEEDLE);
+  needles.castShadow = false;      // 침 그림자는 노이즈만 만든다
+  needles.receiveShadow = true;
+  group.add(needles);
 
-  /* --- 금색 눈꽃 오너먼트 --- */
-  for (let i = 0; i < 14; i++) {
-    const y = rand(1.4, 9.3);
-    const R = surfaceRadius(y) * 1.04;
-    const a = rand(0, TAU);
-    const fl = makeFlakePlane(rand(0.55, 0.95));
-    fl.position.set(Math.cos(a) * R, y, Math.sin(a) * R);
-    fl.rotation.y = -a + Math.PI / 2;
-    group.add(fl);
-    const gl = glowSprite(0xffd479, 1.5, 0.32);
-    gl.position.copy(fl.position);
-    group.add(gl);
-  }
+  const MAT_TREESNOW = new THREE.MeshStandardMaterial({
+    vertexColors: true, roughness: 0.9, metalness: 0.0, envMapIntensity: 0.55,
+  });
+  const branchSnow = snowSink.mesh(MAT_TREESNOW);
+  branchSnow.receiveShadow = true;
+  group.add(branchSnow);
 
-  /* --- 나선형 전구 줄 (300개) --- */
-  const LN = 300;
+  /* ---------- 나선 벨벳 리본 ---------- */
+  const MAT_VELVET = new THREE.MeshPhysicalMaterial({
+    color: 0xffffff, vertexColors: true, roughness: 0.58, metalness: 0.02,
+    sheen: 1.0, sheenColor: new THREE.Color(0xff7a86), sheenRoughness: 0.45,
+    envMapIntensity: 0.55, side: THREE.DoubleSide,
+  });
+  const ribbonSink = new TriSink();
+  const RT = 260;
+  const RY0 = PED_TOP + 0.8, RY1 = topY - 1.45;
+  const TURNS = 2.35;
+  let prevL = null, prevR = null;
+  for (let i = 0; i <= RT; i++) {
+    const t = i / RT;
+    const y = RY0 + (RY1 - RY0) * t;
+    const u = clamp((y - FOL_Y) / H, 0, 1);
+    const r = radiusAt(u) * 0.99 + 0.1;
+    const a = t * TAU * TURNS + 0.55 + Math.sin(t * 7.5) * 0.06;
+    const c = new THREE.Vector3(Math.cos(a) * r, y + Math.sin(t * 26) * 0.035, Math.sin(a) * r);
+    const radial = new THREE.Vector3(Math.cos(a), 0, Math.sin(a));
+    const tangent = new THREE.Vector3(-Math.sin(a), 0.02, Math.cos(a)).normalize();
+    const wide = new THREE.Vector3().crossVectors(radial, tangent).normalize();
+    const tw = 0.3 + 0.04 * Math.sin(t * 9.5);
+    const twistA = 0.5 * Math.sin(t * 13.0);
+    const w2 = wide.clone().applyAxisAngle(tangent, twistA).multiplyScalar(tw / 2);
+    const L = c.clone().addScaledVector(w2, -1).addScaledVector(radial, 0.02);
+    const Rr = c.clone().addScaledVector(w2, 1).addScaledVector(radial, 0.02);
+    if (prevL) {
+      const tone = _C.velvet.clone().lerp(_C.velvetHi, 0.25 + 0.3 * Math.sin(t * 20));
+      ribbonSink.quad(prevL, prevR, Rr, L, tone);
+    }
+    prevL = L; prevR = Rr;
+  }
+  /* 리본 위 큰 보우 */
+  const bowTs = [0.1, 0.26, 0.42, 0.58, 0.72, 0.86];
+  bowTs.forEach((t) => {
+    const y = RY0 + (RY1 - RY0) * t;
+    const u = clamp((y - FOL_Y) / H, 0, 1);
+    const r = radiusAt(u) * 0.99 + 0.13;
+    const a = t * TAU * TURNS + 0.55 + Math.sin(t * 7.5) * 0.06;
+    appendBow(ribbonSink, new THREE.Vector3(Math.cos(a) * r, y, Math.sin(a) * r),
+      Math.atan2(Math.cos(a), Math.sin(a)), 1.55 + rand(-0.15, 0.25));
+  });
+  const ribbon = ribbonSink.mesh(MAT_VELVET);
+  ribbon.castShadow = false;
+  group.add(ribbon);
+
+  /* ---------- 오너먼트 (InstancedMesh 2벌) ---------- */
+  const ornDummy = new THREE.Object3D();
+  const ornCol = new THREE.Color();
+  const ornPalette = [0xd8232f, 0xa80f1c, 0xffcf6b, 0xf4e9cf, 0xc8202c, 0xe8b44a];
+  function placeOrn(inst, i, rMin, rMax) {
+    const u = rand(0.03, 0.985);
+    const y = FOL_Y + u * H;
+    const R = radiusAt(u);
+    const a = rand(0, TAU);
+    const rr = Math.max(0.2, R * rand(rMin, rMax));
+    ornDummy.position.set(Math.cos(a) * rr, y + rand(-0.1, 0.1), Math.sin(a) * rr);
+    ornDummy.rotation.set(rand(0, TAU), rand(0, TAU), 0);
+    ornDummy.scale.setScalar(rand(0.8, 1.25));
+    ornDummy.updateMatrix();
+    inst.setMatrixAt(i, ornDummy.matrix);
+    ornCol.setHex(pick(ornPalette));
+    inst.setColorAt(i, ornCol);
+  }
+  const bigOrn = new THREE.InstancedMesh(
+    new THREE.SphereGeometry(0.155, 14, 10),
+    new THREE.MeshStandardMaterial({ roughness: 0.18, metalness: 0.62, envMapIntensity: 1.7 }),
+    52
+  );
+  for (let i = 0; i < 52; i++) placeOrn(bigOrn, i, 0.84, 0.95);
+  bigOrn.instanceMatrix.needsUpdate = true;
+  if (bigOrn.instanceColor) bigOrn.instanceColor.needsUpdate = true;
+  bigOrn.castShadow = false;
+  group.add(bigOrn);
+
+  const smallOrn = new THREE.InstancedMesh(
+    new THREE.SphereGeometry(0.088, 10, 8),
+    new THREE.MeshStandardMaterial({ roughness: 0.24, metalness: 0.5, envMapIntensity: 1.4 }),
+    120
+  );
+  for (let i = 0; i < 120; i++) placeOrn(smallOrn, i, 0.82, 0.98);
+  smallOrn.instanceMatrix.needsUpdate = true;
+  if (smallOrn.instanceColor) smallOrn.instanceColor.needsUpdate = true;
+  group.add(smallOrn);
+
+  /* ---------- 전구 (Points + 블룸) ---------- */
+  const LN = 380;
   const lp = new Float32Array(LN * 3);
   const lc = new Float32Array(LN * 3);
   const baseCol = [];
   for (let i = 0; i < LN; i++) {
     const t = i / (LN - 1);
-    const y = 1.0 + t * 8.2;
-    const a = t * TAU * 5.6;
-    const R = Math.max(surfaceRadius(y) * 1.05, 0.02);
+    /* 나선 전구 줄 + 잎 사이 잔불 */
+    const spiral = i < LN * 0.7;
+    let y, a, R;
+    if (spiral) {
+      const ts = i / (LN * 0.7 - 1);
+      y = FOL_Y + 0.45 + ts * (H - 1.0);
+      a = ts * TAU * 6.4 + 0.9;
+      R = radiusAt((y - FOL_Y) / H) * 1.01;
+    } else {
+      y = FOL_Y + rand(0.5, H - 0.6);
+      a = rand(0, TAU);
+      R = radiusAt((y - FOL_Y) / H) * rand(0.82, 1.03);
+    }
     lp[i * 3] = Math.cos(a) * R;
-    lp[i * 3 + 1] = y + Math.sin(a * 1.3) * 0.05;
+    lp[i * 3 + 1] = y + rand(-0.05, 0.05);
     lp[i * 3 + 2] = Math.sin(a) * R;
-    const c = new THREE.Color(pick([0xffd479, 0xfff3c9, 0xffc06a, 0xfff0b0]));
+    const c = new THREE.Color(pick([0xffd479, 0xfff3c9, 0xffc06a, 0xfff0b0, 0xffb155]));
     baseCol.push(c);
     lc[i * 3] = c.r; lc[i * 3 + 1] = c.g; lc[i * 3 + 2] = c.b;
   }
@@ -2883,69 +3131,223 @@ function buildPlazaTree() {
   lg.setAttribute('position', new THREE.BufferAttribute(lp, 3));
   lg.setAttribute('color', new THREE.BufferAttribute(lc, 3));
   const lights = new THREE.Points(lg, new THREE.PointsMaterial({
-    size: 0.42, map: TEX_GLOW, vertexColors: true, transparent: true,
+    size: 0.34, map: TEX_GLOW, vertexColors: true, transparent: true,
     opacity: 0.95, depthWrite: false, blending: THREE.AdditiveBlending,
   }));
   group.add(lights);
 
-  /* --- 꼭대기 별 --- */
-  const starGeoBig = new THREE.ExtrudeGeometry(starShape(1.05, 0.46, 5), {
-    depth: 0.26, bevelEnabled: true, bevelSize: 0.05, bevelThickness: 0.05, bevelSegments: 1, curveSegments: 2,
+  /* ---------- 꼭대기 8각 황금 별 ---------- */
+  function starShape8(outer, inner, pts) {
+    const s = new THREE.Shape();
+    for (let i = 0; i < pts * 2; i++) {
+      const rr = i % 2 ? inner : outer;
+      const a = -Math.PI / 2 + (i * Math.PI) / pts;
+      const sx = Math.cos(a) * rr, sy = Math.sin(a) * rr;
+      if (i === 0) s.moveTo(sx, sy); else s.lineTo(sx, sy);
+    }
+    s.closePath();
+    return s;
+  }
+  const starGeoBig = new THREE.ExtrudeGeometry(starShape8(1.05, 0.42, 8), {
+    depth: 0.2, bevelEnabled: true, bevelSize: 0.045, bevelThickness: 0.045,
+    bevelSegments: 2, curveSegments: 2,
   });
   starGeoBig.center();
   const star = new THREE.Mesh(starGeoBig, new THREE.MeshStandardMaterial({
-    color: 0xfff0bc, emissive: 0xffc247, emissiveIntensity: 2.4, roughness: 0.28, metalness: 0.5,
+    color: 0xffe9a8, emissive: 0xffb733, emissiveIntensity: 1.35, roughness: 0.28,
+    metalness: 0.7, envMapIntensity: 1.3,
   }));
-  star.position.set(0, topY + 0.75, 0);
+  star.position.set(0, topY + 0.62, 0);
   group.add(star);
-  const starGlow = glowSprite(0xffd06a, 3.6, 0.6);
-  starGlow.position.set(0, topY + 0.75, 0);
+
+  /* 별 뒤로 한 겹 더 — 살짝 돌려 입체감 */
+  const starBack = new THREE.Mesh(starGeoBig, star.material);
+  starBack.position.copy(star.position);
+  starBack.rotation.y = Math.PI / 2;
+  starBack.scale.setScalar(0.74);
+  group.add(starBack);
+
+  const starGlow = glowSprite(0xffc45e, 2.9, 0.42);
+  starGlow.position.set(0, topY + 0.62, 0);
   group.add(starGlow);
+  const starGlow2 = glowSprite(0xfff0c0, 1.2, 0.5);
+  starGlow2.position.copy(starGlow.position);
+  group.add(starGlow2);
+
   const starLight = new THREE.PointLight(0xffcf7a, 34, 34 * MAP, 2);
-  starLight.position.set(0, topY + 0.5, 0);
+  starLight.position.set(0, topY + 0.45, 0);
   group.add(starLight);
-  const midLight = new THREE.PointLight(0xffb066, 20, 22 * MAP, 2);
-  midLight.position.set(0, BASE + 3.6, 0);
+  const midLight = new THREE.PointLight(0xffb066, 22, 22 * MAP, 2);
+  midLight.position.set(0, GROUND + 3.4, 0);
   group.add(midLight);
+  const lowLight = new THREE.PointLight(0xffc07a, 14, 16 * MAP, 2);
+  lowLight.position.set(0, GROUND + 1.3, 0);
+  group.add(lowLight);
 
-  /* --- 단상 위 선물 상자 --- */
-  const gifts = [
-    [4.6, 0.7, 0.62, 0xb71c2b, 0xffd479], [4.45, 2.4, 0.72, 0xf7f1e4, 0xb71c2b],
-    [4.7, 3.9, 0.56, 0x1f5f45, 0xffd479], [4.5, 5.3, 0.60, 0xffd479, 0xb71c2b],
-    [4.75, 4.7, 0.5, 0xb71c2b, 0xf7f1e4], [4.4, 5.9, 0.54, 0xf7f1e4, 0x1f5f45],
-  ];
-  gifts.forEach(([r, a, s, bc, rc]) => {
-    const gift = makeGift(s, bc, rc, rand(0, TAU));
-    gift.position.set(Math.cos(a) * r, BASE - 0.06, Math.sin(a) * r);
-    group.add(gift);
+  /* ---------- 단상 화환 (솔잎 + 전구 + 보우) ---------- */
+  const garSink = new TriSink();
+  const garSnow = new TriSink();
+  const GR = 3.62;
+  const GN = 104;
+  for (let i = 0; i < GN; i++) {
+    const a = (i / GN) * TAU;
+    const jitter = rand(-0.05, 0.05);
+    const origin = new THREE.Vector3(Math.cos(a) * GR, GROUND + 0.5 + jitter, Math.sin(a) * GR);
+    const dir = new THREE.Vector3(Math.cos(a) * 0.9, 0.15 + rand(-0.2, 0.2), Math.sin(a) * 0.9);
+    addSprig(garSink, garSnow, origin, dir, rand(0.2, 0.3), { droop: 0.4, snowChance: 0.45, needleLen: 0.05, snowSize: 0.05 });
+  }
+  const garMesh = garSink.mesh(MAT_NEEDLE);
+  garMesh.receiveShadow = true;
+  group.add(garMesh);
+  const garSnowMesh = garSnow.mesh(MAT_TREESNOW);
+  group.add(garSnowMesh);
+
+  const gBowSink = new TriSink();
+  [0.25, 0.75, 1.25, 1.75, 2.25].forEach((a) => {
+    const p = new THREE.Vector3(Math.cos(a * Math.PI) * (GR + 0.06), GROUND + 0.5, Math.sin(a * Math.PI) * (GR + 0.06));
+    appendBow(gBowSink, p, Math.atan2(Math.cos(a * Math.PI), Math.sin(a * Math.PI)) + Math.PI / 2, 0.95);
   });
+  const gBows = gBowSink.mesh(MAT_VELVET);
+  group.add(gBows);
 
-  /* --- 단상 위 사각 랜턴 --- */
-  [[4.7, 1.55], [4.85, 3.1], [4.75, 4.6], [4.8, 0.15]].forEach(([r, a]) => {
-    const g = new THREE.Group();
-    const base = new THREE.Mesh(new THREE.BoxGeometry(0.44, 0.12, 0.44), M.iron);
-    g.add(base);
-    const glass = new THREE.Mesh(
-      new THREE.BoxGeometry(0.38, 0.5, 0.38),
-      new THREE.MeshStandardMaterial({ color: 0xffd79a, emissive: 0xffab4d, emissiveIntensity: 2.1, roughness: 0.45 })
+  /* 화환 전구 */
+  const GL = 46;
+  const gp = new Float32Array(GL * 3);
+  const gc = new Float32Array(GL * 3);
+  for (let i = 0; i < GL; i++) {
+    const a = (i / GL) * TAU;
+    const rr = GR + rand(-0.02, 0.08);
+    gp[i * 3] = Math.cos(a) * rr;
+    gp[i * 3 + 1] = GROUND + 0.48 + rand(-0.08, 0.02);
+    gp[i * 3 + 2] = Math.sin(a) * rr;
+    const c = new THREE.Color(pick([0xffd479, 0xfff0b0, 0xffc06a]));
+    gc[i * 3] = c.r; gc[i * 3 + 1] = c.g; gc[i * 3 + 2] = c.b;
+  }
+  const gg = new THREE.BufferGeometry();
+  gg.setAttribute('position', new THREE.BufferAttribute(gp, 3));
+  gg.setAttribute('color', new THREE.BufferAttribute(gc, 3));
+  const garLights = new THREE.Points(gg, new THREE.PointsMaterial({
+    size: 0.3, map: TEX_GLOW, vertexColors: true, transparent: true,
+    opacity: 0.9, depthWrite: false, blending: THREE.AdditiveBlending,
+  }));
+  group.add(garLights);
+
+  /* ---------- 단상 위 눈둑 ---------- */
+  const driftSink = new TriSink();
+  for (let i = 0; i < 26; i++) {
+    const a = rand(0, TAU);
+    const rr = rand(2.6, 3.55);
+    const m = new THREE.Matrix4().compose(
+      new THREE.Vector3(Math.cos(a) * rr, GROUND + 0.6, Math.sin(a) * rr),
+      new THREE.Quaternion().setFromEuler(new THREE.Euler(0, rand(0, TAU), 0)),
+      new THREE.Vector3(rand(0.5, 1.1), rand(0.08, 0.16), rand(0.45, 0.95))
     );
-    glass.position.y = 0.31;
-    g.add(glass);
-    const cap = new THREE.Mesh(new THREE.ConeGeometry(0.34, 0.2, 4), M.iron);
-    cap.position.y = 0.66;
-    cap.rotation.y = Math.PI / 4;
-    g.add(cap);
-    const gl = glowSprite(0xffb45e, 2.1, 0.65);
-    gl.position.y = 0.34;
-    g.add(gl);
-    g.position.set(Math.cos(a) * r, BASE - 0.06, Math.sin(a) * r);
-    group.add(g);
+    driftSink.append(_SNOW_BLOB, m, i % 3 ? _C.snow : _C.snowSh);
+  }
+  const drifts = driftSink.mesh(MAT_TREESNOW);
+  drifts.receiveShadow = true;
+  group.add(drifts);
+
+  /* ---------- 선물 상자 (InstancedMesh 3장) ---------- */
+  const GIFT_N = 9;
+  const boxGeo = new THREE.BoxGeometry(1, 1, 1);
+  const giftBox = new THREE.InstancedMesh(
+    boxGeo,
+    new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.5, metalness: 0.1, envMapIntensity: 0.8 }),
+    GIFT_N
+  );
+  const ribbonCross = new THREE.BoxGeometry(1, 1, 1);
+  const giftRibbon = new THREE.InstancedMesh(
+    ribbonCross,
+    new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.42, metalness: 0.35, envMapIntensity: 1.1 }),
+    GIFT_N * 2
+  );
+  const giftBowSink = new TriSink();
+  const gDummy = new THREE.Object3D();
+  const giftCols = [[0xb71c2b, 0xffd479], [0xf7f1e4, 0xb71c2b], [0x1f5f45, 0xffd479],
+    [0xffd479, 0xb71c2b], [0x9d1120, 0xf7f1e4], [0x2a4f7a, 0xffd479]];
+  for (let i = 0; i < GIFT_N; i++) {
+    const a = (i / GIFT_N) * TAU + rand(-0.12, 0.12);
+    const rr = rand(4.15, 5.15);
+    const s = rand(0.5, 0.92);
+    const h = s * rand(0.62, 0.95);
+    const x = Math.cos(a) * rr, z = Math.sin(a) * rr;
+    const gy = GROUND - 0.04;
+    gDummy.position.set(x, gy + h / 2, z);
+    gDummy.rotation.set(0, rand(0, TAU), 0);
+    gDummy.scale.set(s, h, s * rand(0.85, 1.05));
+    gDummy.updateMatrix();
+    giftBox.setMatrixAt(i, gDummy.matrix);
+    giftBox.setColorAt(i, ornCol.setHex(giftCols[i % giftCols.length][0]));
+
+    /* 리본 두 줄 */
+    for (let k = 0; k < 2; k++) {
+      const gm = new THREE.Object3D();
+      gm.position.copy(gDummy.position);
+      gm.rotation.copy(gDummy.rotation);
+      const wide = k === 0;
+      gm.scale.set(wide ? s * 1.02 : s * 0.17, h * 1.02, wide ? s * 0.17 : s * 1.05);
+      gm.updateMatrix();
+      giftRibbon.setMatrixAt(i * 2 + k, gm.matrix);
+      giftRibbon.setColorAt(i * 2 + k, ornCol.setHex(giftCols[i % giftCols.length][1]));
+    }
+    appendBow(giftBowSink, new THREE.Vector3(x, gy + h, z), rand(0, TAU), s * 0.85);
+  }
+  giftBox.instanceMatrix.needsUpdate = true;
+  if (giftBox.instanceColor) giftBox.instanceColor.needsUpdate = true;
+  giftRibbon.instanceMatrix.needsUpdate = true;
+  if (giftRibbon.instanceColor) giftRibbon.instanceColor.needsUpdate = true;
+  giftBox.castShadow = true; giftBox.receiveShadow = true;
+  giftRibbon.castShadow = false;
+  group.add(giftBox, giftRibbon);
+  const giftBows = giftBowSink.mesh(MAT_VELVET);
+  group.add(giftBows);
+
+  /* ---------- 단상 옆 사각 랜턴 ---------- */
+  const lantSink = new TriSink();
+  const glassSink = new TriSink();
+  const lantSpots = [0.35, 1.95, 3.45, 4.75];
+  lantSpots.forEach((a) => {
+    const r = 4.42;
+    const x = Math.cos(a) * r, z = Math.sin(a) * r;
+    const y = GROUND - 0.02;
+    const iron = _C.goldDeep;
+    const m = (px, py, pz, sx, sy, sz) => new THREE.Matrix4().compose(
+      new THREE.Vector3(x + px, y + py, z + pz), new THREE.Quaternion(),
+      new THREE.Vector3(sx, sy, sz)
+    );
+    lantSink.append(new THREE.BoxGeometry(1, 1, 1), m(0, 0.06, 0, 0.46, 0.12, 0.46), _C.barkLo);
+    lantSink.append(new THREE.BoxGeometry(1, 1, 1), m(0, 0.74, 0, 0.4, 0.06, 0.4), _C.barkLo);
+    [-1, 1].forEach((sx) => [-1, 1].forEach((sz) => {
+      lantSink.append(new THREE.BoxGeometry(1, 1, 1), m(sx * 0.17, 0.4, sz * 0.17, 0.05, 0.62, 0.05), _C.barkLo);
+    }));
+    const capM = new THREE.Matrix4().compose(
+      new THREE.Vector3(x, y + 0.62, z),
+      new THREE.Quaternion().setFromEuler(new THREE.Euler(0, Math.PI / 4, 0)),
+      new THREE.Vector3(1, 1, 1)
+    );
+    lantSink.append(new THREE.ConeGeometry(0.3, 0.2, 4), capM, _C.barkLo);
+    glassSink.append(new THREE.BoxGeometry(1, 1, 1), m(0, 0.38, 0, 0.3, 0.52, 0.3), _C.gold);
+    const gl = glowSprite(0xffb45e, 2.4, 0.7);
+    gl.position.set(x, y + 0.42, z);
+    group.add(gl);
   });
+  const lanternIron = lantSink.mesh(new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.45, metalness: 0.7, envMapIntensity: 1.1 }));
+  lanternIron.castShadow = true;
+  group.add(lanternIron);
+  const lanternGlass = glassSink.mesh(new THREE.MeshStandardMaterial({
+    vertexColors: true, emissive: 0xffab4d, emissiveIntensity: 2.2, roughness: 0.4,
+  }));
+  group.add(lanternGlass);
+
+  /* ---------- 트리 아래 접지 그림자 ---------- */
+  const blob = contactShadow(5.4, 0.5);
+  blob.position.y = GROUND + 0.02;
+  group.add(blob);
 
   scene.add(group);
   return { group, star, starLight, lights, baseCol };
 }
-
 /* ---------------------------------------------------------------
    소나무 숲 · 눈둑
 --------------------------------------------------------------- */
@@ -4839,7 +5241,7 @@ function twinkleTree() {
   }
   attr.needsUpdate = true;
   tree.star.rotation.y = elapsed * 0.45;
-  tree.star.material.emissiveIntensity = 2.2 + Math.sin(elapsed * 1.5) * 0.6;
+  tree.star.material.emissiveIntensity = 1.3 + Math.sin(elapsed * 1.5) * 0.28;
 }
 
 /* 굴뚝 연기 */
