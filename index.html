@@ -2975,6 +2975,7 @@ function buildPlazaTree() {
       addSprig(needleSink, snowSink, origin, dir, Math.max(0.14, reach), {
         droop, snowChance: 0.13 + 0.12 * u,
         needleLen: 0.055 + 0.022 * (1 - u), snowSize: 0.058,
+        perCluster: u < 0.2 ? 7 : 5,
       });
     }
     /* 안쪽 채움 가지 — 위에서 내려다볼 때 속이 비지 않게 */
