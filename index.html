@@ -1432,7 +1432,8 @@ renderer.setSize(window.innerWidth, window.innerHeight);
 renderer.shadowMap.enabled = true;
 renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 renderer.toneMapping = THREE.ACESFilmicToneMapping;
-renderer.toneMappingExposure = 0.96;
+/* 모바일은 블룸·그레이딩 없이 직접 렌더하므로 노출을 조금 올려 화사하게 맞춘다 */
+renderer.toneMappingExposure = IS_TOUCH ? 1.06 : 0.96;
 sceneRoot.appendChild(renderer.domElement);
 renderer.domElement.style.touchAction = 'none';
 
@@ -3386,7 +3387,7 @@ function buildPlazaTree() {
      모바일은 가지 밀도를 낮춰 삼각형 수를 크게 줄인다(컨텍스트 유실 방지). */
   const needleSink = new TriSink();
   const snowSink = new TriSink();
-  const TREE_LOD = IS_TOUCH ? 0.55 : 1;
+  const TREE_LOD = IS_TOUCH ? 0.74 : 1;
   const RINGS = Math.max(24, Math.round(66 * TREE_LOD));
   for (let i = 0; i < RINGS; i++) {
     const u = (i + 0.5) / RINGS;
@@ -3406,7 +3407,7 @@ function buildPlazaTree() {
       addSprig(needleSink, snowSink, origin, dir, Math.max(0.14, reach), {
         droop, snowChance: 0.13 + 0.12 * u,
         needleLen: 0.055 + 0.022 * (1 - u), snowSize: 0.058,
-        perCluster: (u < 0.2 ? 7 : 5) * (IS_TOUCH ? 0.6 : 1),
+        perCluster: Math.max(3, Math.round((u < 0.2 ? 7 : 5) * (IS_TOUCH ? 0.8 : 1))),
       });
     }
     /* 안쪽 채움 가지 — 위에서 내려다볼 때 속이 비지 않게 */
@@ -5840,7 +5841,8 @@ const rig = {
   lobbyT: 0,
 };
 
-const SPAWN = { x: 4.2 * MAP, z: 5.2 * MAP };
+/* 입장 지점 — 광장 남쪽 빈 자리에서 트리를 바라본다 (소품에 끼지 않게) */
+const SPAWN = { x: 1.2, z: 11.6 };
 const playerPos = new THREE.Vector3(SPAWN.x, 0, SPAWN.z);
 const playerYaw = { v: Math.PI };
 const vel = new THREE.Vector2(0, 0);
@@ -6413,7 +6415,7 @@ joinForm.addEventListener('submit', (e) => {
   const narrow = window.innerWidth / window.innerHeight < 0.85;
   rig.pitch = narrow ? 0.21 : 0.19;   // 광장이 넓어진 만큼 조금 낮춰 나무·마을이 함께 보이게
   rig.dist = 15;
-  rig.targetDist = narrow ? 8.2 : 8.6;
+  rig.targetDist = narrow ? 10.4 : 8.6;
   rig.lookAt.set(SPAWN.x, 2.2, SPAWN.z);
 
   addChatLine('', '🎄 <b>' + nick + '</b> 님이 <b>#' + state.room + '</b> 광장에 입장했습니다', false, true);
@@ -6542,7 +6544,7 @@ function sanitizeRig() {
   rig.dist = clamp(rig.dist, CAM_MIN, CAM_MAX);
   rig.pitch = clamp(rig.pitch, -0.12, 1.15);
   if (!Number.isFinite(rig.lookAt.x) || !Number.isFinite(rig.lookAt.y) || !Number.isFinite(rig.lookAt.z)) {
-    rig.lookAt.set(playerPos.x, playerPos.y + 1.95, playerPos.z);
+    rig.lookAt.set(playerPos.x, playerPos.y + 1.45, playerPos.z);
   }
   if (!Number.isFinite(playerPos.x) || !Number.isFinite(playerPos.z)) {
     playerPos.set(0, 0, 6);
@@ -6565,7 +6567,7 @@ function updateCamera(dt) {
     rig.targetDist = 30 * MAP;
     rig.lookAt.lerp(tmpV.set(0, 5.4 * MAP, 0), Math.min(1, dt * 2));
   } else {
-    const target = tmpV.set(playerPos.x, playerPos.y + 1.95, playerPos.z);
+    const target = tmpV.set(playerPos.x, playerPos.y + 1.45, playerPos.z);
     rig.lookAt.lerp(target, Math.min(1, dt * 7));
     rig.dist = lerp(rig.dist, rig.targetDist, Math.min(1, dt * 4.5));
   }
@@ -7027,7 +7029,7 @@ function watchQuality(fps) {
 /* 리사이즈 */
 function onResize() {
   camera.aspect = window.innerWidth / window.innerHeight;
-  if (rig.mode === 'player') rig.targetDist = camera.aspect < 0.85 ? 8.2 : 8.6;
+  if (rig.mode === 'player') rig.targetDist = camera.aspect < 0.85 ? 10.4 : 8.6;
   camera.updateProjectionMatrix();
   renderer.setSize(window.innerWidth, window.innerHeight);
   applyQuality();          // 픽셀비율·컴포저 버퍼를 품질 단계에 맞춰 다시 잡는다
