@@ -3933,6 +3933,11 @@ const warmFill = new THREE.DirectionalLight(0xffb887, 0.28);
 warmFill.position.set(16, 12, 44);
 scene.add(warmFill);
 
+/* 하늘/눈 반사광 — 그림자 속 바닥이 새까맣게 죽지 않게 최소한만 채운다.
+   (모바일은 블룸·그레이딩이 없어 조금 더 필요하다) */
+const hemiFill = new THREE.HemisphereLight(0x93a9d8, 0x555c72, IS_TOUCH ? 0.5 : 0.34);
+scene.add(hemiFill);
+
 /* 광장 전체를 데우는 은은한 조명 (디오라마 바닥이 어둡지 않게) */
 const plazaGlow = new THREE.PointLight(0xffd9a8, 14, 26 * MAP, 2);
 plazaGlow.position.set(0.5 * MAP, 6.4 * MAP, 0.5 * MAP);
