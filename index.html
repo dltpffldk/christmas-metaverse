@@ -189,6 +189,73 @@
     box-shadow:0 10px 26px rgba(120,160,255,.34), inset 0 1px 0 rgba(255,255,255,.7);
   }
 
+  /* ---------- 집 안 출입 버튼 ---------- */
+  #doorBtn, #exitBtn{
+    display:none;align-items:center;justify-content:center;gap:8px;
+    padding:11px 17px;border-radius:15px;cursor:pointer;
+    font-size:14px;font-weight:800;letter-spacing:-.3px;font-family:inherit;
+    color:#3a2109;white-space:nowrap;
+    background:linear-gradient(180deg,#fff0cc,#ffc46e);
+    border:1px solid rgba(255,244,214,.95);
+    box-shadow:0 10px 26px rgba(255,160,60,.36), inset 0 1px 0 rgba(255,255,255,.7);
+    transition:transform .12s ease, box-shadow .18s, background .18s;
+  }
+  #doorBtn.show, #exitBtn.show{display:flex}
+  #doorBtn:hover, #exitBtn:hover{transform:translateY(-2px);box-shadow:0 14px 30px rgba(255,160,60,.48), inset 0 1px 0 rgba(255,255,255,.75)}
+  #doorBtn:active, #exitBtn:active{transform:scale(.94)}
+  #exitBtn{
+    color:#14243c;
+    background:linear-gradient(180deg,#eef7ff,#b3d3f4);
+    border-color:rgba(226,242,255,.95);
+    box-shadow:0 10px 26px rgba(110,160,235,.34), inset 0 1px 0 rgba(255,255,255,.75);
+  }
+  #doorBtn .key{
+    display:inline-grid;place-items:center;min-width:21px;height:21px;padding:0 5px;
+    border-radius:7px;font-size:11px;font-weight:900;letter-spacing:0;
+    color:#4a2c0b;background:rgba(80,44,10,.14);border:1px solid rgba(80,44,10,.22);
+  }
+  @media (pointer: coarse){ #doorBtn .key{display:none} }
+
+  /* ---------- 집 안 출입 이동 화면 ---------- */
+  #doorTransition{
+    position:fixed;inset:0;z-index:92;display:grid;place-items:center;
+    opacity:0;pointer-events:none;transition:opacity .4s ease;
+    background:radial-gradient(120% 100% at 50% 50%,#2e1a0e 0%,#190e08 52%,#050303 100%);
+  }
+  #doorTransition.show{opacity:1;pointer-events:auto}
+  #doorTransition .dt-light{
+    position:absolute;left:50%;top:50%;width:46vmax;height:46vmax;border-radius:50%;
+    transform:translate(-50%,-50%) scale(1);opacity:0;
+    background:radial-gradient(closest-side,rgba(255,226,170,.55),rgba(255,168,80,.24) 46%,rgba(255,140,60,0) 74%);
+    transition:transform .7s cubic-bezier(.22,.72,.3,1), opacity .5s ease;
+  }
+  #doorTransition.show .dt-light{opacity:1}
+  #doorTransition .dt-card{
+    position:relative;z-index:2;display:flex;flex-direction:column;align-items:center;gap:12px;
+    text-align:center;padding:24px 34px 20px;border-radius:24px;
+    background:rgba(24,13,7,.72);border:1px solid rgba(255,206,150,.28);
+    box-shadow:0 26px 70px rgba(0,0,0,.6), inset 0 1px 0 rgba(255,226,180,.18);
+    backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);
+  }
+  #doorTransition .dt-door{
+    width:78px;height:98px;border-radius:12px 12px 5px 5px;
+    display:grid;place-items:center;font-size:42px;line-height:1;
+    background:linear-gradient(180deg,rgba(255,226,178,.26),rgba(255,170,86,.18));
+    border:1px solid rgba(255,220,170,.6);
+    box-shadow:0 0 44px rgba(255,178,90,.5), inset 0 0 26px rgba(255,196,120,.35);
+    animation:doorBreath 2.2s ease-in-out infinite;
+  }
+  @keyframes doorBreath{
+    0%,100%{transform:scale(1);box-shadow:0 0 34px rgba(255,178,90,.4), inset 0 0 20px rgba(255,196,120,.3)}
+    50%{transform:scale(1.05);box-shadow:0 0 58px rgba(255,196,110,.62), inset 0 0 30px rgba(255,206,140,.45)}
+  }
+  #doorTransition .dt-text{margin:0;font-size:17px;font-weight:800;letter-spacing:-.3px;color:#fff4e2;text-shadow:0 2px 16px rgba(0,0,0,.8)}
+  #doorTransition .dt-sub{margin:0;font-size:12px;color:#e8c9a4;letter-spacing:.2px;opacity:.85}
+  #doorTransition .dt-bar{width:150px;height:4px;border-radius:99px;background:rgba(255,226,190,.18);overflow:hidden;margin-top:4px}
+  #doorTransition .dt-bar i{display:block;width:0;height:100%;border-radius:99px;background:linear-gradient(90deg,#ffb75e,#fff2d2)}
+  #doorTransition.show .dt-bar i{animation:doorBar .95s cubic-bezier(.4,.1,.4,1) forwards}
+  @keyframes doorBar{from{width:0}to{width:100%}}
+
   /* ---------- 조이스틱 ---------- */
   #joystick{
     position:fixed;left:18px;bottom:calc(18px + var(--safe-b));z-index:26;
@@ -411,6 +478,10 @@
     #hint{display:none}
     #emojiRow{gap:6px}
     .emoji-btn{width:42px;height:42px;font-size:21px;border-radius:12px}
+    #doorBtn, #exitBtn{padding:10px 14px;font-size:12.5px;gap:6px}
+    #doorTransition .dt-door{width:66px;height:84px;font-size:34px}
+    #doorTransition .dt-text{font-size:14px}
+    #doorTransition .dt-card{padding:20px 24px 17px;border-radius:20px}
     #joinModal .card{padding:18px 15px 16px;border-radius:20px}
     #joinModal h1{font-size:22px}
     #joinModal .sub{font-size:12px;margin-bottom:14px}
@@ -507,6 +578,7 @@
   <p><b>모바일</b> · 좌측 하단 <b>조이스틱</b> 이동 · 화면 <b>드래그</b> 시점 회전 · 두 손가락 <b>핀치</b> 확대/축소</p>
   <p><b>채팅</b> · 아래 입력창에 메시지를 보내면 내 엘프 머리 위에 말풍선이 뜹니다</p>
   <p><b>리액션</b> · 우측 하단 🎄 ❄️ 🎁 🔔 버튼</p>
+  <p><b>집 안</b> · 코티지 문 앞에서 <span class="k">F</span> 또는 <span class="k">E</span> (모바일은 <b>🚪 집 안으로 들어가기</b> 버튼) · 안에서 <span class="k">F</span> 로 다시 나옵니다</p>
   <p><b>함께 걷기</b> · 아래 <b>방 코드</b>를 같은 값으로 맞춘 사람끼리 같은 광장에서 만납니다 (최대 10명)</p>
   <p style="margin:0"><b>BGM</b> · 우측 상단 🔇 버튼으로 캐롤 켜기/끄기 (외부 음원 없이 브라우저 신스로 연주)</p>
 </aside>
@@ -520,6 +592,8 @@
 
 <!-- ================= 우측 하단 독 ================= -->
 <div id="dock">
+  <button id="doorBtn" type="button" aria-label="집 안으로 들어가기">🚪 집 안으로 들어가기 <span class="key">F</span></button>
+  <button id="exitBtn" type="button" aria-label="광장으로 나가기">🚪 광장으로 나가기 <span class="key">F</span></button>
   <button id="seatBtn" type="button" aria-label="모닥불에 앉기">🪑 앉기</button>
   <div id="emojiRow">
     <button class="emoji-btn" data-emoji="🎄" aria-label="트리 리액션">🎄</button>
@@ -535,8 +609,19 @@
 <!-- ================= 조이스틱 ================= -->
 <div id="joystick"><div id="stick"></div><div class="lbl">이동</div></div>
 
-<div id="hint">W A S D 이동 · 마우스 드래그 시점 · 휠 줌</div>
+<div id="hint">W A S D 이동 · 드래그 시점 · 휠 줌 · 코티지 문 앞에서 F</div>
 <div id="toast"></div>
+
+<!-- ================= 집 안 출입 이동 화면 ================= -->
+<div id="doorTransition" aria-hidden="true">
+  <div class="dt-light"></div>
+  <div class="dt-card">
+    <div class="dt-door">🚪</div>
+    <p class="dt-text" id="doorTransitionText">🏠 따뜻한 집 안으로 들어가는 중…</p>
+    <p class="dt-sub" id="doorTransitionSub">문을 열고 들어갑니다</p>
+    <div class="dt-bar"><i></i></div>
+  </div>
+</div>
 
 <!-- ================= 입장 모달 ================= -->
 <div id="joinModal">
@@ -645,6 +730,12 @@ const CAM_MIN = 5.5;
    저사양 GPU 에서 컨텍스트 유실 위험이 커지기 때문이다. */
 const CAM_MAX = IS_TOUCH ? 21 : 26;
 const CAM_FAR = 19;            // 이 거리부터는 '멀리 보기' — 블룸·픽셀비율을 낮춘다
+/* 줌 한계 — 광장과 집 안(실내)은 방 크기가 달라 따로 잡는다.
+   ZONE.mode 가 바뀔 때 applyCamLimits() 가 이 두 값을 갈아끼운다. */
+let CAM_LO = CAM_MIN, CAM_HI = CAM_MAX;
+/* 지금 서 있는 공간 — 'plaza'(광장) / 'interior'(집 안).
+   이동·충돌·카메라·네트워크가 모두 이 값을 보고 갈라진다. */
+const ZONE = { mode: 'plaza', door: -1, returnX: 0, returnZ: 0, returnYaw: Math.PI };
 const clamp = (v, a, b) => Math.min(b, Math.max(a, v));
 const finiteOr = (v, alt) => (Number.isFinite(v) ? v : alt);
 const lerp = (a, b, t) => a + (b - a) * t;
@@ -752,7 +843,7 @@ class DemoNetwork extends NetworkAdapter {
     this.meId = 'me';
     this.players.set('me', {
       id: 'me', nickname: profile.nickname, character: profile.character,
-      x: 0, z: 11.5 * MAP, yaw: Math.PI, moving: false, isMe: true,
+      x: 0, z: 11.5 * MAP, yaw: Math.PI, moving: false, isMe: true, zone: 'p',
     });
 
     BOT_PROFILES.slice(0, 4).forEach((p, i) => {
@@ -856,7 +947,7 @@ class DemoNetwork extends NetworkAdapter {
     }
 
     this.emit('state', { players: [...this.players.values()].map((p) => ({
-      id: p.id, x: p.x, z: p.z, yaw: p.yaw, moving: p.moving,
+      id: p.id, x: p.x, z: p.z, yaw: p.yaw, moving: p.moving, zone: p.zone || 'p',
     })) });
   }
 
@@ -864,6 +955,7 @@ class DemoNetwork extends NetworkAdapter {
     const me = this.players.get('me');
     if (!me) return;
     me.x = s.x; me.z = s.z; me.yaw = s.yaw; me.moving = s.moving;
+    me.zone = s.zone === 'i' ? 'i' : 'p';
   }
 
   sendChat(text) {
@@ -1233,7 +1325,8 @@ class LiveNetwork extends NetworkAdapter {
         peer.moving = !!m.mv && m.p !== 'sit';
         peer.pose = m.p === 'sit' ? 'sit' : 'stand';
         peer.seat = m.si === undefined ? -1 : (+m.si || -1);
-        this.emit('state', { players: [{ id: m.id, x: peer.x, z: peer.z, yaw: peer.yaw, moving: peer.moving, pose: peer.pose, seat: peer.seat }] });
+        peer.zone = m.zn === 'i' ? 'i' : 'p';
+        this.emit('state', { players: [{ id: m.id, x: peer.x, z: peer.z, yaw: peer.yaw, moving: peer.moving, pose: peer.pose, seat: peer.seat, zone: peer.zone }] });
       }
     }
   }
@@ -1252,7 +1345,7 @@ class LiveNetwork extends NetworkAdapter {
       id,
       nickname: String(n || '엘프').slice(0, 10),
       character: charById(c).id,
-      x: SPAWN.x, z: SPAWN.z, yaw: Math.PI, moving: false, pose: 'stand', seat: -1, lastSeen: now,
+      x: SPAWN.x, z: SPAWN.z, yaw: Math.PI, moving: false, pose: 'stand', seat: -1, zone: 'p', lastSeen: now,
     };
     this.peers.set(id, peer);
     this.emit('join', {
@@ -1283,12 +1376,13 @@ class LiveNetwork extends NetworkAdapter {
     if (!this.connected || !this.mqtt || !this._pending) return;
     const s = this._pending;
     this._lastPubAt = performance.now();
-    this._lastState = { x: s.x, z: s.z, yaw: s.yaw, moving: !!s.moving, pose: s.pose || 'stand', seat: s.seat === undefined ? -1 : s.seat };
+    this._lastState = { x: s.x, z: s.z, yaw: s.yaw, moving: !!s.moving, pose: s.pose || 'stand', seat: s.seat === undefined ? -1 : s.seat, zone: s.zone || 'p' };
     this.seq = (this.seq + 1) % 100000;
     this.mqtt.publish(`${this.base}/s/${this.cid}`, JSON.stringify({
       t: 'pos', id: this.cid, n: this.profile.nickname, c: this.profile.character,
       x: +s.x.toFixed(2), z: +s.z.toFixed(2), y: +s.yaw.toFixed(2),
-      mv: s.moving ? 1 : 0, p: s.pose || 'stand', si: s.seat === undefined ? -1 : s.seat, q: this.seq,
+      mv: s.moving ? 1 : 0, p: s.pose || 'stand', si: s.seat === undefined ? -1 : s.seat,
+      zn: s.zone === 'i' ? 'i' : 'p', q: this.seq,
     }));
   }
 
@@ -1299,6 +1393,7 @@ class LiveNetwork extends NetworkAdapter {
     const L = this._lastState;
     const moved = (!!s.moving !== !!L.moving)
       || (s.pose || 'stand') !== (L.pose || 'stand')
+      || (s.zone || 'p') !== (L.zone || 'p')
       || Math.abs(s.x - L.x) > 0.02 || Math.abs(s.z - L.z) > 0.02
       || Math.abs(s.yaw - L.yaw) > 0.04;
     if (!moved || now - this._lastPubAt < 110) return;
@@ -3986,17 +4081,20 @@ buildSnowBokeh();   // 카메라 앞 보케 눈(깊이 레이어)
    · r > R_FLAT           완만한 눈 언덕 → 원경 설산
 --------------------------------------------------------------- */
 
-/** 땅 높이 — 광장은 0, 바깥은 terrainHeight 가 이어받는다 */
+/** 땅 높이 — 광장은 0, 바깥은 terrainHeight 가 이어받는다 (집 안 바닥도 0) */
 function groundY(x, z) {
+  if (ZONE.mode === 'interior') return 0;
   const r = Math.hypot(x, z);
   if (r <= R_PLAZA) return 0;
   if (r <= R_FLAT) return -GROUND_DROP;
   return terrainHeight(x, z);
 }
 
-/** 걸을 수 있는가 — 석조 광장 안쪽 (건물·소품은 콜라이더가 따로 막는다) */
+/** 걸을 수 있는가 — 석조 광장 안쪽 + 각 코티지 문 앞 현관길 (건물·소품은 콜라이더가 막는다) */
 function walkableAt(x, z) {
-  return Math.hypot(x, z) <= R_WALK;
+  if (ZONE.mode === 'interior') return interiorWalkableAt(x, z);
+  if (Math.hypot(x, z) <= R_WALK) return true;
+  return inDoorApproach(x, z);
 }
 
 /** 카메라가 파고들 구조물의 꼭대기 — 평지 광장이라 0 */
@@ -4030,6 +4128,9 @@ function randomWalkablePoint(minR = 0, maxR = 99) {
    =============================================================== */
 const villageLights = [];        // 가로등 PointLight (은은한 흔들림용)
 const SEATS = [];                // 모닥불 통나무 좌석 { x, z, y, yaw, rot, top }
+/* 코티지 문 — 광장에서 집 안으로 들어가는 입구. buildVillage() 가 채운다.
+   { i, hx, hz, ry, door:{x,z}, face:{x,z}(집→광장), stand:{x,z}(문 앞에 설 자리), w, d } */
+const HOUSE_DOORS = [];
 const SEAT_TOP = 0.55;           // 좌석 상단 높이 (광장 바닥 기준) — 앉기 자세가 이 높이에 맞춘다
 
 /* ---------- 절차적 텍스처 (병합 메시의 밋밋함을 없앤다) ---------- */
@@ -5004,13 +5105,29 @@ function buildVillage() {
     { a: 152, R: 28.6, w: 7.8, d: 6.2, h: 5.1, gableFront: false, wall: VMAT.wallC, roof: VMAT.roofB, doorX: 0.8, pitch: 0.6 },
     { a: -82, R: 28.8, w: 6.8, d: 5.6, h: 5.7, gableFront: true,  wall: VMAT.wallA, roof: VMAT.roofC, doorX: 0.0, woodpile: true, pitch: 0.66 },
   ];
-  housesCfg.forEach((c) => {
+  housesCfg.forEach((c, hi) => {
     const rad = (c.a * Math.PI) / 180;
     const x = Math.sin(rad) * c.R;
     const z = Math.cos(rad) * c.R;
     const y = 0;                            // 마을 바닥은 평평하다 — 기단이 0.00m 오차로 붙는다
     const ry = Math.atan2(-x, -z);
     addCottage(Object.assign({}, c, { x, z, y, ry }));
+
+    /* --- 문 앞 출입 지점 ---
+       문은 집의 앞면(로컬 +z = d/2)에 있고, 그 방향이 광장 쪽이다.
+       face = 집 → 문(광장) 방향. stand = 콜라이더 밖, 문에서 약 2.2~2.7m 앞. */
+    const dxl = c.doorX || 0;
+    const cs = Math.cos(ry), sn = Math.sin(ry);
+    const doorX = x + dxl * cs + (c.d / 2) * sn;
+    const doorZ = z - dxl * sn + (c.d / 2) * cs;
+    const faceX = Math.sin(ry), faceZ = Math.cos(ry);
+    const standD = Math.max(c.w, c.d) * 0.55 + 0.42 + 0.6;
+    HOUSE_DOORS.push({
+      i: hi, hx: x, hz: z, ry, w: c.w, d: c.d,
+      door: { x: doorX, z: doorZ },
+      face: { x: faceX, z: faceZ },
+      stand: { x: doorX + faceX * (standD - c.d / 2), z: doorZ + faceZ * (standD - c.d / 2) },
+    });
   });
 
   /* ---------- 건물 사이 채우기 ---------- */
@@ -5083,6 +5200,956 @@ function buildVillage() {
 
 /* 마을을 세운다 — 지면(groundY) · 콜라이더가 모두 준비된 지점 */
 const villageInfo = buildVillage();
+
+/* ===============================================================
+   🚪 집 안 출입 — 문 앞 현관길 · 이동 화면 · 아늑한 실내
+   ---------------------------------------------------------------
+   · 코티지 문 앞(약 2.9m)에 다가가면 🚪 버튼이 뜨고, 누르면 따뜻한
+     문 열림 이동 화면을 거쳐 집 안으로 들어간다.
+   · 실내는 같은 씬 안, 광장에서 멀찍이 떨어진 자리(INTERIOR_ORIGIN)에
+     지어 둔다 — 렌더러와 WebGL 컨텍스트를 그대로 쓰므로 모바일에서도
+     컨텍스트 유실 없이 전환된다.
+   · 이연 님이 집 안 .glb 를 보내주면 INTERIOR_GLB_URL 한 줄만 바꾸면
+     통째로 갈아끼워진다(바닥·충돌 경계·카메라도 모델 크기에 맞춘다).
+   =============================================================== */
+const INTERIOR_ORIGIN = new THREE.Vector3(0, 0, 260);
+/* 🔧 집 안 .glb 를 받으면 여기에 경로를 넣으면 된다. 예: './assets/house_inside.glb'
+   (런타임 교체는 window.__plaza.setInteriorGLB('./assets/house_inside.glb')) */
+const INTERIOR_GLB_URL = '';
+const DOOR_TRIGGER_R = 2.9;         // 문 앞에서 버튼이 뜨는 거리
+const DOOR_PATH_HALF_W = 1.75;      // 코티지로 이어지는 현관길 반폭
+
+/* ---------- 문 앞 현관길 (광장 밖으로 나가 문까지 걸어갈 수 있게) ---------- */
+function ensureDoorPaths() {
+  for (const d of HOUSE_DOORS) {
+    if (d.path) continue;
+    const dx = -d.stand.x, dz = -d.stand.z;              // 광장 중앙 방향
+    const L = Math.hypot(dx, dz) || 1;
+    d.path = {
+      ax: d.stand.x, az: d.stand.z,
+      bx: d.stand.x + (dx / L) * 8, bz: d.stand.z + (dz / L) * 8,
+    };
+  }
+}
+function segDist(px, pz, ax, az, bx, bz) {
+  const vx = bx - ax, vz = bz - az;
+  const wx = px - ax, wz = pz - az;
+  const L2 = vx * vx + vz * vz;
+  const t = L2 > 1e-6 ? clamp((wx * vx + wz * vz) / L2, 0, 1) : 0;
+  return Math.hypot(px - (ax + vx * t), pz - (az + vz * t));
+}
+/** 코티지 문 앞 현관길 안인가 — 광장 밖이어도 여기까지는 걸을 수 있다 */
+function inDoorApproach(x, z) {
+  ensureDoorPaths();
+  const reach = DOOR_TRIGGER_R + 0.6;
+  for (const d of HOUSE_DOORS) {
+    if (Math.hypot(x - d.door.x, z - d.door.z) <= reach) return true;
+    if (segDist(x, z, d.path.ax, d.path.az, d.path.bx, d.path.bz) <= DOOR_PATH_HALF_W) return true;
+  }
+  return false;
+}
+
+/* ---------- 실내 상태 ---------- */
+/*  실내는 광장에서 260m 떨어진 자리에 지어 둔다(같은 씬·같은 렌더러).
+    좌표는 모두 이 그룹의 로컬 기준이고, 플레이어 월드 좌표는 +ORIGIN 이다. */
+const interiorRoot = new THREE.Group();
+interiorRoot.name = 'interior';
+interiorRoot.position.copy(INTERIOR_ORIGIN);
+interiorRoot.visible = false;
+scene.add(interiorRoot);
+
+const INTERIOR = {
+  root: interiorRoot,
+  built: null,                 // 절차적 실내 그룹 (glb 교체 시 숨긴다)
+  glb: null,
+  source: 'procedural',
+  height: 3.5,                 // 천장 높이
+  bounds: { minX: -4.58, maxX: 4.58, minZ: -3.8, maxZ: 4.12 },      // 걸을 수 있는 실내
+  hall: { minX: -0.62, maxX: 0.62, minZ: 4.12, maxZ: 6.9 },         // 문 안쪽 현관 홀
+  cam: { minX: -4.9, maxX: 4.9, minZ: -4.1, maxZ: 4.16 },           // 카메라 허용
+  camHall: { minX: -0.95, maxX: 0.95, minZ: 4.16, maxZ: 7.1 },
+  spawn: { x: 0, z: 3.35 },
+  colliders: [],               // 가구 충돌 (월드 좌표)
+  lights: [],
+  flames: [],
+  embers: null,
+  fireLight: null,
+  lampLight: null,
+  tick: 0,
+};
+
+/* ===============================================================
+   절차적 실내 — 따뜻한 나무 바닥 · 벽난로 · 트리 · 소파
+   =============================================================== */
+const TEX_I_FLOOR = (() => {
+  const t = canvasTexture(512, 512, (c, w, h) => {
+    c.fillStyle = '#4d3220'; c.fillRect(0, 0, w, h);
+    const n = 6, pw = w / n;
+    for (let i = 0; i < n; i++) {
+      const k = 0.84 + ((i * 37) % 100) / 340;
+      c.fillStyle = `rgb(${Math.round(126 * k)},${Math.round(88 * k)},${Math.round(55 * k)})`;
+      c.fillRect(i * pw + 1.5, 0, pw - 3, h);
+      for (let g = 0; g < 22; g++) {
+        c.strokeStyle = `rgba(58,34,16,${(0.05 + ((g * 13) % 17) / 100).toFixed(2)})`;
+        c.lineWidth = 0.7 + ((g * 7) % 15) / 10;
+        const gx = i * pw + 5 + ((g * 31) % Math.max(8, pw - 10));
+        c.beginPath(); c.moveTo(gx, 0);
+        c.bezierCurveTo(gx + ((g % 3) - 1) * 3, h * 0.33, gx + ((g % 5) - 2) * 3, h * 0.66, gx + ((g % 4) - 1.5) * 3, h);
+        c.stroke();
+      }
+      /* 마루널 이음매 */
+      const seamY = ((i * 173) % 400) + 40;
+      c.fillStyle = 'rgba(34,20,10,0.5)'; c.fillRect(i * pw + 1.5, seamY, pw - 3, 2);
+      c.fillStyle = 'rgba(20,12,6,0.55)'; c.fillRect(i * pw, 0, 1.6, h);
+      c.fillStyle = 'rgba(255,228,180,0.05)'; c.fillRect(i * pw + 2, 0, 1.2, h);
+      /* 옹이 */
+      if (i % 2 === 0) {
+        const kx = i * pw + pw * 0.55, ky = h * 0.62;
+        c.strokeStyle = 'rgba(46,26,12,0.45)'; c.lineWidth = 1.4;
+        for (let r = 2; r < 11; r += 2.4) { c.beginPath(); c.ellipse(kx, ky, r, r * 0.62, 0, 0, TAU); c.stroke(); }
+      }
+    }
+  });
+  t.wrapS = t.wrapT = THREE.RepeatWrapping;
+  t.repeat.set(3.1, 3.3);
+  return t;
+})();
+
+const TEX_I_RUG = canvasTexture(512, 384, (c, w, h) => {
+  c.fillStyle = '#6d1f26'; c.fillRect(0, 0, w, h);
+  c.fillStyle = '#e8d6b4'; c.fillRect(10, 10, w - 20, h - 20);
+  c.fillStyle = '#7d2429'; c.fillRect(20, 20, w - 40, h - 40);
+  c.strokeStyle = 'rgba(232,214,180,0.85)'; c.lineWidth = 3;
+  c.strokeRect(34, 34, w - 68, h - 68);
+  /* 중앙 메달리온 */
+  const cx = w / 2, cy = h / 2;
+  for (let i = 0; i < 3; i++) {
+    c.beginPath();
+    const rw = 120 - i * 32, rh = 92 - i * 24;
+    c.moveTo(cx, cy - rh); c.lineTo(cx + rw, cy); c.lineTo(cx, cy + rh); c.lineTo(cx - rw, cy); c.closePath();
+    c.fillStyle = i % 2 ? '#2f4a37' : '#e8d6b4'; c.fill();
+    c.strokeStyle = 'rgba(60,30,20,0.35)'; c.lineWidth = 2; c.stroke();
+  }
+  /* 가장자리 눈꽃 톱니 */
+  c.fillStyle = 'rgba(232,214,180,0.9)';
+  for (let x = 26; x < w - 26; x += 26) {
+    c.beginPath(); c.moveTo(x, 20); c.lineTo(x + 9, 32); c.lineTo(x + 18, 20); c.closePath(); c.fill();
+    c.beginPath(); c.moveTo(x, h - 20); c.lineTo(x + 9, h - 32); c.lineTo(x + 18, h - 20); c.closePath(); c.fill();
+  }
+  /* 천 결 */
+  for (let i = 0; i < 900; i++) {
+    c.fillStyle = `rgba(0,0,0,${(0.02 + Math.random() * 0.05).toFixed(3)})`;
+    c.fillRect(Math.random() * w, Math.random() * h, 2, 1);
+  }
+});
+
+const TEX_I_WINDOW = canvasTexture(256, 320, (c, w, h) => {
+  const g = c.createLinearGradient(0, 0, 0, h);
+  g.addColorStop(0, '#101a3d'); g.addColorStop(0.5, '#26386b'); g.addColorStop(1, '#55628c');
+  c.fillStyle = g; c.fillRect(0, 0, w, h);
+  /* 별 */
+  for (let i = 0; i < 70; i++) {
+    const a = 0.25 + Math.random() * 0.7;
+    c.fillStyle = `rgba(255,250,235,${a.toFixed(2)})`;
+    const s = Math.random() < 0.15 ? 2 : 1;
+    c.fillRect(Math.random() * w, Math.random() * h * 0.55, s, s);
+  }
+  /* 달 */
+  const mg = c.createRadialGradient(w * 0.74, h * 0.2, 2, w * 0.74, h * 0.2, 46);
+  mg.addColorStop(0, 'rgba(255,252,235,1)'); mg.addColorStop(0.22, 'rgba(255,248,220,0.85)'); mg.addColorStop(1, 'rgba(255,240,200,0)');
+  c.fillStyle = mg; c.beginPath(); c.arc(w * 0.74, h * 0.2, 46, 0, TAU); c.fill();
+  /* 눈언덕 + 소나무 실루엣 */
+  c.fillStyle = '#2a3555';
+  c.beginPath(); c.moveTo(0, h * 0.78); c.bezierCurveTo(w * 0.3, h * 0.66, w * 0.6, h * 0.84, w, h * 0.72);
+  c.lineTo(w, h); c.lineTo(0, h); c.closePath(); c.fill();
+  c.fillStyle = 'rgba(226,238,255,0.85)';
+  c.beginPath(); c.moveTo(0, h * 0.78); c.bezierCurveTo(w * 0.3, h * 0.66, w * 0.6, h * 0.84, w, h * 0.72);
+  c.lineTo(w, h * 0.76); c.bezierCurveTo(w * 0.6, h * 0.88, w * 0.3, h * 0.7, 0, h * 0.82); c.closePath(); c.fill();
+  c.fillStyle = '#1c2740';
+  [[0.16, 0.8], [0.3, 0.86], [0.85, 0.8]].forEach(([px, py]) => {
+    const bx = w * px, by = h * py, bh = h * 0.22;
+    for (let i = 0; i < 3; i++) {
+      const y0 = by - bh + i * bh * 0.3, ww = 16 + i * 7;
+      c.beginPath(); c.moveTo(bx, y0 - 10); c.lineTo(bx + ww, y0 + bh * 0.32); c.lineTo(bx - ww, y0 + bh * 0.32); c.closePath(); c.fill();
+    }
+  });
+  /* 창에 맺힌 눈 */
+  for (let i = 0; i < 90; i++) {
+    c.fillStyle = `rgba(240,248,255,${(0.2 + Math.random() * 0.7).toFixed(2)})`;
+    c.beginPath(); c.arc(Math.random() * w, Math.random() * h, 0.8 + Math.random() * 1.8, 0, TAU); c.fill();
+  }
+});
+
+const TEX_I_FLAME = canvasTexture(64, 128, (c, w, h) => {
+  const g = c.createRadialGradient(w / 2, h * 0.78, 2, w / 2, h * 0.72, w * 0.62);
+  g.addColorStop(0, 'rgba(255,252,230,0.98)');
+  g.addColorStop(0.28, 'rgba(255,214,120,0.92)');
+  g.addColorStop(0.6, 'rgba(255,140,50,0.55)');
+  g.addColorStop(1, 'rgba(255,90,20,0)');
+  c.fillStyle = g;
+  c.beginPath();
+  c.moveTo(w / 2, 4);
+  c.bezierCurveTo(w * 0.94, h * 0.5, w * 0.86, h, w / 2, h);
+  c.bezierCurveTo(w * 0.14, h, w * 0.06, h * 0.5, w / 2, 4);
+  c.closePath(); c.fill();
+});
+
+const TEX_I_PICTURE = canvasTexture(192, 144, (c, w, h) => {
+  const g = c.createLinearGradient(0, 0, 0, h);
+  g.addColorStop(0, '#3a4a72'); g.addColorStop(0.6, '#c9a98a'); g.addColorStop(1, '#6a5540');
+  c.fillStyle = g; c.fillRect(0, 0, w, h);
+  c.fillStyle = '#f2efe6'; c.beginPath(); c.arc(w * 0.68, h * 0.3, 13, 0, TAU); c.fill();
+  c.fillStyle = '#4a5b48';
+  c.beginPath(); c.moveTo(0, h * 0.72); c.bezierCurveTo(w * 0.3, h * 0.6, w * 0.6, h * 0.78, w, h * 0.66);
+  c.lineTo(w, h); c.lineTo(0, h); c.closePath(); c.fill();
+  c.fillStyle = '#e9ecef';
+  c.beginPath(); c.moveTo(0, h * 0.72); c.bezierCurveTo(w * 0.3, h * 0.6, w * 0.6, h * 0.78, w, h * 0.66);
+  c.lineTo(w, h * 0.7); c.bezierCurveTo(w * 0.6, h * 0.82, w * 0.3, h * 0.64, 0, h * 0.76); c.closePath(); c.fill();
+});
+
+/* ---------- 재질 ---------- */
+const MI = {
+  floor:   new THREE.MeshStandardMaterial({ map: TEX_I_FLOOR, roughness: 0.72, metalness: 0.03, envMapIntensity: 0.35 }),
+  plaster: new THREE.MeshStandardMaterial({ color: 0xe9d4b6, roughness: 0.96, envMapIntensity: 0.22 }),
+  wood:    new THREE.MeshStandardMaterial({ color: 0x7a5233, roughness: 0.82, envMapIntensity: 0.25 }),
+  woodDk:  new THREE.MeshStandardMaterial({ color: 0x4a3120, roughness: 0.88, envMapIntensity: 0.2 }),
+  beam:    new THREE.MeshStandardMaterial({ color: 0x3d2718, roughness: 0.9, envMapIntensity: 0.16 }),
+  ceiling: new THREE.MeshStandardMaterial({ color: 0x5b3f28, roughness: 0.92, envMapIntensity: 0.16 }),
+  stone:   new THREE.MeshStandardMaterial({ color: 0xb0a08c, roughness: 0.92, envMapIntensity: 0.3, map: TEX_STONEWALL }),
+  stoneDk: new THREE.MeshStandardMaterial({ color: 0x6e6459, roughness: 0.94, envMapIntensity: 0.22 }),
+  fabric:  new THREE.MeshStandardMaterial({ color: 0x8a3a34, roughness: 0.95, envMapIntensity: 0.18 }),
+  fabric2: new THREE.MeshStandardMaterial({ color: 0x2f4a37, roughness: 0.95, envMapIntensity: 0.18 }),
+  cream:   new THREE.MeshStandardMaterial({ color: 0xe4d9c2, roughness: 0.95, envMapIntensity: 0.18 }),
+  rug:     new THREE.MeshStandardMaterial({ map: TEX_I_RUG, roughness: 0.98, envMapIntensity: 0.12 }),
+  brass:   new THREE.MeshStandardMaterial({ color: 0xc59a45, roughness: 0.35, metalness: 0.85, envMapIntensity: 0.9 }),
+  iron:    new THREE.MeshStandardMaterial({ color: 0x2a2622, roughness: 0.6, metalness: 0.55, envMapIntensity: 0.5 }),
+  ember:   new THREE.MeshStandardMaterial({ color: 0x3a1c0e, roughness: 0.95, emissive: 0xff5a12, emissiveIntensity: 0.9 }),
+  glassWin: new THREE.MeshBasicMaterial({ map: TEX_I_WINDOW, toneMapped: false }),
+  picture: new THREE.MeshStandardMaterial({ map: TEX_I_PICTURE, roughness: 0.85 }),
+  gold:    new THREE.MeshStandardMaterial({ color: 0xffcf6a, emissive: 0xffb43a, emissiveIntensity: 1.1, roughness: 0.4, metalness: 0.5 }),
+  bulb:    new THREE.MeshStandardMaterial({ color: 0xfff2cf, emissive: 0xffc46a, emissiveIntensity: 2.2, roughness: 0.5 }),
+  pine:    new THREE.MeshStandardMaterial({ color: 0x1d4a32, roughness: 0.9, envMapIntensity: 0.2 }),
+  giftA:   new THREE.MeshStandardMaterial({ color: 0xa8262c, roughness: 0.7 }),
+  giftB:   new THREE.MeshStandardMaterial({ color: 0x2f5a3f, roughness: 0.7 }),
+  giftC:   new THREE.MeshStandardMaterial({ color: 0xd8b878, roughness: 0.7 }),
+};
+
+/* ---------- 병합 빌더 (실내 정적 메시를 재질별로 한 번에) ---------- */
+const ISINK = new Map();
+const _iQ = new THREE.Quaternion();
+const _iE = new THREE.Euler();
+const _iM = new THREE.Matrix4();
+const _iV = new THREE.Vector3();
+function iGeo(mat, geo, x, y, z, rx, ry, rz, sx, sy, sz) {
+  _iE.set(rx || 0, ry || 0, rz || 0, 'YXZ');
+  _iQ.setFromEuler(_iE);
+  _iM.compose(_iV.set(x, y, z), _iQ, new THREE.Vector3(sx === undefined ? 1 : sx, sy === undefined ? 1 : sy, sz === undefined ? 1 : sz));
+  geo.applyMatrix4(_iM);
+  if (!ISINK.has(mat)) ISINK.set(mat, []);
+  ISINK.get(mat).push(geo);
+}
+function iBox(mat, w, h, d, x, y0, z, ry, rx) {
+  iGeo(mat, new THREE.BoxGeometry(w, h, d), x, y0 + h / 2, z, rx || 0, ry || 0, 0);
+}
+function iCyl(mat, rT, rB, h, x, y0, z, seg, ry, rx) {
+  iGeo(mat, new THREE.CylinderGeometry(rT, rB, h, seg || 16), x, y0 + h / 2, z, rx || 0, ry || 0, 0);
+}
+function iCone(mat, r, h, x, y0, z, seg) {
+  iGeo(mat, new THREE.ConeGeometry(r, h, seg || 14), x, y0 + h / 2, z);
+}
+function iBall(mat, r, x, y, z, sx, sy, sz) {
+  iGeo(mat, new THREE.SphereGeometry(r, 18, 12), x, y, z, 0, 0, 0, sx, sy, sz);
+}
+function iPlane(mat, w, h, x, y, z, rx, ry) {
+  iGeo(mat, new THREE.PlaneGeometry(w, h), x, y, z, rx || 0, ry || 0, 0);
+}
+function iFlush(parent) {
+  let n = 0;
+  for (const [mat, geos] of ISINK) {
+    const merged = mergeGeometries(geos, false);
+    geos.forEach((g) => g.dispose());
+    if (!merged) continue;
+    merged.computeBoundingSphere();
+    const mesh = new THREE.Mesh(merged, mat);
+    mesh.receiveShadow = true;
+    mesh.name = 'interior-merged';
+    parent.add(mesh);
+    n++;
+  }
+  ISINK.clear();
+  return n;
+}
+
+/* ---------- 실내 한 칸 (약 10.4m × 8.8m) ---------- */
+function buildInteriorRoom() {
+  const G = new THREE.Group();
+  G.name = 'interior-procedural';
+  interiorRoot.add(G);
+  INTERIOR.built = G;
+
+  const X = 5.0, Z = 4.2, H = INTERIOR.height, TH = 0.3;
+  const DW = 1.05;                      // 문틀 반폭
+  const DH = 2.45;                      // 문 높이
+  const FX = -0.4;                      // 벽난로 중심 x
+
+  /* --- 바닥 · 러그 --- */
+  iBox(MI.floor, X * 2 + TH * 2, 0.24, Z * 2 + TH * 2 + 2.1, 0, -0.24, 0.95);
+  iPlane(MI.rug, 5.0, 3.6, FX - 0.8, 0.012, -0.9, -Math.PI / 2, 0);
+  /* 현관 홀 러너 */
+  iPlane(MI.rug, 1.3, 1.8, 0, 0.012, 5.2, -Math.PI / 2, 0);
+
+  /* --- 벽 --- */
+  iBox(MI.plaster, TH, H, Z * 2 + TH * 2, -X - TH / 2, 0, 0);
+  iBox(MI.plaster, TH, H, Z * 2 + TH * 2, X + TH / 2, 0, 0);
+  iBox(MI.plaster, X * 2 + TH * 2, H, TH, 0, 0, -Z - TH / 2);
+  const sideW = (X + TH) - DW;
+  iBox(MI.plaster, sideW, H, TH, -(DW + sideW / 2), 0, Z + TH / 2);
+  iBox(MI.plaster, sideW, H, TH, DW + sideW / 2, 0, Z + TH / 2);
+  iBox(MI.plaster, DW * 2, H - DH, TH, 0, DH, Z + TH / 2);
+
+  /* --- 하단 목재 웨인스코트 + 걸레받이 · 걸이대 --- */
+  const WH = 1.05;
+  iBox(MI.wood, 0.05, WH, Z * 2, -X + 0.025, 0, 0);
+  iBox(MI.wood, 0.05, WH, Z * 2, X - 0.025, 0, 0);
+  iBox(MI.wood, X * 2, WH, 0.05, 0, 0, -Z + 0.025);
+  const sw2 = X - DW;
+  iBox(MI.wood, sw2, WH, 0.05, -(DW + sw2 / 2), 0, Z - 0.025);
+  iBox(MI.wood, sw2, WH, 0.05, DW + sw2 / 2, 0, Z - 0.025);
+  iBox(MI.beam, 0.09, 0.1, Z * 2, -X + 0.045, WH, 0);
+  iBox(MI.beam, 0.09, 0.1, Z * 2, X - 0.045, WH, 0);
+  iBox(MI.beam, X * 2, 0.1, 0.09, 0, WH, -Z + 0.045);
+  iBox(MI.beam, sw2, 0.1, 0.09, -(DW + sw2 / 2), WH, Z - 0.045);
+  iBox(MI.beam, sw2, 0.1, 0.09, DW + sw2 / 2, WH, Z - 0.045);
+
+  /* --- 기둥 · 천장 · 들보 --- */
+  [[-X + 0.12, -Z + 0.12], [X - 0.12, -Z + 0.12], [-X + 0.12, Z - 0.12], [X - 0.12, Z - 0.12]].forEach(([px, pz]) => {
+    iBox(MI.beam, 0.24, H, 0.24, px, 0, pz);
+  });
+  iBox(MI.ceiling, X * 2 + TH * 2, 0.24, Z * 2 + TH * 2, 0, H, 0);
+  [-2.9, -1.0, 0.9, 2.8].forEach((bz) => iBox(MI.beam, X * 2, 0.2, 0.22, 0, H - 0.2, bz));
+
+  /* --- 현관 홀 (문 안쪽 3.0m — 카메라가 들어와 문틀로 방을 비춘다) --- */
+  const HZ0 = Z + TH, HZ1 = Z + TH + 3.0;      // 4.5 ~ 7.5 (카메라가 들어올 여유)
+  iBox(MI.plaster, TH, 2.75, 3.0, -1.2, 0, (HZ0 + HZ1) / 2);
+  iBox(MI.plaster, TH, 2.75, 3.0, 1.2, 0, (HZ0 + HZ1) / 2);
+  iBox(MI.wood, 0.05, WH, 3.0, -1.05, 0, (HZ0 + HZ1) / 2 + 0.02);
+  iBox(MI.wood, 0.05, WH, 3.0, 1.05, 0, (HZ0 + HZ1) / 2 + 0.02);
+  iBox(MI.ceiling, 2.7, 0.2, 3.3, 0, 2.75, (HZ0 + HZ1) / 2);
+  iBox(MI.woodDk, 2.7, 2.75, TH, 0, 0, HZ1 + TH / 2);
+  /* 현관 문 (닫힌 나무문) */
+  iBox(MI.woodDk, 1.95, 2.4, 0.1, 0, 0, HZ1 - 0.03);
+  iBox(MI.beam, 1.95, 0.09, 0.14, 0, 2.4, HZ1 - 0.03);
+  [-0.62, 0.62].forEach((px) => iBox(MI.beam, 0.09, 2.4, 0.14, px, 0, HZ1 - 0.03));
+  iBall(MI.brass, 0.055, 0.62, 1.05, HZ1 - 0.11);
+  /* 현관 문 위 리스 */
+  iGeo(MI.pine, new THREE.TorusGeometry(0.26, 0.065, 8, 18), 0, 1.98, HZ1 - 0.1, 0, 0, 0);
+  /* 문틀 트림 */
+  [-DW - 0.06, DW + 0.06].forEach((px) => iBox(MI.beam, 0.12, DH + 0.12, TH + 0.08, px, 0, Z + TH / 2));
+  iBox(MI.beam, DW * 2 + 0.24, 0.12, TH + 0.08, 0, DH, Z + TH / 2);
+
+  /* --- 벽난로 --- */
+  iBox(MI.stoneDk, 3.1, 0.18, 1.15, FX, 0, -Z + 0.55);              // 화덕 앞 단
+  iBox(MI.stone, 0.62, 1.32, 0.46, FX - 1.06, 0.18, -Z + 0.23);     // 좌 기둥
+  iBox(MI.stone, 0.62, 1.32, 0.46, FX + 1.06, 0.18, -Z + 0.23);     // 우 기둥
+  iBox(MI.stone, 2.74, 0.5, 0.46, FX, 1.5, -Z + 0.23);              // 상인방
+  iBox(MI.stone, 2.74, H - 2.0, 0.44, FX, 2.0, -Z + 0.22);          // 굴뚝 벽
+  iBox(MI.stoneDk, 1.5, 1.32, 0.16, FX, 0.18, -Z + 0.34);           // 화덕 어둠
+  iBox(MI.stoneDk, 1.6, 0.08, 0.2, FX, 1.44, -Z + 0.36);
+  iBox(MI.wood, 3.0, 0.13, 0.56, FX, 1.63, -Z + 0.26);              // 선반
+  /* 장작 · 불씨 */
+  iGeo(MI.woodDk, new THREE.CylinderGeometry(0.085, 0.085, 0.82, 10), FX - 0.06, 0.3, -Z + 0.52, 0, 0, Math.PI / 2);
+  iGeo(MI.woodDk, new THREE.CylinderGeometry(0.075, 0.075, 0.74, 10), FX + 0.06, 0.36, -Z + 0.5, 0.2, 0.5, Math.PI / 2);
+  iGeo(MI.ember, new THREE.CylinderGeometry(0.07, 0.07, 0.7, 8), FX, 0.27, -Z + 0.5, 0, 0.9, Math.PI / 2);
+  /* 벽난로 위 그림 · 양말 */
+  iBox(MI.woodDk, 1.16, 0.82, 0.06, FX, 2.35, -Z + 0.45);
+  iPlane(MI.picture, 1.0, 0.68, FX, 2.76, -Z + 0.49, 0, 0);
+  [-0.72, 0, 0.72].forEach((px, i) => {
+    iBox(i === 1 ? MI.fabric2 : MI.fabric, 0.2, 0.36, 0.1, FX + px, 1.2, -Z + 0.5);
+    iBox(MI.cream, 0.22, 0.09, 0.11, FX + px, 1.5, -Z + 0.5);
+  });
+
+  /* --- 창문 (서쪽 벽) --- */
+  const WZ = -1.9, WW = 1.7, WH2 = 1.34, WY = 1.22;
+  iPlane(MI.glassWin, WW, WH2, -X + 0.055, WY + WH2 / 2, WZ, 0, Math.PI / 2);
+  iBox(MI.beam, 0.16, WH2 + 0.24, 0.12, -X + 0.08, WY - 0.12, WZ - WW / 2 - 0.06);
+  iBox(MI.beam, 0.16, WH2 + 0.24, 0.12, -X + 0.08, WY - 0.12, WZ + WW / 2 + 0.06);
+  iBox(MI.beam, 0.16, 0.12, WW + 0.24, -X + 0.08, WY - 0.12, WZ);
+  iBox(MI.beam, 0.16, 0.12, WW + 0.24, -X + 0.08, WY + WH2, WZ);
+  iBox(MI.beam, 0.1, WH2, 0.05, -X + 0.1, WY, WZ);
+  iBox(MI.beam, 0.1, 0.05, WW, -X + 0.1, WY + WH2 / 2, WZ);
+  iBox(MI.wood, 0.3, 0.08, WW + 0.34, -X + 0.15, WY - 0.16, WZ);      // 창대
+  /* 커튼 */
+  iPlane(MI.fabric, 0.46, 1.75, -X + 0.16, WY + 0.78, WZ - WW / 2 - 0.16, 0, Math.PI / 2);
+  iPlane(MI.fabric, 0.46, 1.75, -X + 0.16, WY + 0.78, WZ + WW / 2 + 0.16, 0, Math.PI / 2);
+  iBox(MI.brass, 0.04, 0.04, WW + 0.9, -X + 0.16, WY + 1.62, WZ);
+
+  /* --- 동쪽 벽: 책장 · 그림 --- */
+  const BZ = 2.3;
+  iBox(MI.woodDk, 0.34, 2.15, 1.0, X - 0.17, 0, BZ);
+  for (let s = 0; s < 4; s++) iBox(MI.wood, 0.3, 0.05, 0.92, X - 0.18, 0.34 + s * 0.52, BZ);
+  for (let s = 0; s < 4; s++) {
+    for (let b = 0; b < 7; b++) {
+      const bh = 0.2 + ((b * 7 + s * 3) % 5) * 0.022;
+      const cols = [MI.fabric, MI.fabric2, MI.cream, MI.giftC, MI.pine, MI.giftA];
+      iBox(cols[(s * 3 + b) % cols.length], 0.16, bh, 0.075, X - 0.19, 0.39 + s * 0.52, BZ - 0.36 + b * 0.105);
+    }
+  }
+  iBox(MI.woodDk, 0.07, 0.66, 0.92, X - 0.04, 1.35, -0.9);
+  iPlane(MI.picture, 0.78, 0.52, X - 0.08, 1.68, -0.9, 0, -Math.PI / 2);
+
+  /* --- 소파 (벽난로를 바라본다, 문에서 들어오는 길은 비워 둔다) --- */
+  const SX = FX - 1.6, SZ = 1.55;
+  iBox(MI.woodDk, 2.8, 0.16, 1.0, SX, 0.06, SZ);
+  iBox(MI.fabric, 2.8, 0.32, 1.0, SX, 0.22, SZ);
+  iBox(MI.fabric, 0.9, 0.16, 0.92, SX - 0.9, 0.54, SZ - 0.02);
+  iBox(MI.fabric, 0.9, 0.16, 0.92, SX, 0.54, SZ - 0.02);
+  iBox(MI.fabric, 0.9, 0.16, 0.92, SX + 0.9, 0.54, SZ - 0.02);
+  iBox(MI.fabric, 2.8, 0.68, 0.24, SX, 0.42, SZ + 0.38);
+  [1, -1].forEach((s) => {
+    iBox(MI.fabric, 0.26, 0.62, 1.0, SX + s * 1.27, 0.22, SZ);
+    iBox(MI.fabric, 0.26, 0.1, 1.0, SX + s * 1.27, 0.84, SZ);
+  });
+  iBox(MI.cream, 0.5, 0.34, 0.16, SX - 0.68, 0.62, SZ + 0.24, 0.18);   // 쿠션
+  iBox(MI.fabric2, 0.46, 0.32, 0.15, SX + 0.72, 0.62, SZ + 0.24, -0.14);
+  iBox(MI.cream, 0.56, 0.06, 0.9, SX + 1.18, 0.9, SZ - 0.02, 0.1);     // 무릎담요
+
+  /* --- 탁자 --- */
+  iBox(MI.wood, 1.72, 0.08, 0.92, SX, 0.44, 0.05);
+  [[-0.76, -0.36], [0.76, -0.36], [-0.76, 0.36], [0.76, 0.36]].forEach(([lx, lz]) => {
+    iBox(MI.woodDk, 0.08, 0.44, 0.08, SX + lx, 0, 0.05 + lz);
+  });
+  iCyl(MI.cream, 0.055, 0.045, 0.1, SX - 0.42, 0.52, 0.02, 14);
+  iCyl(MI.cream, 0.055, 0.045, 0.1, SX - 0.2, 0.52, 0.18, 14);
+  iCyl(MI.giftC, 0.05, 0.05, 0.14, SX + 0.4, 0.52, 0.06, 12);          // 초
+  iBox(MI.giftA, 0.34, 0.05, 0.24, SX + 0.15, 0.52, -0.22);            // 책
+
+  /* --- 안락의자 (벽난로 쪽으로) --- */
+  const AX = 2.7, AZ = 0.55, AR = -2.35;
+  iBox(MI.fabric2, 0.92, 0.4, 0.9, AX, 0.18, AZ, AR);
+  iBox(MI.fabric2, 0.92, 0.62, 0.2, AX + Math.sin(AR) * -0.4, 0.52, AZ + Math.cos(AR) * -0.4, AR);
+  iBox(MI.cream, 0.8, 0.12, 0.78, AX, 0.56, AZ, AR);
+
+  /* --- 크리스마스트리 --- */
+  const TX = 3.55, TZ = -3.05;
+  iCyl(MI.woodDk, 0.12, 0.16, 0.5, TX, 0, TZ, 10);
+  iCone(MI.pine, 1.05, 1.15, TX, 0.42, TZ, 16);
+  iCone(MI.pine, 0.86, 1.0, TX, 1.15, TZ, 16);
+  iCone(MI.pine, 0.66, 0.92, TX, 1.82, TZ, 16);
+  iCone(MI.pine, 0.44, 0.8, TX, 2.45, TZ, 16);
+  iGeo(MI.gold, new THREE.OctahedronGeometry(0.15, 0), TX, 3.3, TZ, 0, 0, 0);
+  iCyl(MI.fabric, 1.25, 1.3, 0.02, TX, 0.005, TZ, 24);
+  /* 선물 */
+  iBox(MI.giftA, 0.42, 0.34, 0.42, TX - 0.75, 0.02, TZ + 0.5, 0.28);
+  iBox(MI.giftB, 0.34, 0.28, 0.34, TX + 0.62, 0.02, TZ + 0.55, -0.2);
+  iBox(MI.giftC, 0.5, 0.24, 0.36, TX - 0.3, 0.02, TZ + 0.85, 0.5);
+  iBox(MI.cream, 0.08, 0.36, 0.44, TX - 0.75, 0.02, TZ + 0.5, 0.28);
+  iBox(MI.cream, 0.36, 0.3, 0.08, TX + 0.62, 0.02, TZ + 0.55, -0.2);
+
+  /* --- 작은 소품 --- */
+  /* 벽시계 */
+  iGeo(MI.woodDk, new THREE.CylinderGeometry(0.26, 0.26, 0.06, 22), 1.85, 2.55, -Z + 0.08, Math.PI / 2, 0, 0);
+  iGeo(MI.cream, new THREE.CylinderGeometry(0.21, 0.21, 0.02, 22), 1.85, 2.55, -Z + 0.12, Math.PI / 2, 0, 0);
+  iBox(MI.iron, 0.02, 0.14, 0.01, 1.85, 2.55, -Z + 0.14);
+  iBox(MI.iron, 0.1, 0.02, 0.01, 1.9, 2.55, -Z + 0.14);
+  /* 화분 */
+  iCyl(MI.giftC, 0.2, 0.15, 0.3, -4.2, 0, -3.5, 14);
+  for (let i = 0; i < 7; i++) {
+    const a = (i / 7) * TAU;
+    iGeo(MI.pine, new THREE.ConeGeometry(0.16, 0.7, 6), -4.2 + Math.cos(a) * 0.16, 0.62, -3.5 + Math.sin(a) * 0.16, Math.cos(a) * 0.5, 0, Math.sin(a) * 0.5);
+  }
+  /* 장작더미 */
+  for (let i = 0; i < 5; i++) {
+    iGeo(MI.woodDk, new THREE.CylinderGeometry(0.1, 0.1, 0.66, 9), 1.55 + (i % 2) * 0.22, 0.11 + Math.floor(i / 2) * 0.2, -3.85 + (i % 3) * 0.04, 0, 0, Math.PI / 2);
+  }
+  /* 걸레받이용 작은 협탁 */
+  iBox(MI.wood, 0.6, 0.05, 0.6, -3.9, 0.5, 1.35);
+  iBox(MI.woodDk, 0.07, 0.5, 0.07, -3.9, 0, 1.35);
+  iCyl(MI.cream, 0.07, 0.06, 0.16, -3.9, 0.55, 1.35, 12);
+
+  /* --- 조명 기구: 샹들리에 --- */
+  iCyl(MI.iron, 0.012, 0.012, 0.75, FX, H - 0.95, -0.55, 6);
+  iCyl(MI.brass, 0.04, 0.34, 0.42, FX, H - 1.32, -0.55, 18);            // 갓
+  iGeo(MI.bulb, new THREE.SphereGeometry(0.11, 14, 10), FX, H - 1.36, -0.55, 0, 0, 0);
+
+  /* --- 트리 전구 (Points) --- */
+  {
+    const N = 54;
+    const pos = new Float32Array(N * 3);
+    const col = new Float32Array(N * 3);
+    for (let i = 0; i < N; i++) {
+      const t = i / N;
+      const y = 0.55 + t * 2.55;
+      const rr = 1.0 * (1 - t * 0.86);
+      const a = i * 2.399;
+      pos[i * 3] = TX + Math.cos(a) * rr;
+      pos[i * 3 + 1] = y;
+      pos[i * 3 + 2] = TZ + Math.sin(a) * rr;
+      const warm = i % 5 === 0;
+      col[i * 3] = 1; col[i * 3 + 1] = warm ? 0.9 : 0.74; col[i * 3 + 2] = warm ? 0.6 : 0.34;
+    }
+    const g = new THREE.BufferGeometry();
+    g.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+    g.setAttribute('color', new THREE.BufferAttribute(col, 3));
+    const m = new THREE.PointsMaterial({ size: 0.12, map: TEX_GLOW, vertexColors: true, transparent: true, opacity: 0.95, depthWrite: false, blending: THREE.AdditiveBlending, sizeAttenuation: true, toneMapped: false });
+    const pts = new THREE.Points(g, m);
+    pts.name = 'tree-lights';
+    G.add(pts);
+    INTERIOR.treeLights = pts;
+  }
+
+  /* --- 벽난로 불꽃 (개별 메시) --- */
+  const fireMat = new THREE.MeshBasicMaterial({ map: TEX_I_FLAME, transparent: true, opacity: 0.9, depthWrite: false, blending: THREE.AdditiveBlending, toneMapped: false, side: THREE.DoubleSide });
+  for (let i = 0; i < 4; i++) {
+    const s = 0.55 - i * 0.1;
+    const fl = new THREE.Mesh(new THREE.PlaneGeometry(s, s * 1.7), fireMat.clone());
+    fl.position.set(FX - 0.2 + i * 0.14, 0.42 + i * 0.03, -Z + 0.56 + i * 0.01);
+    fl.rotation.y = (i - 1.5) * 0.22;
+    fl.renderOrder = 3;
+    G.add(fl);
+    INTERIOR.flames.push({ mesh: fl, ph: i * 1.7, base: s });
+  }
+  /* 불씨 파티클 */
+  {
+    const N = 16;
+    const pos = new Float32Array(N * 3);
+    const data = [];
+    for (let i = 0; i < N; i++) {
+      data.push({ x: FX + rand(-0.25, 0.25), y: rand(0.4, 1.0), z: -Z + 0.52 + rand(-0.06, 0.06), sp: rand(0.25, 0.6), ph: rand(0, TAU) });
+      pos[i * 3] = data[i].x; pos[i * 3 + 1] = data[i].y; pos[i * 3 + 2] = data[i].z;
+    }
+    const g = new THREE.BufferGeometry();
+    g.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+    const m = new THREE.PointsMaterial({ size: 0.06, map: TEX_GLOW, color: 0xffb257, transparent: true, opacity: 0.9, depthWrite: false, blending: THREE.AdditiveBlending, toneMapped: false });
+    const em = new THREE.Points(g, m);
+    em.name = 'fire-embers';
+    G.add(em);
+    INTERIOR.embers = { points: em, data };
+  }
+
+  /* --- 불빛 웅덩이 (바닥 접지) --- */
+  const firePool = new THREE.Mesh(new THREE.PlaneGeometry(3.4, 2.6), new THREE.MeshBasicMaterial({ map: TEX_GLOW, color: 0xff9a45, transparent: true, opacity: 0.3, depthWrite: false, blending: THREE.AdditiveBlending, toneMapped: false }));
+  firePool.rotation.x = -Math.PI / 2;
+  firePool.position.set(FX, 0.02, -Z + 1.25);
+  firePool.renderOrder = 2;
+  G.add(firePool);
+  INTERIOR.firePool = firePool;
+
+  /* --- 실내 조명 --- */
+  const amb = new THREE.HemisphereLight(0x8a6544, 0x3a2718, 1.35);
+  const fireLight = new THREE.PointLight(0xff8a34, 9.5, 9.5, 2);
+  fireLight.position.set(FX, 0.75, -Z + 0.85);
+  const lampLight = new THREE.PointLight(0xffcf8e, 10, 12, 2);
+  lampLight.position.set(FX, H - 1.45, -0.55);
+  const winLight = new THREE.PointLight(0x9fc0ff, 3.4, 7, 2);
+  winLight.position.set(-X + 0.9, 1.9, WZ);
+  const treeLight = new THREE.PointLight(0xffc07a, 3.0, 4.5, 2);
+  treeLight.position.set(TX, 1.7, TZ + 0.5);
+  /* 현관 홀 등 — 문틀 안쪽이 새까맣게 죽지 않게 */
+  const hallLight = new THREE.PointLight(0xffcf9a, 4.5, 6.5, 2);
+  hallLight.position.set(0, 2.35, 6.0);
+  interiorRoot.add(amb);
+  interiorRoot.add(fireLight);
+  interiorRoot.add(lampLight);
+  interiorRoot.add(winLight);
+  interiorRoot.add(treeLight);
+  interiorRoot.add(hallLight);
+  INTERIOR.fireLight = fireLight;
+  INTERIOR.lampLight = lampLight;
+  INTERIOR.lights.push(amb, fireLight, lampLight, winLight, treeLight, hallLight);
+
+  iFlush(G);
+  buildInteriorColliders();
+  G.visible = true;
+  return G;
+}
+
+/* 가구 충돌 — 문 안쪽을 걸어 다닐 때만 쓴다 (월드 좌표) */
+function buildInteriorColliders() {
+  const C = INTERIOR.colliders;
+  C.length = 0;
+  const add = (x, z, r) => C.push({ x: INTERIOR_ORIGIN.x + x, z: INTERIOR_ORIGIN.z + z, r });
+  add(-0.4, -3.85, 1.7);      // 벽난로
+  add(-2.0, 1.55, 0.86);      // 소파
+  add(-3.05, 1.55, 0.42);     // 소파 왼쪽 끝
+  add(-0.95, 1.55, 0.42);     // 소파 오른쪽 끝
+  add(-2.0, 0.05, 0.95);      // 탁자
+  add(2.7, 0.55, 0.8);        // 안락의자
+  add(3.55, -3.05, 1.2);      // 트리
+  add(4.6, 2.3, 0.72);        // 책장
+  add(-3.9, 1.35, 0.5);       // 협탁
+  add(-4.2, -3.5, 0.5);       // 화분
+  add(1.6, -3.8, 0.55);       // 장작
+}
+
+/* 문 안쪽 걸을 수 있는 범위 — 방은 문턱(z=4.12)까지, 그 너머는 현관 홀 폭만 */
+function interiorWalkableAt(x, z) {
+  const lx = x - INTERIOR_ORIGIN.x, lz = z - INTERIOR_ORIGIN.z;
+  const B = INTERIOR.bounds, Hh = INTERIOR.hall;
+  if (lz <= B.maxZ) return lx > B.minX && lx < B.maxX && lz > B.minZ;
+  return lx > Hh.minX && lx < Hh.maxX && lz < Hh.maxZ;
+}
+
+buildInteriorRoom();
+
+/* ===============================================================
+   실내 진입 · 이동 화면 · 나가기 · 실내 카메라
+   =============================================================== */
+const TRANS = { busy: false };
+/* 이동 화면 길이 (ms) — 테스트·시연에서 늘려 잡을 수 있게 따로 둔다 */
+const DOOR_TIMING = { hold: 560, mid: 150, out: 470 };
+const doorBtnEl = document.getElementById('doorBtn');
+const exitBtnEl = document.getElementById('exitBtn');
+const dtEl = document.getElementById('doorTransition');
+const dtTextEl = document.getElementById('doorTransitionText');
+const dtSubEl = document.getElementById('doorTransitionSub');
+let nearDoorIdx = -1;
+const wait = (ms) => new Promise((r) => setTimeout(r, ms));
+
+/* 실내/광장에 따라 줌 한계와 바깥 조명을 갈아끼운다 */
+function applyCamLimits() {
+  if (ZONE.mode === 'interior') { CAM_LO = 2.6; CAM_HI = 6.4; }
+  else { CAM_LO = CAM_MIN; CAM_HI = CAM_MAX; }
+}
+const EXT_BASE = new Map();
+function setExteriorLights(inside) {
+  [hemi, sunLight, skyFill, rimLight, warmFill, hemiFill, plazaGlow, groundPool, playerLight].forEach((l) => {
+    if (!EXT_BASE.has(l)) EXT_BASE.set(l, l.intensity);
+    l.intensity = EXT_BASE.get(l) * (inside ? 0.07 : 1);
+  });
+  sunLight.castShadow = !inside;
+  renderer.toneMappingExposure = inside ? (IS_TOUCH ? 1.22 : 1.14) : (IS_TOUCH ? 1.06 : 0.96);
+}
+/** 광장 ↔ 실내 렌더 경계 — 한 쪽만 그려 모바일 부하를 나눈다 */
+const hiddenExterior = [];
+function setWorldLayer(inside) {
+  interiorRoot.visible = inside;
+  if (inside) {
+    hiddenExterior.length = 0;
+    for (const o of scene.children) {
+      if (o === interiorRoot || o.isLight || o.userData.isAvatar || o.userData.floater) continue;
+      if (!o.visible) continue;
+      hiddenExterior.push(o);
+      o.visible = false;
+    }
+  } else {
+    for (const o of hiddenExterior) o.visible = true;
+    hiddenExterior.length = 0;
+  }
+  VILLAGE_ROOT.visible = !inside;
+  if (snowPoints) snowPoints.visible = !inside;
+  if (snowBokeh) snowBokeh.visible = !inside;
+  setExteriorLights(inside);
+}
+
+/* ---------- 실내/광장 전환 ---------- */
+function enterInterior(idx, keepReturn) {
+  const i = idx === undefined || idx < 0 ? ZONE.door : idx;
+  if (SIT.active || SIT.enter > 0) standUp();
+  if (!keepReturn) { ZONE.returnX = playerPos.x; ZONE.returnZ = playerPos.z; ZONE.returnYaw = playerYaw.v; }
+  ZONE.mode = 'interior'; ZONE.door = i;
+  playerPos.set(INTERIOR_ORIGIN.x + INTERIOR.spawn.x, 0, INTERIOR_ORIGIN.z + INTERIOR.spawn.z);
+  playerYaw.v = Math.PI;                       // 방 안쪽(-z)을 바라본다
+  playerPos.y = 0;
+  vel.set(0, 0);
+  const me = players.get('me');
+  if (me) { me.root.position.copy(playerPos); me.root.rotation.y = playerYaw.v; me.pose = 'stand'; me.root.visible = true; }
+  applyCamLimits();
+  rig.yaw = 0;
+  rig.pitch = 0.19;
+  const narrowIn = window.innerWidth / window.innerHeight < 0.85;
+  rig.dist = narrowIn ? 5.3 : 4.7;
+  rig.targetDist = narrowIn ? 5.3 : 4.7;
+  rig.lookAt.set(playerPos.x, 1.15, playerPos.z);
+  rig.snap = true;                        // 광장→실내 카메라가 사이 공간을 날아가지 않게
+  setWorldLayer(true);
+  syncZoneVisibility();
+  addChatLine('', '🏠 <b>따뜻한 오두막</b>에 들어왔습니다 · <b>F</b> 나 우측 하단 버튼으로 나갈 수 있어요', false, true);
+  toast('🏠 따뜻한 집 안이에요 — F 를 누르면 광장으로 나갑니다', 3200);
+  pushZone();
+}
+
+function exitInterior() {
+  const d = HOUSE_DOORS[ZONE.door];
+  let tx = ZONE.returnX, tz = ZONE.returnZ;
+  if (!Number.isFinite(tx) || !Number.isFinite(tz) || !inDoorApproach(tx, tz)) {
+    tx = d ? d.stand.x : SPAWN.x;
+    tz = d ? d.stand.z : SPAWN.z;
+  }
+  /* 문 바로 앞에 서면 카메라가 코티지 속으로 밀려 — 광장 쪽으로 한 걸음 나와 선다 */
+  if (d) {
+    const bx = tx + d.face.x * 1.5, bz = tz + d.face.z * 1.5;
+    if (inDoorApproach(bx, bz)) { tx = bx; tz = bz; }
+  }
+  ZONE.mode = 'plaza';
+  playerPos.set(tx, 0, tz);
+  playerPos.y = groundY(tx, tz);
+  const L = Math.hypot(tx, tz) || 1;
+  playerYaw.v = Math.atan2(-tx / L, -tz / L);    // 광장 중앙을 바라본다
+  vel.set(0, 0);
+  const me = players.get('me');
+  if (me) { me.root.position.copy(playerPos); me.root.rotation.y = playerYaw.v; me.pose = 'stand'; }
+  applyCamLimits();
+  const narrow = window.innerWidth / window.innerHeight < 0.85;
+  rig.yaw = playerYaw.v - Math.PI;
+  rig.pitch = narrow ? 0.21 : 0.19;
+  rig.dist = 6.6;
+  rig.targetDist = narrow ? 7.4 : 6.6;
+  rig.lookAt.set(playerPos.x, playerPos.y + 1.45, playerPos.z);
+  rig.snap = true;
+  setWorldLayer(false);
+  syncZoneVisibility();
+  addChatLine('', '❄️ <b>광장</b>으로 나왔습니다', false, true);
+  toast('❄️ 눈 내리는 광장으로 나왔어요', 2600);
+  pushZone();
+}
+
+function pushZone() {
+  net.update({
+    x: playerPos.x, z: playerPos.z, yaw: playerYaw.v, moving: false,
+    pose: 'stand', seat: -1, zone: ZONE.mode === 'interior' ? 'i' : 'p',
+  });
+}
+
+/** 같은 공간에 있는 사람만 보이게 — 광장/실내 구분 */
+function syncZoneVisibility() {
+  const myZone = ZONE.mode === 'interior' ? 'i' : 'p';
+  for (const p of players.values()) {
+    if (p.isMe) continue;
+    const show = (p.zone || 'p') === myZone;
+    p.root.visible = show;
+    if (!show) p.label.el.style.opacity = '0';
+  }
+}
+
+/* ---------- 이동 화면(전환 연출) ---------- */
+async function doorTravel(mode) {
+  if (TRANS.busy || !state.joined) return;
+  if (mode === 'in' && (ZONE.mode !== 'plaza' || nearDoorIdx < 0)) return;
+  if (mode === 'out' && ZONE.mode !== 'interior') return;
+  TRANS.busy = true;
+  input.keys.clear();
+  vel.set(0, 0);
+  if (mode === 'in' && (SIT.active || SIT.enter > 0)) standUp();
+  dtTextEl.textContent = mode === 'in' ? '🏠 따뜻한 집 안으로 들어가는 중…' : '❄️ 눈 내리는 광장으로 나가는 중…';
+  dtSubEl.textContent = mode === 'in' ? '문을 열고 들어갑니다' : '문을 열고 밖으로 나갑니다';
+  dtEl.classList.add('show');
+  dtEl.setAttribute('aria-hidden', 'false');
+  fadeOverlay(1, 420);                         // 따뜻한 빛이 번지며 어두워진다
+  await wait(DOOR_TIMING.hold);
+  if (mode === 'in') enterInterior(nearDoorIdx); else exitInterior();
+  await wait(DOOR_TIMING.mid);
+  fadeOverlay(0, 380);                         // 새 공간이 드러난다
+  await wait(DOOR_TIMING.out);
+  dtEl.classList.remove('show');
+  dtEl.setAttribute('aria-hidden', 'true');
+  dtEl.style.opacity = '';
+  TRANS.busy = false;
+  updateDoorUI();
+}
+
+/* 이동 화면 페이드 — setTimeot 기반이라 프레임이 느린 환경에서도 반드시 진행된다 */
+let fadeTimer = 0;
+function fadeOverlay(to, ms) {
+  clearTimeout(fadeTimer);
+  const from = Number(dtEl.style.opacity || 0) || 0;
+  const t0 = performance.now();
+  const tick = () => {
+    const k = Math.min(1, (performance.now() - t0) / Math.max(1, ms));
+    dtEl.style.opacity = String(from + (to - from) * k);
+    if (k < 1) fadeTimer = setTimeout(tick, 24);
+  };
+  tick();
+}
+
+/* ---------- 문 앞 버튼 상태 ---------- */
+function updateDoorUI() {
+  if (!state.joined) {
+    if (doorBtnEl.classList.contains('show')) doorBtnEl.classList.remove('show');
+    if (exitBtnEl.classList.contains('show')) exitBtnEl.classList.remove('show');
+    return;
+  }
+  const inside = ZONE.mode === 'interior';
+  if (!inside) {
+    let best = -1, bestD = DOOR_TRIGGER_R;
+    for (const d of HOUSE_DOORS) {
+      const dd = Math.hypot(playerPos.x - d.door.x, playerPos.z - d.door.z);
+      if (dd < bestD) { bestD = dd; best = d.i; }
+    }
+    nearDoorIdx = best;
+  }
+  const showDoor = !inside && nearDoorIdx >= 0 && !SIT.active && !TRANS.busy;
+  const showExit = inside && !TRANS.busy;
+  doorBtnEl.classList.toggle('show', showDoor);
+  exitBtnEl.classList.toggle('show', showExit);
+}
+
+doorBtnEl.addEventListener('click', () => doorTravel('in'));
+exitBtnEl.addEventListener('click', () => doorTravel('out'));
+window.addEventListener('keydown', (e) => {
+  if (e.repeat || !state.joined) return;
+  const tag = (e.target && e.target.tagName) || '';
+  if (tag === 'INPUT' || tag === 'TEXTAREA') return;
+  if (e.code !== 'KeyF' && e.code !== 'KeyE') return;
+  if (ZONE.mode === 'interior') { e.preventDefault(); doorTravel('out'); }
+  else if (nearDoorIdx >= 0) { e.preventDefault(); doorTravel('in'); }
+});
+
+/* ---------- 실내 카메라 — 방 밖으로 나가지 않게 ---------- */
+function limitInteriorCamera(desired) {
+  const OZ = INTERIOR_ORIGIN.z;
+  const C = INTERIOR.cam, CH = INTERIOR.camHall;
+  const lz = desired.z - OZ;
+  const inRoom = desired.x > C.minX && desired.x < C.maxX && lz > C.minZ && lz < C.maxZ;
+  const inHall = desired.x > CH.minX && desired.x < CH.maxX && lz >= C.maxZ && lz < CH.maxZ;
+  if (inRoom || inHall) {
+    desired.y = clamp(desired.y, 0.55, inHall ? 2.45 : 3.15);
+    return;
+  }
+  const ax = rig.lookAt.x, az = rig.lookAt.z;
+  const dx = desired.x - ax, dz = desired.z - az;
+  for (let t = 0.92; t >= 0.22; t -= 0.05) {
+    const px = ax + dx * t, pz = az + dz * t;
+    const pzL = pz - OZ;
+    if ((px > C.minX && px < C.maxX && pzL > C.minZ && pzL < C.maxZ)
+      || (px > CH.minX && px < CH.maxX && pzL >= C.maxZ && pzL < CH.maxZ)) {
+      desired.x = px; desired.z = pz;
+      desired.y = clamp(desired.y, 0.55, pzL >= C.maxZ ? 2.45 : 3.15);
+      return;
+    }
+  }
+  /* 그래도 안 되면 방 안으로 직접 가둔다 */
+  desired.x = clamp(desired.x, C.minX + 0.05, C.maxX - 0.05);
+  desired.z = OZ + clamp(lz, C.minZ + 0.05, C.maxZ - 0.05);
+  desired.y = clamp(desired.y, 0.55, 3.15);
+}
+
+/* ---------- 실내 불꽃 · 불빛 (실내에 있을 때만) ---------- */
+function updateInterior(dt) {
+  INTERIOR.tick += dt;
+  const t = INTERIOR.tick;
+  const fl = INTERIOR.flames;
+  for (let i = 0; i < fl.length; i++) {
+    const f = fl[i];
+    const k = 1 + Math.sin(t * (6.2 + i * 1.7) + f.ph) * 0.16 + Math.sin(t * 13.1 + f.ph * 2) * 0.07;
+    f.mesh.scale.set(0.86 + (k - 1) * 0.5, k, 1);
+    f.mesh.material.opacity = 0.62 + Math.sin(t * (8.4 + i * 2.2) + f.ph) * 0.18;
+  }
+  if (INTERIOR.fireLight) {
+    INTERIOR.fireLight.intensity = 9.5 + Math.sin(t * 7.3) * 1.4 + Math.sin(t * 17.7) * 0.7;
+  }
+  if (INTERIOR.firePool) INTERIOR.firePool.material.opacity = 0.26 + Math.sin(t * 5.5) * 0.05;
+  if (INTERIOR.embers) {
+    const e = INTERIOR.embers;
+    const pos = e.points.geometry.attributes.position;
+    for (let i = 0; i < e.data.length; i++) {
+      const d = e.data[i];
+      d.y += d.sp * dt;
+      if (d.y > 1.45) { d.y = 0.35; d.x = -0.4 + rand(-0.24, 0.24); }
+      pos.array[i * 3] = d.x + Math.sin(t * 2.2 + d.ph) * 0.05;
+      pos.array[i * 3 + 1] = d.y;
+      pos.array[i * 3 + 2] = d.z;
+    }
+    pos.needsUpdate = true;
+    e.points.material.opacity = 0.75 + Math.sin(t * 4.1) * 0.2;
+  }
+  if (INTERIOR.treeLights) {
+    INTERIOR.treeLights.material.opacity = 0.82 + Math.sin(t * 2.6) * 0.16;
+  }
+}
+
+/* ---------- 집 안 .glb 교체 훅 ----------
+   .glb 하나만 연결하면 임시 실내를 대신한다. 모델 한 변을 10.2m 로 맞춰
+   바닥(y=0)에 앉히고, 걷는 범위·카메라 한계·스폰 지점을 모델 크기로 다시 잡는다. */
+async function loadInteriorGLB(url) {
+  if (!url) return false;
+  try {
+    const gltf = await new GLTFLoader().loadAsync(url);
+    const g = gltf.scene || (gltf.scenes && gltf.scenes[0]);
+    if (!g) return false;
+    g.traverse((o) => {
+      if (!o.isMesh) return;
+      o.castShadow = false;
+      o.receiveShadow = true;
+      o.frustumCulled = false;
+    });
+    let box = new THREE.Box3().setFromObject(g);
+    const size = new THREE.Vector3();
+    box.getSize(size);
+    const long = Math.max(size.x, size.z, 0.001);
+    const k = 10.2 / long;
+    g.scale.setScalar(k);
+    g.updateMatrixWorld(true);
+    box = new THREE.Box3().setFromObject(g);
+    g.position.set(
+      -(box.min.x + box.max.x) / 2,
+      -box.min.y,
+      -(box.min.z + box.max.z) / 2
+    );
+    g.updateMatrixWorld(true);
+    box = new THREE.Box3().setFromObject(g);
+    const hx = Math.min(4.9, (box.max.x - box.min.x) / 2);
+    const hzN = Math.min(4.1, (box.min.z < 0 ? -box.min.z : 4.2));
+    const hzP = Math.min(4.2, (box.max.z > 0 ? box.max.z : 4.2));
+    INTERIOR.bounds = { minX: -hx + 0.4, maxX: hx - 0.4, minZ: -hzN + 0.4, maxZ: 4.12 };
+    INTERIOR.hall = { minX: -0.62, maxX: 0.62, minZ: 4.12, maxZ: hzP - 0.35 };
+    INTERIOR.cam = { minX: -hx + 0.1, maxX: hx - 0.1, minZ: -hzN + 0.1, maxZ: 4.16 };
+    INTERIOR.camHall = { minX: -0.95, maxX: 0.95, minZ: 4.16, maxZ: Math.max(4.4, hzP - 0.4) };
+    INTERIOR.spawn = { x: 0, z: Math.max(-hzN + 0.9, Math.min(3.2, hzP - 1.0)) };
+    INTERIOR.colliders = [];                 // 모델 자체가 벽·가구를 포함한다
+    if (INTERIOR.built) INTERIOR.built.visible = false;
+    if (INTERIOR.glb) interiorRoot.remove(INTERIOR.glb);
+    interiorRoot.add(g);
+    INTERIOR.glb = g;
+    INTERIOR.source = 'glb';
+    if (ZONE.mode === 'interior') enterInterior(ZONE.door, true);   // 위치·카메라 다시 잡기
+    console.info('[interior] .glb 로 교체:', url, { hx: +hx.toFixed(2), hzN: +hzN.toFixed(2), hzP: +hzP.toFixed(2) });
+    return true;
+  } catch (e) {
+    console.warn('[interior] .glb 로드 실패:', url, e && e.message);
+    return false;
+  }
+}
+
+if (INTERIOR_GLB_URL) loadInteriorGLB(INTERIOR_GLB_URL);
+
+/* ---------- 코티지 문 앞 표시등 (따뜻한 불빛이 새어 나오는 느낌) ---------- */
+function buildDoorMarkers() {
+  const g = new THREE.Group();
+  g.name = 'door-markers';
+  const matFloor = new THREE.MeshBasicMaterial({
+    map: TEX_GLOW, color: 0xffb45a, transparent: true, opacity: 0.42,
+    depthWrite: false, blending: THREE.AdditiveBlending, toneMapped: false,
+  });
+  const matGlow = new THREE.SpriteMaterial({
+    map: TEX_GLOW, color: 0xffc98a, transparent: true, opacity: 0.5,
+    depthWrite: false, blending: THREE.AdditiveBlending, toneMapped: false,
+  });
+  const geos = [];
+  for (const d of HOUSE_DOORS) {
+    const px = d.door.x + d.face.x * 0.6, pz = d.door.z + d.face.z * 0.6;
+    const plane = new THREE.PlaneGeometry(2.5, 2.1);
+    const m = new THREE.Matrix4().makeRotationX(-Math.PI / 2);
+    m.setPosition(px, groundY(px, pz) + 0.014, pz);
+    plane.applyMatrix4(m);
+    geos.push(plane);
+
+    const sp = new THREE.Sprite(matGlow);
+    sp.scale.set(1.45, 1.45, 1);
+    sp.position.set(d.door.x + d.face.x * 0.25, 1.2, d.door.z + d.face.z * 0.25);
+    sp.material = matGlow;
+    g.add(sp);
+  }
+  const merged = mergeGeometries(geos, false);
+  geos.forEach((x) => x.dispose());
+  if (merged) {
+    const mesh = new THREE.Mesh(merged, matFloor);
+    mesh.renderOrder = 2;
+    g.add(mesh);
+  }
+  VILLAGE_ROOT.add(g);
+  INTERIOR.markers = g;
+}
+buildDoorMarkers();
 
 /* ---------- .glb 로더 ---------- */
 const gltfLoader = new GLTFLoader();
@@ -5905,7 +6972,7 @@ dom.addEventListener('pointermove', (e) => {
     if (!Number.isFinite(d)) { resetPinch(); return; }
     if (pinchDist0 > 0) {
       const ratio = pinchDist0 / Math.max(d, 1);
-      const next = clamp(finiteOr(pinchStart, rig.targetDist) * finiteOr(ratio, 1), CAM_MIN, CAM_MAX);
+      const next = clamp(finiteOr(pinchStart, rig.targetDist) * finiteOr(ratio, 1), CAM_LO, CAM_HI);
       if (Number.isFinite(next)) {
         rig.targetDist = next;
         rig.dist = next;
@@ -5943,7 +7010,7 @@ document.addEventListener('touchend', (e) => {
 document.addEventListener('touchcancel', () => { pointers.clear(); resetPinch(); }, true);
 dom.addEventListener('wheel', (e) => {
   e.preventDefault();
-  rig.targetDist = clamp(finiteOr(rig.targetDist, 8.6) + finiteOr(e.deltaY, 0) * 0.012, CAM_MIN, CAM_MAX);
+  rig.targetDist = clamp(finiteOr(rig.targetDist, 8.6) + finiteOr(e.deltaY, 0) * 0.012, CAM_LO, CAM_HI);
 }, { passive: false });
 
 /* --- 모바일 조이스틱 --- */
@@ -6003,16 +7070,17 @@ function makeLabel(nickname, isMe) {
 function addPlayer(p) {
   if (players.has(p.id)) return;
   const root = makeElfAvatar(p.character);
+  root.userData.isAvatar = true;
   root.position.set(p.x, groundY(p.x, p.z), p.z);
   root.rotation.y = p.yaw;
-  root.visible = p.id !== 'me';
+  root.visible = p.id !== 'me' && (p.zone || 'p') === (ZONE.mode === 'interior' ? 'i' : 'p');
   scene.add(root);
 
   const lab = makeLabel(p.nickname, p.id === 'me');
   players.set(p.id, {
     id: p.id, nickname: p.nickname, character: p.character,
     root, label: lab, tx: p.x, tz: p.z, tyaw: p.yaw, moving: false, pose: p.pose || 'stand', seat: -1,
-    bubbleTimer: 0, isMe: p.id === 'me', accent: charById(p.character).accent,
+    bubbleTimer: 0, isMe: p.id === 'me', accent: charById(p.character).accent, zone: p.zone || 'p',
   });
   renderPlayerList();
 }
@@ -6210,6 +7278,7 @@ function spawnFloater(playerId, emoji) {
     map: emojiTexture(emoji), transparent: true, depthWrite: false, depthTest: false,
   });
   const sp = new THREE.Sprite(mat);
+  sp.userData.floater = true;
   sp.scale.set(0.95, 0.95, 1);
   sp.position.set(
     p.root.position.x + rand(-0.2, 0.2),
@@ -6463,7 +7532,14 @@ net.on('state', ({ players: list }) => {
     p.tx = s.x; p.tz = s.z; p.tyaw = s.yaw;
     p.pose = s.pose || 'stand';
     p.moving = !!s.moving && p.pose !== 'sit';
+    p.zone = s.zone || 'p';
     if (p.isMe) { p.root.position.x = s.x; p.root.position.z = s.z; }
+    /* 광장/실내가 다르면 그리지 않는다 */
+    const show = (p.zone || 'p') === (ZONE.mode === 'interior' ? 'i' : 'p');
+    if (!p.isMe && p.root.visible !== show) {
+      p.root.visible = show;
+      if (!show) p.label.el.style.opacity = '0';
+    }
   }
 });
 net.on('chat', (m) => {
@@ -6555,8 +7631,8 @@ function sanitizeRig() {
   if (!Number.isFinite(rig.pitch)) rig.pitch = 0.2;
   if (!Number.isFinite(rig.dist)) rig.dist = 8.6;
   if (!Number.isFinite(rig.targetDist)) rig.targetDist = rig.dist;
-  rig.targetDist = clamp(rig.targetDist, CAM_MIN, CAM_MAX);
-  rig.dist = clamp(rig.dist, CAM_MIN, CAM_MAX);
+  rig.targetDist = clamp(rig.targetDist, CAM_LO, CAM_HI);
+  rig.dist = clamp(rig.dist, CAM_LO, CAM_HI);
   rig.pitch = clamp(rig.pitch, -0.12, 1.15);
   if (!Number.isFinite(rig.lookAt.x) || !Number.isFinite(rig.lookAt.y) || !Number.isFinite(rig.lookAt.z)) {
     rig.lookAt.set(playerPos.x, playerPos.y + 1.45, playerPos.z);
@@ -6582,7 +7658,8 @@ function updateCamera(dt) {
     rig.targetDist = 30 * MAP;
     rig.lookAt.lerp(tmpV.set(0, 5.4 * MAP, 0), Math.min(1, dt * 2));
   } else {
-    const target = tmpV.set(playerPos.x, playerPos.y + 1.45, playerPos.z);
+    const eye = ZONE.mode === 'interior' ? 1.15 : 1.45;
+    const target = tmpV.set(playerPos.x, playerPos.y + eye, playerPos.z);
     rig.lookAt.lerp(target, Math.min(1, dt * 7));
     rig.dist = lerp(rig.dist, rig.targetDist, Math.min(1, dt * 4.5));
   }
@@ -6607,7 +7684,8 @@ function updateCamera(dt) {
       desired.set(playerPos.x, playerPos.y + 4.0, playerPos.z + 8.6);
     }
   }
-  camera.position.lerp(desired, rig.mode === 'lobby' ? 1 : Math.min(1, dt * 9));
+  if (rig.snap) { camera.position.copy(desired); rig.snap = false; }
+  else camera.position.lerp(desired, rig.mode === 'lobby' ? 1 : Math.min(1, dt * 9));
   camera.lookAt(rig.lookAt);
   if (!cameraFinite()) {
     camera.position.set(playerPos.x, playerPos.y + 4.0, playerPos.z + 8.6);
@@ -6617,6 +7695,7 @@ function updateCamera(dt) {
 
 /* 카메라가 광장 밖(담장·건물)으로 나가지 않도록 시선 방향으로 당겨 온다 */
 function limitCamera(desired) {
+  if (ZONE.mode === 'interior') return limitInteriorCamera(desired);
   const floorY = groundY(desired.x, desired.z);
   /* 멀리 줌아웃한 상태에서는 지붕 위라도 광장 밖(코티지 위)으로 나가지 않게 잡아 준다.
      그대로 두면 시야 아래쪽이 코티지 지붕으로 가득 찬다. */
@@ -6638,6 +7717,7 @@ function limitCamera(desired) {
 
 function updatePlayer(dt) {
   if (!state.joined) return;
+  if (TRANS.busy) return;                  // 문을 여닫는 동안은 움직이지 않는다
 
   /* --- 모닥불 앉기: 이동 입력이 들어오면 먼저 일어난다 --- */
   if (SIT.active && anyMoveInput()) standUp();
@@ -6683,7 +7763,8 @@ function updatePlayer(dt) {
     else { nx = playerPos.x; nz = playerPos.z; }
   }
 
-  for (const c of colliders) {
+  const cols = ZONE.mode === 'interior' ? INTERIOR.colliders : colliders;
+  for (const c of cols) {
     const dx = nx - c.x, dz = nz - c.z;
     const d = Math.hypot(dx, dz);
     const min = c.r + 0.42;
@@ -6707,7 +7788,10 @@ function updatePlayer(dt) {
   if (moved > 0.0005) {
     playerYaw.v = angleLerp(playerYaw.v, Math.atan2(dxm, dzm), Math.min(1, dt * 11));
   }
-  net.update({ x: playerPos.x, z: playerPos.z, yaw: playerYaw.v, moving: moved > 0.004, pose: 'stand', seat: -1 });
+  net.update({
+    x: playerPos.x, z: playerPos.z, yaw: playerYaw.v, moving: moved > 0.004,
+    pose: 'stand', seat: -1, zone: ZONE.mode === 'interior' ? 'i' : 'p',
+  });
 }
 
 /* ===============================================================
@@ -6747,7 +7831,8 @@ function nearestSeat() {
 }
 
 function updateSeatButton() {
-  const near = state.joined && (SIT.active || Math.hypot(playerPos.x - CAMPFIRE.x, playerPos.z - CAMPFIRE.z) < 4.8);
+  const near = state.joined && ZONE.mode === 'plaza'
+    && (SIT.active || Math.hypot(playerPos.x - CAMPFIRE.x, playerPos.z - CAMPFIRE.z) < 4.8);
   SIT.near = near;
   seatBtn.classList.toggle('show', near);
   seatBtn.classList.toggle('on', SIT.active);
@@ -6865,6 +7950,7 @@ function updateLabels() {
   const w = window.innerWidth, h = window.innerHeight;
   for (const p of players.values()) {
     const el = p.label.el;
+    if (!p.root.visible) { if (el.style.opacity !== '0') el.style.opacity = '0'; continue; }
     proj.set(p.root.position.x, p.root.position.y + (p.pose === 'sit' ? 1.62 : 2.02), p.root.position.z);
     const dist = camera.position.distanceTo(proj);
     proj.project(camera);
@@ -6997,6 +8083,7 @@ function loop() {
   updatePlayer(dt);
   updateCamera(dt);
   updateFarMode();
+  updateDoorUI();
   for (const p of players.values()) animateAvatar(p, dt);
 
   /* 컨텍스트 유실 감시 — 이벤트를 놓쳐도(브라우저·GPU 사정) 매 프레임 확인해 복구로 넘긴다 */
@@ -7005,14 +8092,19 @@ function loop() {
     if (gl && typeof gl.isContextLost === 'function' && gl.isContextLost()) handleContextLost();
   }
 
-  updateSnow(dt);
-  twinkleTree();
-  updateSmoke(dt);
-  updateCampfire(dt);
-  updateProps(dt);
+  /* 광장/실내 중 한 쪽만 갱신한다 — 실내에서는 눈·연기·모닥불을 건너뛴다 */
+  if (ZONE.mode === 'interior') {
+    updateInterior(dt);
+  } else {
+    updateSnow(dt);
+    twinkleTree();
+    updateSmoke(dt);
+    updateCampfire(dt);
+    updateProps(dt);
+    updateAmbient(dt);
+  }
   updateFloaters(dt);
   updateLabels();
-  updateAmbient(dt);
 
   renderFrame();
 
@@ -7048,7 +8140,7 @@ function watchQuality(fps) {
 /* 리사이즈 */
 function onResize() {
   camera.aspect = window.innerWidth / window.innerHeight;
-  if (rig.mode === 'player') rig.targetDist = camera.aspect < 0.85 ? 10.4 : 8.6;
+  if (rig.mode === 'player' && ZONE.mode !== 'interior') rig.targetDist = camera.aspect < 0.85 ? 10.4 : 8.6;
   camera.updateProjectionMatrix();
   renderer.setSize(window.innerWidth, window.innerHeight);
   applyQuality();          // 픽셀비율·컴포저 버퍼를 품질 단계에 맞춰 다시 잡는다
@@ -7101,6 +8193,70 @@ window.__plaza = {
   get chat() { return [...chatLog.querySelectorAll('.msg, .sys')].slice(-12).map((d) => d.textContent); },
   get joined() { return state.joined; },
   get assets() { return assetsReady; },
+  /* --- 집 안 출입 진단 --- */
+  get zone() {
+    return {
+      mode: ZONE.mode, door: ZONE.door, near: nearDoorIdx, source: INTERIOR.source,
+      pos: [+playerPos.x.toFixed(2), +playerPos.z.toFixed(2)], yaw: +playerYaw.v.toFixed(2),
+    };
+  },
+  get doorUI() {
+    return {
+      enter: doorBtnEl.classList.contains('show'), exit: exitBtnEl.classList.contains('show'),
+      transition: dtEl.classList.contains('show'), busy: TRANS.busy,
+      text: dtTextEl.textContent, label: doorBtnEl.textContent.trim(),
+    };
+  },
+  get doors() {
+    ensureDoorPaths();
+    return HOUSE_DOORS.map((d) => ({
+      i: d.i,
+      door: [+d.door.x.toFixed(2), +d.door.z.toFixed(2)],
+      stand: [+d.stand.x.toFixed(2), +d.stand.z.toFixed(2)],
+      dist: +Math.hypot(playerPos.x - d.door.x, playerPos.z - d.door.z).toFixed(2),
+      standWalkable: walkableAt(d.stand.x, d.stand.z),
+    }));
+  },
+  get interior() {
+    return {
+      mode: ZONE.mode, source: INTERIOR.source,
+      local: [+(playerPos.x - INTERIOR_ORIGIN.x).toFixed(2), +(playerPos.z - INTERIOR_ORIGIN.z).toFixed(2)],
+      spawn: INTERIOR.spawn, bounds: INTERIOR.bounds, hall: INTERIOR.hall,
+      colliders: INTERIOR.colliders.length, lights: INTERIOR.lights.length,
+      roomVisible: interiorRoot.visible, villageVisible: VILLAGE_ROOT.visible,
+      meshCount: (() => { let n = 0; interiorRoot.traverse((o) => { if (o.isMesh) n++; }); return n; })(),
+    };
+  },
+  gotoDoor(i) {
+    const d = HOUSE_DOORS[i === undefined ? 0 : i];
+    if (!d) return null;
+    playerPos.set(d.stand.x, groundY(d.stand.x, d.stand.z), d.stand.z);
+    const p = players.get('me');
+    if (p) p.root.position.copy(playerPos);
+    playerYaw.v = Math.atan2(-d.face.x, -d.face.z);   // 문을 바라본다
+    rig.yaw = playerYaw.v - Math.PI;
+    rig.lookAt.set(playerPos.x, 1.45, playerPos.z);
+    rig.snap = true;
+    updateDoorUI();
+    return { door: d.i, dist: +Math.hypot(playerPos.x - d.door.x, playerPos.z - d.door.z).toFixed(2) };
+  },
+  enterHouse(i) { enterInterior(i === undefined ? nearDoorIdx : i); updateDoorUI(); return ZONE.mode; },
+  exitHouse() { if (ZONE.mode === 'interior') exitInterior(); updateDoorUI(); return ZONE.mode; },
+  travel(mode) { doorTravel(mode); return TRANS.busy; },
+  setDoorTiming(o) { Object.assign(DOOR_TIMING, o || {}); return { ...DOOR_TIMING }; },
+  /* 촬영용: 이동 화면을 그 상태로 멈춰 둔다 (실제 화면과 같은 DOM/CSS) */
+  showTransitionStill(mode) {
+    clearTimeout(fadeTimer);
+    dtTextEl.textContent = mode === 'out' ? '❄️ 눈 내리는 광장으로 나가는 중…' : '🏠 따뜻한 집 안으로 들어가는 중…';
+    dtSubEl.textContent = mode === 'out' ? '문을 열고 밖으로 나갑니다' : '문을 열고 들어갑니다';
+    dtEl.classList.add('show');
+    dtEl.style.opacity = '1';
+    dtEl.setAttribute('aria-hidden', 'false');
+    return true;
+  },
+  hideTransitionStill() { dtEl.classList.remove('show'); dtEl.style.opacity = ''; dtEl.setAttribute('aria-hidden', 'true'); return true; },
+  setInteriorGLB(url) { return loadInteriorGLB(url); },
+  get doorMarkers() { return INTERIOR.markers ? INTERIOR.markers.children.length : 0; },
   get bg() { return { radius: R_PLAZA, walk: R_WALK, flat: R_FLAT, walkable: walkableAt(4.2, 5.2) }; },
   floor(x, z) { return +groundY(x, z).toFixed(3); },
   walkable(x, z) { return walkableAt(x, z); },
@@ -7290,6 +8446,7 @@ window.__plaza = {
       rig.lookAt.y + Math.sin(rig.pitch) * rig.dist,
       rig.lookAt.z + Math.cos(rig.yaw) * cosP * rig.dist
     );
+    if (rig.mode === 'player') limitCamera(camera.position);   // 벽·건물 속으로 들어가지 않게
     camera.lookAt(rig.lookAt);
     updateLabels();
     renderFrame();
