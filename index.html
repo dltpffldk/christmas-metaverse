@@ -641,7 +641,9 @@ const TAU = Math.PI * 2;
 /* 카메라 줌 한계 — 너무 멀리 나가면 광장 밖 건물 뒷면만 보이고,
    모바일 GPU 에서 화면 전체를 다시 그리다 컨텍스트가 날아가 검게 변한다. */
 const CAM_MIN = 5.5;
-const CAM_MAX = 26;            // 너무 멀리 나가면 지평선 밖으로 나가므로 26m 로 제한
+/* 줌 상한 — 모바일은 더 좁게 잡는다. 멀리 볼수록 한 프레임에 그리는 양이 커져
+   저사양 GPU 에서 컨텍스트 유실 위험이 커지기 때문이다. */
+const CAM_MAX = IS_TOUCH ? 21 : 26;
 const CAM_FAR = 19;            // 이 거리부터는 '멀리 보기' — 블룸·픽셀비율을 낮춘다
 const clamp = (v, a, b) => Math.min(b, Math.max(a, v));
 const finiteOr = (v, alt) => (Number.isFinite(v) ? v : alt);
@@ -1585,8 +1587,10 @@ if (USE_POST) {
 function applyQuality() {
   const dpr = window.devicePixelRatio || 1;
   /* 픽셀비율은 어떤 단계에서도 DPR_CAP(모바일 1.5) 을 넘지 않는다 */
-  const cap = quality >= 2 ? DPR_CAP : (quality === 1 ? Math.min(DPR_CAP, 1.25) : 1.0);
-  renderer.setPixelRatio(Math.min(dpr, cap));
+  const cap = IS_TOUCH ? DPR_CAP : (quality >= 2 ? DPR_CAP : (quality === 1 ? Math.min(DPR_CAP, 1.25) : 1.0));
+  const nextDpr = Math.min(dpr, cap);
+  /* 같은 값이면 setPixelRatio 를 부르지 않는다(불필요한 버퍼 재할당 방지) */
+  if (Math.abs(renderer.getPixelRatio() - nextDpr) > 1e-3) renderer.setPixelRatio(nextDpr);
   if (!USE_POST || !composer) return;
   if (quality >= 2) {
     bloomPass.enabled = true;
@@ -7015,6 +7019,10 @@ let slowStreak = 0;
 const QUALITY_WARMUP_MS = 5000;                 // 셰이더 컴파일·에셋 업로드 구간은 측정 제외
 const pageStartedAt = performance.now();
 function watchQuality(fps) {
+  /* 모바일은 품질 단계를 바꾸지 않는다 — 단계가 바뀌면 픽셀비율이 바뀌고,
+     그때마다 그리기 버퍼를 다시 만들어 GPU 메모리가 출렁여 컨텍스트 유실의
+     방아쇠가 됐다. 처음 정한 값(DPR 1.5·직접 렌더)을 끝까지 유지한다. */
+  if (IS_TOUCH) return;
   if (quality <= 0) return;
   if (performance.now() - pageStartedAt < QUALITY_WARMUP_MS) return;
   if (fps > 0 && fps < 28) slowStreak++; else slowStreak = 0;
