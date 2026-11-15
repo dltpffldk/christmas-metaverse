@@ -577,6 +577,11 @@
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { clone as cloneSkinned } from 'three/addons/utils/SkeletonUtils.js';
+import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
+import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
+import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
+import { ShaderPass } from 'three/addons/postprocessing/ShaderPass.js';
+import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
 
 /* =====================================================================
    🎄 크리스마스 광장 — 엘프의 겨울 마을 (동화풍 개편)
@@ -1377,7 +1382,7 @@ window.addEventListener('pagehide', () => { try { net.disconnect(); } catch (_) 
 --------------------------------------------------------------- */
 const sceneRoot = document.getElementById('scene-root');
 const scene = new THREE.Scene();
-scene.fog = new THREE.FogExp2(0x717ba8, 0.0031);
+scene.fog = new THREE.FogExp2(0x7f8ab6, 0.0021);
 
 const renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: 'high-performance' });
 renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, IS_TOUCH ? 2 : 1.7));
@@ -1385,12 +1390,115 @@ renderer.setSize(window.innerWidth, window.innerHeight);
 renderer.shadowMap.enabled = true;
 renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 renderer.toneMapping = THREE.ACESFilmicToneMapping;
-renderer.toneMappingExposure = 1.02;
+renderer.toneMappingExposure = 0.96;
 sceneRoot.appendChild(renderer.domElement);
 renderer.domElement.style.touchAction = 'none';
 
 const camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 0.1, 900);
 camera.position.set(0, 11, 34);
+
+/* ---------------------------------------------------------------
+   3-A. 렌더 품질 — 포스트프로세싱 체인
+   ---------------------------------------------------------------
+   RenderPass → Bloom(은은) → Grade(채도·색온도·비네트·디더) → OutputPass
+   · 컴포저 버퍼는 선형 HDR 이고, 톤매핑·sRGB 변환은 OutputPass 에서 딱 한 번.
+   · 픽셀비율 상한 · 블룸 세기 · 비네트를 QUALITY 단계로 묶어 두고,
+     프레임이 무너지면 loop() 가 자동으로 한 단계씩 내린다(최저 단계는 컴포저 없이 직접 렌더).
+--------------------------------------------------------------- */
+const QUALITY_MAX = 2;
+let quality = QUALITY_MAX;
+let composerBroken = false;
+
+const composer = new EffectComposer(renderer);
+composer.setPixelRatio(renderer.getPixelRatio());
+composer.setSize(window.innerWidth, window.innerHeight);
+composer.addPass(new RenderPass(scene, camera));
+
+const bloomPass = new UnrealBloomPass(
+  new THREE.Vector2(window.innerWidth, window.innerHeight),
+  0.5,            // strength — 과하면 눈밭이 하얗게 떠 버린다
+  0.55,           // radius
+  0.78            // threshold — 이 밝기 이상만 번진다
+);
+composer.addPass(bloomPass);
+
+/* 채도·색온도·비네트 — 마무리 한 겹 (선형 공간에서 동작) */
+const GradeEffect = {
+  uniforms: {
+    tDiffuse: { value: null },
+    uVignette: { value: 0.44 },
+    uTint: { value: new THREE.Color(0xfff2dd) },
+    uTintAmt: { value: 0.10 },
+    uSaturation: { value: 1.1 },
+  },
+  vertexShader: `
+    varying vec2 vUv;
+    void main() { vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }
+  `,
+  fragmentShader: `
+    uniform sampler2D tDiffuse;
+    uniform float uVignette;
+    uniform vec3 uTint;
+    uniform float uTintAmt;
+    uniform float uSaturation;
+    varying vec2 vUv;
+    void main() {
+      vec4 c = texture2D(tDiffuse, vUv);
+      float l = dot(c.rgb, vec3(0.2126, 0.7152, 0.0722));
+      c.rgb = mix(vec3(l), c.rgb, uSaturation);
+      c.rgb = mix(c.rgb, c.rgb * uTint, uTintAmt);
+      float r = length((vUv - 0.5) * vec2(1.06, 1.0)) * 1.45;
+      c.rgb *= mix(1.0, smoothstep(1.0, 0.28, r), uVignette);
+      float n = fract(sin(dot(vUv * 1024.0, vec2(12.9898, 78.233))) * 43758.5453);
+      c.rgb += (n - 0.5) * 0.0018;   // 8bit 밴딩 억제
+      gl_FragColor = c;
+    }
+  `,
+};
+const gradePass = new ShaderPass(GradeEffect);
+composer.addPass(gradePass);
+composer.addPass(new OutputPass());
+
+/** 품질 단계 적용 (2: 풀 / 1: 블룸 약화·픽셀비율 하향 / 0: 컴포저 끔) */
+function applyQuality() {
+  const dpr = window.devicePixelRatio || 1;
+  if (quality >= 2) {
+    bloomPass.enabled = true;
+    bloomPass.strength = IS_TOUCH ? 0.30 : 0.5;
+    bloomPass.radius = 0.55;
+    bloomPass.threshold = IS_TOUCH ? 0.9 : 0.8;
+    gradePass.uniforms.uVignette.value = IS_TOUCH ? 0.38 : 0.44;
+    renderer.setPixelRatio(Math.min(dpr, IS_TOUCH ? 2 : 1.7));
+  } else if (quality === 1) {
+    bloomPass.enabled = true;
+    bloomPass.strength = 0.24;
+    bloomPass.threshold = 0.88;
+    gradePass.uniforms.uVignette.value = 0.34;
+    renderer.setPixelRatio(Math.min(dpr, IS_TOUCH ? 1.6 : 1.4));
+  } else {
+    bloomPass.enabled = false;
+    renderer.setPixelRatio(Math.min(dpr, 1.25));
+  }
+  composer.setPixelRatio(renderer.getPixelRatio());
+  composer.setSize(window.innerWidth, window.innerHeight);
+}
+applyQuality();
+
+/** 한 프레임 — 품질 0 이거나 컴포저가 실패하면 직접 렌더로 폴백 */
+function renderFrame() {
+  renderer.info.reset();          // 컴포저는 render() 를 여러 번 부르므로 프레임 단위로 직접 집계
+  if (quality > 0 && !composerBroken) {
+    try {
+      composer.render();
+      return;
+    } catch (e) {
+      composerBroken = true;
+      console.warn('post-processing fallback:', e && e.message);
+    }
+  }
+  renderer.render(scene, camera);
+}
+renderer.info.autoReset = false;   // 프레임 합산해서 드로우콜을 읽는다
 
 /* ---------- 텍스처 헬퍼 ---------- */
 function canvasTexture(w, h, draw) {
@@ -1426,27 +1534,80 @@ function glowSprite(color, size, opacity = 0.85) {
   return s;
 }
 
+/* ---------- 접지 블롭 (contact shadow) ----------
+   그림자맵은 태양 하나만 쓰므로, 캐릭터 발밑은 저렴한 라디얼 그라디언트 판으로 눌러 준다.
+   이것이 없으면 발이 눈 위에 떠 보인다. */
+const TEX_BLOB = canvasTexture(128, 128, (x, w, h) => {
+  const g = x.createRadialGradient(w / 2, h / 2, 0, w / 2, h / 2, w / 2);
+  g.addColorStop(0, 'rgba(24,26,46,0.62)');
+  g.addColorStop(0.45, 'rgba(24,26,46,0.30)');
+  g.addColorStop(1, 'rgba(24,26,46,0)');
+  x.fillStyle = g;
+  x.fillRect(0, 0, w, h);
+});
+function contactShadow(radius = 0.62, opacity = 0.55) {
+  const m = new THREE.Mesh(
+    new THREE.PlaneGeometry(radius * 2, radius * 2),
+    new THREE.MeshBasicMaterial({
+      map: TEX_BLOB, transparent: true, opacity,
+      depthWrite: false, toneMapped: false,
+    })
+  );
+  m.rotation.x = -Math.PI / 2;
+  m.position.y = 0.015;
+  m.renderOrder = 2;
+  return m;
+}
+
+/* ---------- 캐릭터 림 라이트 (프레넬) ----------
+   방향광만으로는 어두운 배경 앞 캐릭터 윤곽이 배경에 묻힌다.
+   머티리얼 셰이더에 프레넬 항을 한 줄 더해 가장자리만 차갑게 살린다. */
+const RIM_COLOR = new THREE.Color(0xa8c8ff);
+function addRim(mat, strength = 0.5, power = 3.2) {
+  if (!mat || mat.userData.rimApplied) return mat;
+  mat.userData.rimApplied = true;
+  mat.onBeforeCompile = (shader) => {
+    shader.uniforms.uRimColor = { value: RIM_COLOR };
+    shader.uniforms.uRimStrength = { value: strength };
+    shader.uniforms.uRimPower = { value: power };
+    shader.fragmentShader = shader.fragmentShader
+      .replace('#include <common>',
+        '#include <common>\nuniform vec3 uRimColor;\nuniform float uRimStrength;\nuniform float uRimPower;')
+      .replace('#include <dithering_fragment>', [
+        '{',
+        '  vec3 rimV = normalize( vViewPosition );',
+        '  float rimF = pow( 1.0 - clamp( dot( normalize( normal ), rimV ), 0.0, 1.0 ), uRimPower );',
+        '  gl_FragColor.rgb += uRimColor * rimF * uRimStrength;',
+        '}',
+        '#include <dithering_fragment>',
+      ].join('\n'));
+  };
+  mat.needsUpdate = true;
+  return mat;
+}
+
 /* ---------------------------------------------------------------
    공통 재질
 --------------------------------------------------------------- */
 const M = {
-  snow:      new THREE.MeshStandardMaterial({ color: 0xf3f8ff, roughness: 0.92, metalness: 0.0 }),
-  snowDeep:  new THREE.MeshStandardMaterial({ color: 0xdde8f8, roughness: 0.95 }),
-  stone:     new THREE.MeshStandardMaterial({ color: 0xc0b3a1, roughness: 0.88, metalness: 0.03 }),
-  stoneWarm: new THREE.MeshStandardMaterial({ color: 0xa8977f, roughness: 0.9 }),
-  stoneCool: new THREE.MeshStandardMaterial({ color: 0x9aa0b0, roughness: 0.88 }),
-  stoneDark: new THREE.MeshStandardMaterial({ color: 0x7d7368, roughness: 0.9 }),
-  wood:      new THREE.MeshStandardMaterial({ color: 0x74503a, roughness: 0.86 }),
-  woodDark:  new THREE.MeshStandardMaterial({ color: 0x4a3325, roughness: 0.9 }),
-  plaster:   new THREE.MeshStandardMaterial({ color: 0xded2bd, roughness: 0.92 }),
-  roof:      new THREE.MeshStandardMaterial({ color: 0x6b4a3e, roughness: 0.85 }),
-  iron:      new THREE.MeshStandardMaterial({ color: 0x2b2f3a, roughness: 0.5, metalness: 0.72 }),
-  gold:      new THREE.MeshStandardMaterial({ color: 0xffcf6b, roughness: 0.26, metalness: 0.9, envMapIntensity: 1.5 }),
-  redVelvet: new THREE.MeshStandardMaterial({ color: 0x9e1420, roughness: 0.68, metalness: 0.06 }),
-  redBright: new THREE.MeshStandardMaterial({ color: 0xc0202a, roughness: 0.55 }),
-  pine:      new THREE.MeshStandardMaterial({ color: 0x145139, roughness: 0.86, flatShading: true }),
-  pineDeep:  new THREE.MeshStandardMaterial({ color: 0x0d3d2b, roughness: 0.88, flatShading: true }),
-  garland:   new THREE.MeshStandardMaterial({ color: 0x175437, roughness: 0.85 }),
+  /* 눈 — 거칠게 두되 환경광을 조금 받게 해서 '가루'가 아니라 '설면'으로 보이게 */
+  snow:      new THREE.MeshStandardMaterial({ color: 0xf4f9ff, roughness: 0.86, metalness: 0.0, envMapIntensity: 0.55 }),
+  snowDeep:  new THREE.MeshStandardMaterial({ color: 0xdde8f8, roughness: 0.9, metalness: 0.0, envMapIntensity: 0.45 }),
+  stone:     new THREE.MeshStandardMaterial({ color: 0xc0b3a1, roughness: 0.82, metalness: 0.04, envMapIntensity: 0.5 }),
+  stoneWarm: new THREE.MeshStandardMaterial({ color: 0xa8977f, roughness: 0.84, envMapIntensity: 0.45 }),
+  stoneCool: new THREE.MeshStandardMaterial({ color: 0x9aa0b0, roughness: 0.8, envMapIntensity: 0.55 }),
+  stoneDark: new THREE.MeshStandardMaterial({ color: 0x7d7368, roughness: 0.86, envMapIntensity: 0.4 }),
+  wood:      new THREE.MeshStandardMaterial({ color: 0x74503a, roughness: 0.8, envMapIntensity: 0.35 }),
+  woodDark:  new THREE.MeshStandardMaterial({ color: 0x4a3325, roughness: 0.86, envMapIntensity: 0.3 }),
+  plaster:   new THREE.MeshStandardMaterial({ color: 0xded2bd, roughness: 0.88, envMapIntensity: 0.35 }),
+  roof:      new THREE.MeshStandardMaterial({ color: 0x6b4a3e, roughness: 0.78, envMapIntensity: 0.45 }),
+  iron:      new THREE.MeshStandardMaterial({ color: 0x2b2f3a, roughness: 0.42, metalness: 0.78, envMapIntensity: 1.0 }),
+  gold:      new THREE.MeshStandardMaterial({ color: 0xffcf6b, roughness: 0.22, metalness: 0.94, envMapIntensity: 2.0 }),
+  redVelvet: new THREE.MeshStandardMaterial({ color: 0x9e1420, roughness: 0.62, metalness: 0.06, envMapIntensity: 0.6 }),
+  redBright: new THREE.MeshStandardMaterial({ color: 0xc0202a, roughness: 0.48, metalness: 0.05, envMapIntensity: 0.7 }),
+  pine:      new THREE.MeshStandardMaterial({ color: 0x145139, roughness: 0.82, flatShading: true, envMapIntensity: 0.4 }),
+  pineDeep:  new THREE.MeshStandardMaterial({ color: 0x0d3d2b, roughness: 0.86, flatShading: true, envMapIntensity: 0.35 }),
+  garland:   new THREE.MeshStandardMaterial({ color: 0x175437, roughness: 0.8, envMapIntensity: 0.4 }),
 };
 
 /* 창문 — 따뜻한 불빛이 새어 나오는 4분할 창 */
@@ -1487,25 +1648,43 @@ function terrainHeight(x, z) {
   return n * flat + hills;
 }
 
-/* ---------- 환경 반사 (금속·유리 질감) ---------- */
+/* ---------- 환경 반사 (금속·눈의 하이라이트) ---------- */
 function buildEnvironment() {
-  const tex = canvasTexture(256, 128, (x, w, h) => {
+  /* 하늘 그라디언트 + 지평선 아래 눈바닥 + 태양 번짐을 한 장에 담는다.
+     반사맵이 '비어 있는 회색'이면 금속이 죽고 눈이 밋밋해진다. */
+  const tex = canvasTexture(512, 256, (x, w, h) => {
     const g = x.createLinearGradient(0, 0, 0, h);
-    g.addColorStop(0, '#3d4a86');
-    g.addColorStop(0.42, '#8a8cbe');
-    g.addColorStop(0.62, '#cdbcc8');
-    g.addColorStop(0.78, '#e8cdaa');
-    g.addColorStop(1, '#4a4a5c');
+    g.addColorStop(0.00, '#243362');
+    g.addColorStop(0.22, '#3f5194');
+    g.addColorStop(0.40, '#7d84bd');
+    g.addColorStop(0.50, '#c8b9c7');
+    g.addColorStop(0.56, '#e8c9ae');   // 지평선의 따뜻한 띠
+    g.addColorStop(0.60, '#b9b3c4');
+    g.addColorStop(0.72, '#8c8ba6');
+    g.addColorStop(1.00, '#4c4f66');   // 지면(눈 반사광)
     x.fillStyle = g;
     x.fillRect(0, 0, w, h);
-    const rg = x.createRadialGradient(w * 0.5, h * 0.55, 0, w * 0.5, h * 0.55, w * 0.3);
-    rg.addColorStop(0, 'rgba(255,226,170,.55)');
-    rg.addColorStop(1, 'rgba(255,226,170,0)');
-    x.fillStyle = rg;
+
+    // 태양 — 반사 하이라이트의 근원
+    const sx = w * 0.30, sy = h * 0.30;
+    const sg = x.createRadialGradient(sx, sy, 0, sx, sy, w * 0.22);
+    sg.addColorStop(0, 'rgba(255,240,214,1)');
+    sg.addColorStop(0.12, 'rgba(255,224,178,.75)');
+    sg.addColorStop(0.45, 'rgba(255,206,160,.22)');
+    sg.addColorStop(1, 'rgba(255,206,160,0)');
+    x.fillStyle = sg;
+    x.fillRect(0, 0, w, h);
+
+    // 반대편 하늘의 차가운 광원(림 라이트가 반사될 자리)
+    const cg = x.createRadialGradient(w * 0.78, h * 0.24, 0, w * 0.78, h * 0.24, w * 0.2);
+    cg.addColorStop(0, 'rgba(180,210,255,.55)');
+    cg.addColorStop(1, 'rgba(180,210,255,0)');
+    x.fillStyle = cg;
     x.fillRect(0, 0, w, h);
   });
   tex.mapping = THREE.EquirectangularReflectionMapping;
   const pmrem = new THREE.PMREMGenerator(renderer);
+  pmrem.compileEquirectangularShader();
   scene.environment = pmrem.fromEquirectangular(tex).texture;
   pmrem.dispose();
 }
@@ -1532,6 +1711,7 @@ function buildSky() {
     x.fillRect(0, 0, w, h);
   });
   const skyMat = new THREE.MeshBasicMaterial({ map: skyTex, side: THREE.BackSide, depthWrite: false, fog: false });
+  skyMat.color.setScalar(0.86);   // 해 질 녘 톤으로 한 단계 가라앉혀 따뜻한 조명이 도드라지게
   const sky = new THREE.Mesh(new THREE.SphereGeometry(420, 32, 20), skyMat);
   scene.add(sky);
 
@@ -2846,6 +3026,7 @@ function buildSnowBanks() {
    눈 내리기
 --------------------------------------------------------------- */
 let snowPoints = null, snowData = null;
+let snowBokeh = null, snowBokehData = null;
 function buildSnowfall() {
   const N = IS_TOUCH ? 1600 : 3200;
   const pos = new Float32Array(N * 3);
@@ -2869,35 +3050,80 @@ function buildSnowfall() {
   scene.add(snowPoints);
 }
 
+/* ---------- 전경 보케 눈 ----------
+   카메라 바로 앞을 아주 크고 흐릿한 눈송이가 지나가게 해서 '공기 원근'을 만든다.
+   화면 전체에 깊이 레이어가 하나 생기는 효과 — 드로우콜 1, 포인트 70개. */
+function buildSnowBokeh() {
+  const N = IS_TOUCH ? 34 : 60;
+  const pos = new Float32Array(N * 3);
+  const dat = new Float32Array(N * 2);
+  for (let i = 0; i < N; i++) {
+    pos[i * 3] = rand(-6.5, 6.5);
+    pos[i * 3 + 1] = rand(0.3, 6.5);
+    pos[i * 3 + 2] = rand(-6.5, 6.5);
+    dat[i * 2] = rand(0.25, 0.7);      // 낙하 속도
+    dat[i * 2 + 1] = rand(0, TAU);     // 흔들림 위상
+  }
+  const g = new THREE.BufferGeometry();
+  g.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+  const m = new THREE.PointsMaterial({
+    size: 0.52, map: TEX_SOFT, color: 0xeef5ff, transparent: true,
+    opacity: IS_TOUCH ? 0.13 : 0.16, depthWrite: false, sizeAttenuation: true, fog: false,
+  });
+  snowBokeh = new THREE.Points(g, m);
+  snowBokeh.frustumCulled = false;
+  snowBokeh.renderOrder = 4;
+  snowBokehData = dat;
+  scene.add(snowBokeh);
+}
+
 /* ---------------------------------------------------------------
-   조명
+   조명 — 키(따뜻한 태양) + 필(차가운 하늘) + 림(실루엣 분리) + 프랙티컬(랜턴·트리)
+   그림자는 키 라이트 하나만 켜서 비용을 묶는다.
 --------------------------------------------------------------- */
-const hemi = new THREE.HemisphereLight(0xbcd0ff, 0x5b5872, 0.95);
+const hemi = new THREE.HemisphereLight(0xa8c2ff, 0x4d5470, 0.46);
 scene.add(hemi);
-const sunLight = new THREE.DirectionalLight(0xcfdaff, 1.2);
-sunLight.position.set(-34, 118, 30);   // 광장 안까지 햇빛이 들도록 높은 각도
+
+const sunLight = new THREE.DirectionalLight(0xffe0c6, 2.05);
+sunLight.position.set(-46, 74, 42);   // 낮게 기울여 긴 그림자 → 광장에 깊이
 sunLight.castShadow = true;
 sunLight.shadow.mapSize.set(IS_TOUCH ? 1024 : 2048, IS_TOUCH ? 1024 : 2048);
 sunLight.shadow.camera.near = 10;
-sunLight.shadow.camera.far = 220;
+sunLight.shadow.camera.far = 240;
 sunLight.shadow.camera.left = -38 * MAP;
 sunLight.shadow.camera.right = 38 * MAP;
 sunLight.shadow.camera.top = 46 * MAP;
 sunLight.shadow.camera.bottom = -30 * MAP;
-sunLight.shadow.bias = -0.0009;
-sunLight.shadow.normalBias = 0.035;
+sunLight.shadow.bias = -0.0006;
+sunLight.shadow.normalBias = 0.045;
 scene.add(sunLight);
 
-const warmFill = new THREE.DirectionalLight(0xffc38a, 0.75);
-warmFill.position.set(16, 20, 44);
+/* 차가운 하늘광 — 그림자 속을 파랗게 남겨 따뜻한 조명과 색 대비를 만든다 */
+const skyFill = new THREE.DirectionalLight(0x9db8ff, 0.55);
+skyFill.position.set(34, 26, -18);
+scene.add(skyFill);
+
+/* 림 라이트 — 카메라 반대쪽에서 캐릭터·나무의 윤곽을 따로 세운다 */
+const rimLight = new THREE.DirectionalLight(0xbfd6ff, 0.7);
+rimLight.position.set(6, 16, -52);
+scene.add(rimLight);
+
+/* 지평선 쪽 따뜻한 잔광 */
+const warmFill = new THREE.DirectionalLight(0xffb887, 0.28);
+warmFill.position.set(16, 12, 44);
 scene.add(warmFill);
 
 /* 광장 전체를 데우는 은은한 조명 (디오라마 바닥이 어둡지 않게) */
-const plazaGlow = new THREE.PointLight(0xffd9a8, 26, 26 * MAP, 2);
-plazaGlow.position.set(0.5 * MAP, 5.2 * MAP, 0.5 * MAP);
+const plazaGlow = new THREE.PointLight(0xffd9a8, 14, 26 * MAP, 2);
+plazaGlow.position.set(0.5 * MAP, 6.4 * MAP, 0.5 * MAP);
 scene.add(plazaGlow);
 
-const playerLight = new THREE.PointLight(0xfff0d8, 7.5, 9, 2);
+/* 트리 밑동의 눈바닥에 고이는 빛 웅덩이 (지오메트리 없이 광원만으로) */
+const groundPool = new THREE.PointLight(0xffc98c, 16, 13 * MAP, 2);
+groundPool.position.set(0.4 * MAP, 1.35, 0.4 * MAP);
+scene.add(groundPool);
+
+const playerLight = new THREE.PointLight(0xfff0d8, 9, 9, 2);
 playerLight.position.set(4.2 * MAP, 3.0, 5.2 * MAP);
 scene.add(playerLight);
 
@@ -2918,6 +3144,7 @@ const houses = [];
 buildPines();        // 디오라마 바깥 r≥20 의 소나무 숲
 buildSnowBanks();    // 디오라마를 감싸는 눈둑
 buildSnowfall();
+buildSnowBokeh();   // 카메라 앞 보케 눈(깊이 레이어)
 
 /* ---------------------------------------------------------------
    3-B. 배경 .glb — 크리스마스 디오라마 광장
@@ -3197,6 +3424,19 @@ async function loadAssets() {
       o.castShadow = true;
       o.receiveShadow = true;
       o.frustumCulled = false;             // 스킨드 메쉬 컬링로 사라지는 것 방지
+      /* 캐릭터 PBR 보정 + 림 — .glb 원본은 금속도가 높아 어둡게 죽어 있고
+         환경 반사를 거의 안 받아 납작해 보인다. */
+      const mats = Array.isArray(o.material) ? o.material : [o.material];
+      mats.forEach((m) => {
+        if (!m || m.userData.charTuned) return;
+        m.userData.charTuned = true;
+        if (m.isMeshStandardMaterial) {
+          if (m.metalness !== undefined && m.metalness > 0.6) m.metalness = 0.35;
+          if (m.roughness !== undefined) m.roughness = clamp(m.roughness, 0.45, 1);
+          m.envMapIntensity = 0.75;
+        }
+        addRim(m, IS_TOUCH ? 0.42 : 0.62, 2.9);
+      });
     });
     /* .glb 원본을 idle 포즈로 한 번 세워 보고 "실제 렌더 키"를 잰다.
        그 값으로 아바타 생성 시 목표 키로 정확히 정규화한다
@@ -3620,6 +3860,9 @@ function makeElfAvatar(charId) {
   model.traverse((o) => {
     if (o.isMesh) { o.castShadow = true; o.receiveShadow = true; o.frustumCulled = false; }
   });
+
+  /* 발밑 접지 블롭 — root 에 달아 두면 이동·회전을 그대로 따라간다 */
+  root.add(contactShadow(0.66, 0.5));
 
   const mixer = new THREE.AnimationMixer(model);
   const idleClip = proto.animations.find((a) => /idle|relax/i.test(a.name)) || proto.animations[0];
@@ -4559,6 +4802,26 @@ function updateSnow(dt) {
     else if (arr[i3 + 2] - cz < -48) arr[i3 + 2] += 96;
   }
   pos.needsUpdate = true;
+
+  /* 전경 보케 — 카메라 주변 상자 안에서만 떠다니며 따라온다 */
+  if (snowBokeh) {
+    const bp = snowBokeh.geometry.attributes.position;
+    const ba = bp.array;
+    for (let i = 0; i < bp.count; i++) {
+      const i3 = i * 3;
+      ba[i3 + 1] -= snowBokehData[i * 2] * dt * 1.05;
+      ba[i3] += Math.sin(elapsed * 0.7 + snowBokehData[i * 2 + 1]) * 0.25 * dt;
+      ba[i3 + 2] += Math.cos(elapsed * 0.55 + snowBokehData[i * 2 + 1]) * 0.2 * dt;
+      if (ba[i3 + 1] < 0.2) {
+        ba[i3 + 1] = 6.6;
+        ba[i3] = rand(-6.5, 6.5);
+        ba[i3 + 2] = rand(-6.5, 6.5);
+      }
+      if (ba[i3] - cx > 7) ba[i3] -= 14; else if (ba[i3] - cx < -7) ba[i3] += 14;
+      if (ba[i3 + 2] - cz > 7) ba[i3 + 2] -= 14; else if (ba[i3 + 2] - cz < -7) ba[i3 + 2] += 14;
+    }
+    bp.needsUpdate = true;
+  }
 }
 
 /* 트리 전구 반짝임 */
@@ -4646,10 +4909,31 @@ function loop() {
   updateLabels();
   updateAmbient(dt);
 
-  renderer.render(scene, camera);
+  renderFrame();
 
   fpsAcc += raw; fpsFrames++;
-  if (fpsAcc > 0.5) { fpsVal = Math.round(fpsFrames / fpsAcc); fpsAcc = 0; fpsFrames = 0; }
+  if (fpsAcc > 0.5) {
+    fpsVal = Math.round(fpsFrames / fpsAcc);
+    fpsAcc = 0; fpsFrames = 0;
+    watchQuality(fpsVal);
+  }
+}
+
+/* 프레임이 계속 느리면 품질을 한 단계 내린다(자동 폴백).
+   한 번 내린 단계는 되돌리지 않는다 — 오르내리면 화질이 깜빡인다. */
+let slowStreak = 0;
+const QUALITY_WARMUP_MS = 5000;                 // 셰이더 컴파일·에셋 업로드 구간은 측정 제외
+const pageStartedAt = performance.now();
+function watchQuality(fps) {
+  if (quality <= 0) return;
+  if (performance.now() - pageStartedAt < QUALITY_WARMUP_MS) return;
+  if (fps > 0 && fps < 28) slowStreak++; else slowStreak = 0;
+  if (slowStreak >= 5) {
+    quality -= 1;
+    slowStreak = 0;
+    applyQuality();
+    console.info(`[quality] ${fps}fps — 품질 단계 ${quality} 로 하향`);
+  }
 }
 
 /* 리사이즈 */
@@ -4658,7 +4942,7 @@ function onResize() {
   if (rig.mode === 'player') rig.targetDist = camera.aspect < 0.85 ? 8.2 : 8.6;
   camera.updateProjectionMatrix();
   renderer.setSize(window.innerWidth, window.innerHeight);
-  renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, IS_TOUCH ? 2 : 1.7));
+  applyQuality();          // 픽셀비율·컴포저 버퍼를 품질 단계에 맞춰 다시 잡는다
 }
 window.addEventListener('resize', onResize);
 window.addEventListener('orientationchange', () => setTimeout(onResize, 260));
@@ -4688,6 +4972,11 @@ window.__plaza = {
   get cam() { return { yaw: +rig.yaw.toFixed(2), pitch: +rig.pitch.toFixed(2), dist: +rig.dist.toFixed(2), mode: rig.mode, pos: camera.position.toArray().map((n) => +n.toFixed(1)) }; },
   get dbg() { return { dt: +lastDt.toFixed(4), vel: [+vel.x.toFixed(2), +vel.y.toFixed(2)], pos: [+playerPos.x.toFixed(2), +playerPos.z.toFixed(2)], frames }; },
   get exposure() { return renderer.toneMappingExposure; },
+  get quality() { return quality; },
+  setQuality(q) { quality = clamp(q, 0, QUALITY_MAX); applyQuality(); return quality; },
+  get post() {
+    return { quality, composerBroken, bloom: bloomPass.enabled, strength: +bloomPass.strength.toFixed(2), threshold: +bloomPass.threshold.toFixed(2), calls: renderer.info.render.calls, tris: renderer.info.render.triangles, programs: renderer.info.programs.length };
+  },
   get players() { return [...players.values()].map((p) => ({ id: p.id, nickname: p.nickname, character: p.character, x: +p.root.position.x.toFixed(2), z: +p.root.position.z.toFixed(2), moving: !!p.moving, tx: +p.tx.toFixed(2), tz: +p.tz.toFixed(2) })); },
   get net() { return net.info(); },
   get floaters() { return floaters.length; },
@@ -4766,7 +5055,7 @@ window.__plaza = {
     );
     camera.lookAt(rig.lookAt);
     updateLabels();
-    renderer.render(scene, camera);
+    renderFrame();
   },
   ready: true,
 };
