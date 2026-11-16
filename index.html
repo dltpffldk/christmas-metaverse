@@ -689,6 +689,144 @@
     background:rgba(80,160,255,.28);border:1px solid rgba(140,200,255,.45);vertical-align:1px;
   }
 
+  /* ==========================================================
+     ✨ 2차 업그레이드 — 공동 트리 점등식 · 코코아 라운지 · 작은 연출
+     ========================================================== */
+
+  /* ---------- 공동 트리 점등 진행 (상단 HUD) ---------- */
+  #treeHud{
+    display:flex;align-items:center;gap:7px;height:42px;padding:0 13px;border-radius:13px;
+    background:var(--glass);border:1px solid rgba(255,212,121,.32);
+    backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);
+    font-size:12px;font-weight:800;letter-spacing:-.2px;white-space:nowrap;
+    transition:border-color .35s, box-shadow .35s, background .35s;
+  }
+  #treeHud .th-ico{font-size:15px;line-height:1;transition:filter .4s}
+  #treeHud .th-bar{width:44px;height:4px;border-radius:99px;background:rgba(255,255,255,.16);overflow:hidden}
+  #treeHud .th-bar i{display:block;height:100%;width:0;border-radius:99px;
+    background:linear-gradient(90deg,#e0a63a,#ffe9b0);transition:width .4s ease}
+  #treeHud.mine{border-color:rgba(160,220,255,.55)}
+  #treeHud.lit{
+    border-color:rgba(255,226,150,.95);background:rgba(96,66,18,.74);
+    box-shadow:0 0 22px rgba(255,196,90,.45);
+  }
+  #treeHud.lit .th-ico{filter:drop-shadow(0 0 8px rgba(255,214,120,.95))}
+  #treeHud.lit .th-bar i{background:linear-gradient(90deg,#ffd479,#fff8e2)}
+
+  /* ---------- 장소 활동 버튼 (우측 하단 독) ---------- */
+  #treeBtn, #cocoaBtn, #wishBtn{
+    display:none;align-items:center;justify-content:center;gap:7px;
+    padding:11px 17px;border-radius:15px;cursor:pointer;font-family:inherit;
+    font-size:14px;font-weight:800;letter-spacing:-.3px;white-space:nowrap;
+    transition:transform .12s ease, box-shadow .18s, background .18s;
+  }
+  #treeBtn.show, #cocoaBtn.show, #wishBtn.show{display:flex}
+  #treeBtn:active, #cocoaBtn:active, #wishBtn:active{transform:scale(.94)}
+  #treeBtn{
+    color:#20300f;background:linear-gradient(180deg,#ddf6cf,#93d98d);
+    border:1px solid rgba(216,255,206,.9);
+    box-shadow:0 10px 26px rgba(70,180,90,.3), inset 0 1px 0 rgba(255,255,255,.6);
+  }
+  #treeBtn:hover{transform:translateY(-2px)}
+  #treeBtn.lit{
+    color:#3a2109;background:linear-gradient(180deg,#ffeeb8,#ffc247);
+    border-color:rgba(255,240,200,.95);
+    box-shadow:0 10px 26px rgba(255,170,40,.42), inset 0 1px 0 rgba(255,255,255,.72);
+  }
+  #cocoaBtn{
+    color:#3a1f0b;background:linear-gradient(180deg,#ffe8cf,#e8a86a);
+    border:1px solid rgba(255,236,210,.95);
+    box-shadow:0 10px 26px rgba(200,120,50,.32), inset 0 1px 0 rgba(255,255,255,.6);
+  }
+  #cocoaBtn:hover{transform:translateY(-2px)}
+  #wishBtn{
+    color:#22304a;background:linear-gradient(180deg,#eaf2ff,#b8cdef);
+    border:1px solid rgba(226,240,255,.95);
+    box-shadow:0 10px 26px rgba(110,150,220,.3), inset 0 1px 0 rgba(255,255,255,.7);
+  }
+  #wishBtn:hover{transform:translateY(-2px)}
+
+  /* ---------- 장식 고르기 · 소원 쪽지 (미니 패널) ---------- */
+  #ornPicker, #wishPanel{
+    position:fixed;left:50%;bottom:calc(86px + var(--safe-b));transform:translate(-50%,14px);
+    z-index:58;display:none;flex-direction:column;gap:9px;padding:13px 15px 14px;border-radius:18px;
+    background:rgba(13,19,38,.94);border:1px solid rgba(255,212,121,.45);
+    box-shadow:0 20px 54px rgba(0,0,0,.6), inset 0 1px 0 rgba(255,255,255,.08);
+    backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
+    width:min(366px, calc(100vw - 26px));
+  }
+  #ornPicker.show, #wishPanel.show{display:flex;animation:miniIn .2s ease-out}
+  @keyframes miniIn{
+    from{transform:translate(-50%,18px)}
+    to{transform:translate(-50%,0)}
+  }
+  #ornPicker .mp-title, #wishPanel .mp-title{
+    margin:0;font-size:12.5px;font-weight:900;letter-spacing:-.2px;color:#ffe6b3;
+    display:flex;justify-content:space-between;align-items:center;gap:8px;
+  }
+  #ornPicker .mp-title small, #wishPanel .mp-title small{
+    font-size:10px;font-weight:600;color:#9fb0cc;letter-spacing:0;
+  }
+  #ornPicker .op-row{display:grid;grid-template-columns:repeat(4,1fr);gap:7px}
+  #ornPicker .op-row button{
+    display:flex;flex-direction:column;align-items:center;gap:3px;padding:9px 2px 7px;
+    border-radius:12px;cursor:pointer;font-family:inherit;font-size:10px;font-weight:700;
+    color:#d7e3f6;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.14);
+    transition:background .14s, border-color .14s, transform .12s;
+  }
+  #ornPicker .op-row button b{font-size:20px;line-height:1}
+  #ornPicker .op-row button:hover{background:rgba(255,212,121,.18);border-color:rgba(255,212,121,.6);color:#ffe9bd}
+  #ornPicker .op-row button:active{transform:scale(.95)}
+  #ornPicker .mp-foot, #wishPanel .mp-foot{display:flex;gap:7px}
+  #ornPicker .mp-foot button, #wishPanel .mp-foot button{
+    flex:1;height:35px;border-radius:10px;cursor:pointer;font-family:inherit;
+    font-size:11.5px;font-weight:800;color:#ffe6b3;
+    background:rgba(255,212,121,.16);border:1px solid rgba(255,212,121,.42);
+    transition:background .14s, transform .12s;
+  }
+  #ornPicker .mp-foot button:hover, #wishPanel .mp-foot button:hover{background:rgba(255,212,121,.28)}
+  #ornPicker .mp-foot #ornCancel, #wishPanel .mp-foot #wishCancel{
+    color:#b9c8de;background:rgba(255,255,255,.06);border-color:rgba(255,255,255,.14);
+  }
+  #wishPanel .wp-input{
+    width:100%;height:42px;padding:0 12px;border-radius:11px;outline:none;
+    font-family:inherit;font-size:12.5px;font-weight:600;color:#101a2e;
+    background:#f6fbff;border:1px solid rgba(255,212,121,.6);
+  }
+  #wishPanel .wp-input::placeholder{color:#8a9cb8}
+  #wishPanel .wp-note{margin:0;font-size:10px;line-height:1.45;color:#93a6c4}
+
+  /* ---------- 점등식 축하 배너 ---------- */
+  #treeShowBanner{
+    position:fixed;left:50%;top:23%;z-index:62;pointer-events:none;padding:16px 46px 18px;
+    background:radial-gradient(62% 72% at 50% 48%, rgba(8,12,26,.72), rgba(8,12,26,.34) 62%, rgba(8,12,26,0) 78%);
+    transform:translate(-50%,8px) scale(.92);opacity:0;text-align:center;
+    transition:opacity .55s ease, transform .9s cubic-bezier(.2,.7,.3,1);
+  }
+  #treeShowBanner.show{opacity:1;transform:translate(-50%,-10px) scale(1)}
+  #treeShowBanner b{
+    display:block;font-size:30px;font-weight:900;letter-spacing:-.6px;color:#fff7e0;
+    text-shadow:0 6px 30px rgba(255,168,60,.85), 0 2px 10px rgba(0,0,0,.75);
+  }
+  #treeShowBanner span{
+    display:block;margin-top:7px;font-size:12.5px;font-weight:700;color:#ffe9bd;
+    text-shadow:0 2px 12px rgba(0,0,0,.8);
+  }
+
+  @media (max-width:820px), (pointer:coarse){
+    #treeHud{height:34px;padding:0 9px;font-size:10.5px;gap:5px;border-radius:11px}
+    #treeHud .th-ico{font-size:12px}
+    #treeHud .th-bar{width:30px;height:3px}
+    #treeBtn, #cocoaBtn, #wishBtn{padding:10px 13px;font-size:12.5px;border-radius:13px}
+    #ornPicker, #wishPanel{bottom:calc(178px + var(--safe-b));padding:11px 12px 12px;gap:7px}
+    #ornPicker .op-row button{padding:7px 2px 5px;font-size:9px}
+    #ornPicker .op-row button b{font-size:17px}
+    #ornPicker .mp-foot button, #wishPanel .mp-foot button{height:32px;font-size:11px}
+    #treeShowBanner{top:26%}
+    #treeShowBanner b{font-size:22px}
+    #treeShowBanner span{font-size:11px}
+  }
+
   @media (max-width:820px), (pointer:coarse){
     #photoHud .ph-top{font-size:10px;padding:5px 10px;top:calc(8px + var(--safe-t))}
     #photoBar{
@@ -725,6 +863,10 @@
     </div>
   </div>
   <div class="hud-right">
+    <div id="treeHud" class="hidden" title="광장 트리에 장식을 함께 달아 불을 켜요">
+      <span class="th-ico">🎄</span><span id="treeHudText">점등 준비 0 / 2</span>
+      <span class="th-bar"><i id="treeHudBar"></i></span>
+    </div>
     <div class="badge net" id="netStatus" title="실시간 연결 상태">
       <span class="dot"></span><span id="netStatusText">연결 준비</span>
     </div>
@@ -754,7 +896,9 @@
   <p><b>모바일</b> · 좌측 하단 <b>조이스틱</b> 이동 · 화면 <b>드래그</b> 시점 회전 · 두 손가락 <b>핀치</b> 확대/축소</p>
   <p><b>채팅</b> · 아래 입력창에 메시지를 보내면 내 엘프 머리 위에 말풍선이 뜹니다</p>
   <p><b>리액션</b> · 우측 하단 🎄 ❄️ 🎁 🔔 버튼</p>
-  <p><b>집 안</b> · 코티지 문 앞에서 <span class="k">F</span> 또는 <span class="k">E</span> (모바일은 <b>🚪 집 안으로 들어가기</b> 버튼) · 안에서 <span class="k">F</span> 로 다시 나옵니다</p>
+  <p><b>코코아 라운지</b> · 어느 코티지 문 앞에서든 <span class="k">F</span> 또는 <span class="k">E</span> (모바일은 <b>🚪 라운지로</b> 버튼) — 모든 문이 하나의 따뜻한 실내로 이어집니다 · 안에서 <span class="k">F</span> 로 다시 나옵니다</p>
+  <p><b>라운지 안</b> · 카운터 앞에서 <b>☕ 코코아 마시기</b> · 게시판 앞에서 <b>📝 소원 쪽지</b></p>
+  <p><b>트리 점등식</b> · 광장 트리 옆 장식대에서 <b>🎄 트리 장식 달기</b> — 다 함께 달면 트리에 불이 들어옵니다</p>
   <p><b>함께 걷기</b> · 아래 <b>방 코드</b>를 같은 값으로 맞춘 사람끼리 같은 광장에서 만납니다 (최대 10명)</p>
   <p style="margin:0"><b>BGM</b> · 우측 상단 🔇 버튼으로 캐롤 켜기/끄기 (외부 음원 없이 브라우저 신스로 연주)</p>
 </aside>
@@ -768,9 +912,12 @@
 
 <!-- ================= 우측 하단 독 ================= -->
 <div id="dock">
-  <button id="doorBtn" type="button" aria-label="집 안으로 들어가기">🚪 집 안으로 들어가기 <span class="key">F</span></button>
+  <button id="doorBtn" type="button" aria-label="라운지로 들어가기">🚪 라운지로 들어가기 <span class="key">F</span></button>
   <button id="exitBtn" type="button" aria-label="광장으로 나가기">🚪 광장으로 나가기 <span class="key">F</span></button>
   <button id="seatBtn" type="button" aria-label="모닥불에 앉기">🪑 앉기</button>
+  <button id="treeBtn" type="button" aria-label="트리에 장식 달기">🎄 트리 장식 달기</button>
+  <button id="cocoaBtn" type="button" aria-label="코코아 마시기">☕ 코코아 마시기</button>
+  <button id="wishBtn" type="button" aria-label="소원 쪽지 남기기">📝 소원 쪽지 남기기</button>
   <div id="emojiRow">
     <button class="emoji-btn" data-emoji="🎄" aria-label="트리 리액션">🎄</button>
     <button class="emoji-btn" data-emoji="❄️" aria-label="눈 리액션">❄️</button>
@@ -789,13 +936,45 @@
 <div id="hint">W A S D 이동 · 드래그 시점 · 휠 줌 · 코티지 문 앞에서 F</div>
 <div id="toast"></div>
 
+<!-- ================= 공동 트리 장식 고르기 ================= -->
+<div id="ornPicker" role="dialog" aria-label="트리 장식 고르기">
+  <p class="mp-title">🎄 트리에 달 장식 <small>하나를 고르면 트리에 달려요</small></p>
+  <div class="op-row">
+    <button type="button" data-orn="star"><b>⭐</b>별</button>
+    <button type="button" data-orn="bell"><b>🔔</b>황금 방울</button>
+    <button type="button" data-orn="flake"><b>❄️</b>눈꽃</button>
+    <button type="button" data-orn="ribbon"><b>🎀</b>리본</button>
+  </div>
+  <div class="mp-foot">
+    <button type="button" id="ornRandom">🎲 랜덤으로 달기</button>
+    <button type="button" id="ornCancel">닫기</button>
+  </div>
+</div>
+
+<!-- ================= 소원 쪽지 ================= -->
+<div id="wishPanel" role="dialog" aria-label="소원 쪽지 남기기">
+  <p class="mp-title">📝 소원 쪽지 <small>라운지 게시판에 걸려요</small></p>
+  <input id="wishInput" class="wp-input" maxlength="30" placeholder="이루고 싶은 소원을 적어 주세요 (30자)" autocomplete="off" />
+  <p class="wp-note" id="wishNote">쪽지는 이 방의 게시판에 남아요 · 함께 있는 친구에게도 보여요</p>
+  <div class="mp-foot">
+    <button type="button" id="wishSubmit">쪽지 걸기</button>
+    <button type="button" id="wishCancel">닫기</button>
+  </div>
+</div>
+
+<!-- ================= 점등식 축하 배너 ================= -->
+<div id="treeShowBanner" aria-hidden="true">
+  <b>🎄 트리 점등식 ✨</b>
+  <span>모두의 장식으로 트리가 환하게 빛나요</span>
+</div>
+
 <!-- ================= 집 안 출입 이동 화면 ================= -->
 <div id="doorTransition" aria-hidden="true">
   <div class="dt-light"></div>
   <div class="dt-card">
     <div class="dt-door">🚪</div>
-    <p class="dt-text" id="doorTransitionText">🏠 따뜻한 집 안으로 들어가는 중…</p>
-    <p class="dt-sub" id="doorTransitionSub">문을 열고 들어갑니다</p>
+    <p class="dt-text" id="doorTransitionText">☕ 따뜻한 코코아 라운지로 들어가는 중…</p>
+    <p class="dt-sub" id="doorTransitionSub">모든 코티지 문이 하나의 라운지로 이어져요</p>
     <div class="dt-bar"><i></i></div>
   </div>
 </div>
@@ -860,14 +1039,14 @@
   <p class="gt-title">🎄 크리스마스 광장에 오신 걸 환영해요!</p>
   <div class="gt-steps">
     <span>① 조이스틱 · WASD 로 이동</span>
-    <span>② 트리 · 모닥불 · 오두막 둘러보기</span>
-    <span>③ 의자 앞에서 🪑 앉기</span>
+    <span>② 트리 장식대에서 🎄 트리 장식 달기</span>
+    <span>③ 코티지 문으로 ☕ 코코아 라운지 구경</span>
   </div>
 </div>
 
 <!-- ================= 포토 모드 ================= -->
 <div id="photoHud" aria-hidden="true">
-  <div class="ph-top">📸 포토 모드 · 화면을 드래그하면 시점을 움직일 수 있어요</div>
+  <div class="ph-top">📸 포토 모드 · '원래 시점'을 누르면 드래그로 시점을 움직일 수 있어요</div>
   <div id="photoBar">
     <div class="pb-row" id="poseRow">
       <button type="button" data-pose="stand" class="on">🧍 서기</button>
@@ -1033,6 +1212,8 @@ class NetworkAdapter {
     if (list) list.forEach((cb) => cb(data));
   }
   connect() {} disconnect() {} update() {} sendChat() {} sendReaction() {}
+  /* 2차 업그레이드 — 공동 트리 점등 상태 · 소원 쪽지 */
+  sendTree() {} sendWish() {}
 }
 
 const BOT_PROFILES = [
@@ -1199,6 +1380,13 @@ class DemoNetwork extends NetworkAdapter {
 
   sendReaction(emoji) {
     this.emit('reaction', { id: 'me', emoji });
+  }
+
+  /* 혼자 둘러보기 — 이벤트는 화면 안에서만 이어진다 (NPC 가 함께 채워 준다) */
+  sendTree() {}
+  sendWish(text) {
+    const t = String(text || '').slice(0, 30);
+    if (t) this.emit('wish', { nickname: (this.players.get('me') || {}).nickname || '나', text: t, mine: true });
   }
 }
 
@@ -1532,6 +1720,23 @@ class LiveNetwork extends NetworkAdapter {
 
     if (m.t === 'bye') { this._dropPeer(m.id); return; }
 
+    /* 공동 트리 점등 상태 — retained 로 두어 늦게 들어온 사람도 같은 상태를 본다 */
+    if (m.t === 'tree') {
+      this.emit('tree', {
+        remote: true, decor: +m.d || 0, lit: !!m.lit,
+        kinds: Array.isArray(m.k) ? m.k.slice(0, 8) : [],
+        nickname: String(m.n || '엘프').slice(0, 10),
+      });
+      return;
+    }
+
+    if (m.t === 'wish') {
+      const who = String(m.n || '엘프').slice(0, 10);
+      const text = String(m.w || '').slice(0, 30);
+      if (text) this.emit('wish', { nickname: who, text });
+      return;
+    }
+
     if (m.t === 'chat') {
       const peer = this._touchPeer(m.id, m.n, m.c, now);
       if (!peer) return;
@@ -1653,6 +1858,28 @@ class LiveNetwork extends NetworkAdapter {
     this.emit('reaction', { id: 'me', emoji });
   }
 
+  /* 트리 점등 상태 공유 — 토픽 e/tree 에 retained 로 남겨 새로 들어온 사람도 바로 본다 */
+  sendTree(state) {
+    const msg = {
+      t: 'tree', id: this.cid, n: this.profile.nickname,
+      d: Math.max(0, Math.min(8, +state.decor || 0)),
+      lit: !!state.lit, k: (state.kinds || []).slice(0, 8), ts: Date.now(),
+    };
+    if (this.connected && this.mqtt) {
+      this.mqtt.publish(`${this.base}/e/tree`, JSON.stringify(msg), true);
+    }
+  }
+
+  sendWish(text) {
+    const t = String(text || '').slice(0, 30);
+    if (!t) return;
+    if (this.connected && this.mqtt) {
+      this.mqtt.publish(`${this.base}/e/${this.cid}`, JSON.stringify({
+        t: 'wish', id: this.cid, n: this.profile.nickname, c: this.profile.character, w: t,
+      }));
+    }
+  }
+
   disconnect() {
     this._closed = true;
     this._clearTimers();
@@ -1698,7 +1925,7 @@ class NetRouter extends NetworkAdapter {
     this.room = sanitizeRoom(this.room);
     const live = new LiveNetwork(this.room);
     this._adopt(live, 'live');
-    ['join', 'leave', 'state', 'chat', 'reaction'].forEach((ev) => {
+    ['join', 'leave', 'state', 'chat', 'reaction', 'tree', 'wish'].forEach((ev) => {
       live.on(ev, (d) => { if (this.active === live) this.emit(ev, d); });
     });
     live.on('status', (s) => { if (this.active === live) this.emit('status', s); });
@@ -1725,7 +1952,7 @@ class NetRouter extends NetworkAdapter {
     if (this.mode === 'demo') return;
     const demo = new DemoNetwork();
     this._adopt(demo, 'demo');
-    ['join', 'leave', 'state', 'chat', 'reaction'].forEach((ev) => {
+    ['join', 'leave', 'state', 'chat', 'reaction', 'tree', 'wish'].forEach((ev) => {
       demo.on(ev, (d) => { if (this.active === demo) this.emit(ev, d); });
     });
     demo.connect(this.profile);
@@ -1735,6 +1962,8 @@ class NetRouter extends NetworkAdapter {
   update(s) { if (this.active) this.active.update(s); }
   sendChat(t) { if (this.active) this.active.sendChat(t); }
   sendReaction(e) { if (this.active) this.active.sendReaction(e); }
+  sendTree(s) { if (this.active) this.active.sendTree(s); }
+  sendWish(t) { if (this.active) this.active.sendWish(t); }
   disconnect() { if (this.active) this.active.disconnect(); }
 
   info() {
@@ -6495,6 +6724,205 @@ function inFurniture(x, z) {
 
 buildInteriorRoom();
 
+/* =================================================================
+   ☕ 2차 업그레이드 — '따뜻한 코코아 라운지'
+   모든 코티지 문이 이어지는 하나의 공동 실내에 역할을 준다.
+   · 북쪽 벽 코코아 카운터 (☕ 코코아 마시기)
+   · 서쪽 벽 소원 쪽지 게시판 (📝 소원 쪽지)
+   · 입구 안쪽 웰컴 팻말 + 바깥 모든 문 위의 '코코아 라운지' 명패
+   ================================================================= */
+const LOUNGE = {
+  counter: { x: 2.4, z: -6.42 },      // 실내 로컬 좌표
+  board: { x: -8.3, z: 3.3 },
+  sign: { x: -2.9, z: 5.3, yaw: 1.24 },
+  name: '따뜻한 코코아 라운지',
+};
+
+/* 라운지 글자 텍스처 — 캔버스에 직접 그린다 (외부 이미지 없음) */
+function loungeTextTexture(title, sub, opt = {}) {
+  const w = opt.w || 512, h = opt.h || 256;
+  return canvasTexture(w, h, (c) => {
+    const bg = c.createLinearGradient(0, 0, 0, h);
+    bg.addColorStop(0, opt.top || '#4b2f1c');
+    bg.addColorStop(1, opt.bottom || '#33200f');
+    c.fillStyle = bg;
+    c.fillRect(0, 0, w, h);
+    /* 나뭇결 */
+    for (let i = 0; i < 26; i++) {
+      c.strokeStyle = `rgba(255,226,180,${0.03 + ((i * 7) % 5) / 200})`;
+      c.lineWidth = 1 + ((i * 3) % 3);
+      c.beginPath();
+      const yy = (i / 26) * h + 3;
+      c.moveTo(0, yy);
+      c.bezierCurveTo(w * 0.3, yy + 4, w * 0.7, yy - 5, w, yy + 2);
+      c.stroke();
+    }
+    /* 테두리 */
+    c.strokeStyle = 'rgba(255,212,121,.55)';
+    c.lineWidth = Math.max(2, w * 0.008);
+    c.strokeRect(w * 0.03, h * 0.05, w * 0.94, h * 0.9);
+    c.textAlign = 'center';
+    c.textBaseline = 'middle';
+    c.shadowColor = 'rgba(0,0,0,.6)';
+    c.shadowBlur = h * 0.05;
+    c.fillStyle = opt.color || '#ffe6b3';
+    c.font = `900 ${Math.round(h * 0.2)}px "Apple SD Gothic Neo","Noto Sans KR","Malgun Gothic",system-ui,sans-serif`;
+    c.fillText(title, w / 2, sub ? h * 0.42 : h * 0.5, w * 0.88);
+    if (sub) {
+      c.shadowBlur = 0;
+      c.fillStyle = opt.subColor || 'rgba(255,236,208,.78)';
+      c.font = `700 ${Math.round(h * 0.105)}px "Apple SD Gothic Neo","Noto Sans KR",system-ui,sans-serif`;
+      c.fillText(sub, w / 2, h * 0.68, w * 0.86);
+    }
+    /* 작은 별 장식 */
+    c.fillStyle = 'rgba(255,214,120,.75)';
+    [[w * 0.09, h * 0.5], [w * 0.91, h * 0.5]].forEach(([x, y]) => {
+      c.beginPath();
+      for (let i = 0; i < 10; i++) {
+        const r = i % 2 ? h * 0.022 : h * 0.052;
+        const a = -Math.PI / 2 + (i * Math.PI) / 5;
+        const px = x + Math.cos(a) * r, py = y + Math.sin(a) * r;
+        if (i === 0) c.moveTo(px, py); else c.lineTo(px, py);
+      }
+      c.closePath(); c.fill();
+    });
+  });
+}
+
+function loungeSignMesh(title, sub, w, h, opts = {}) {
+  const tex = loungeTextTexture(title, sub, opts);
+  tex.anisotropy = 4;
+  const mat = new THREE.MeshStandardMaterial({
+    map: tex, roughness: 0.82, metalness: 0.05,
+    emissive: 0xffb46a, emissiveIntensity: 0.24, emissiveMap: tex,
+  });
+  const mesh = new THREE.Mesh(new THREE.PlaneGeometry(w, h), mat);
+  mesh.renderOrder = 1;
+  return mesh;
+}
+
+function buildLoungeExtras() {
+  const G = new THREE.Group();
+  G.name = 'lounge-extras';
+  interiorRoot.add(G);
+
+  const Z = 7.0;
+  const C = LOUNGE.counter;
+  const B = LOUNGE.board;
+  const S = LOUNGE.sign;
+
+  /* ---------- 코코아 카운터 ---------- */
+  iBox(MI.woodDk, 1.95, 0.90, 0.60, C.x, 0, C.z);                 // 몸통
+  iBox(MI.wood, 2.06, 0.085, 0.70, C.x, 0.90, C.z);               // 상판
+  iBox(MI.cream, 2.0, 0.018, 0.66, C.x, 0.985, C.z);              // 흰 상판 덮개
+  /* 앞면 몰딩 · 발치 */
+  iBox(MI.beam, 1.99, 0.075, 0.04, C.x, 0.78, C.z + 0.30);
+  iBox(MI.beam, 1.99, 0.06, 0.04, C.x, 0.10, C.z + 0.30);
+  /* 옆 판넬 */
+  [-0.97, 0.97].forEach((ox) => iBox(MI.wood, 0.05, 0.9, 0.6, C.x + ox, 0, C.z));
+  /* 코코아 냄비 · 뚜껑 · 손잡이 */
+  iCyl(MI.brass, 0.155, 0.185, 0.26, C.x - 0.55, 1.0, C.z - 0.02, 18);
+  iCyl(MI.brass, 0.165, 0.165, 0.035, C.x - 0.55, 1.25, C.z - 0.02, 18);
+  iGeo(MI.woodDk, new THREE.TorusGeometry(0.075, 0.016, 6, 12, Math.PI), C.x - 0.55, 1.3, C.z - 0.02, Math.PI / 2, 0, 0);
+  iBall(MI.woodDk, 0.032, C.x - 0.55, 1.37, C.z - 0.02);
+  /* 머그 6개 (앞줄) */
+  [-0.16, 0.09, 0.34, 0.59, 0.84].forEach((ox, i) => {
+    const m = i % 2 ? MI.giftA : MI.cream;
+    iCyl(m, 0.052, 0.046, 0.085, C.x + ox - 0.1, 1.0, C.z + 0.16, 12);
+    iGeo(MI.cream, new THREE.TorusGeometry(0.03, 0.008, 5, 10), C.x + ox - 0.1 + 0.055, 1.045, C.z + 0.16, 0, 0, 0);
+  });
+  /* 쟁반 · 쿠키 */
+  iCyl(MI.wood, 0.19, 0.21, 0.022, C.x + 0.5, 1.0, C.z - 0.02, 16);
+  for (let i = 0; i < 6; i++) {
+    const a = (i / 6) * TAU;
+    iCyl(MI.giftC, 0.045, 0.045, 0.028, C.x + 0.5 + Math.cos(a) * 0.1, 1.022, C.z - 0.02 + Math.sin(a) * 0.1, 10);
+  }
+  /* 작은 초콜릿 그릇 */
+  iCyl(MI.cream, 0.1, 0.07, 0.08, C.x + 0.95, 1.0, C.z + 0.14, 14);
+  /* 카운터 위 미니 전구 */
+  iGeo(MI.bulb, new THREE.SphereGeometry(0.045, 8, 6), C.x + 0.1, 1.62, C.z, 0, 0, 0);
+  iCyl(MI.iron, 0.008, 0.008, 0.5, C.x + 0.1, 1.62, C.z, 6);
+  /* 벽면 코코아 팻말 */
+  const cocoSign = loungeSignMesh('☕ 코코아', '따뜻한 한 잔', 1.05, 0.5);
+  cocoSign.position.set(C.x + 0.75, 2.2, -Z + 0.12);
+  G.add(cocoSign);
+  iBox(MI.woodDk, 1.14, 0.5, 0.03, C.x + 0.75, 1.95, -Z + 0.1);
+
+  const counterLight = new THREE.PointLight(0xffb070, 4.2, 6.5, 2);
+  counterLight.position.set(C.x, 2.05, C.z + 0.5);
+  interiorRoot.add(counterLight);
+  INTERIOR.lights.push(counterLight);
+
+  /* ---------- 소원 쪽지 게시판 (서쪽 벽) ---------- */
+  iBox(MI.woodDk, 0.07, 1.0, 1.32, B.x - 0.04, 1.16, B.z);        // 나무 판
+  iBox(MI.cream, 0.02, 0.86, 1.16, B.x + 0.005, 1.23, B.z);       // 코르크 판
+  iBox(MI.wood, 0.09, 0.06, 1.36, B.x + 0.01, 2.14, B.z);         // 위 틀
+  iBox(MI.wood, 0.09, 0.06, 1.36, B.x + 0.01, 1.12, B.z);         // 아래 틀
+  [B.z - 0.66, B.z + 0.66].forEach((z2) => iBox(MI.wood, 0.09, 1.02, 0.06, B.x + 0.01, 1.16, z2));
+  /* 게시판 위 제목 */
+  const wishSign = loungeSignMesh('📝 소원 쪽지', '한 장씩 걸어 두세요', 0.9, 0.36, { color: '#ffe9c0' });
+  wishSign.position.set(B.x + 0.09, 2.36, B.z);
+  wishSign.rotation.y = Math.PI / 2;
+  G.add(wishSign);
+  /* 게시판 아래 작은 선반 · 압정 통 */
+  iBox(MI.wood, 0.28, 0.05, 0.5, B.x + 0.14, 1.06, B.z);
+  iCyl(MI.giftA, 0.05, 0.05, 0.09, B.x + 0.14, 1.11, B.z + 0.18, 10);
+
+  /* ---------- 입구 안쪽 웰컴 팻말 (A자형) ---------- */
+  const sy = 0.95;
+  const faceYaw = S.yaw;
+  [-1, 1].forEach((k) => {
+    const board = loungeSignMesh(k > 0 ? LOUNGE.name : 'WELCOME', k > 0 ? '모든 코티아 문이 이어지는 곳' : '오늘은 코코야 한 잔', 1.5, 0.72, { color: k > 0 ? '#ffe6b3' : '#fff3d6' });
+    board.position.set(S.x - Math.sin(faceYaw) * 0.06 * k, sy + 0.22, S.z - Math.cos(faceYaw) * 0.06 * k);
+    board.rotation.y = faceYaw + (k > 0 ? 0 : Math.PI);
+    board.rotation.x = k > 0 ? -0.06 : 0.06;
+    G.add(board);
+  });
+  /* 팻말 프레임 · 다리 */
+  iBox(MI.woodDk, 1.62, 0.06, 0.05, S.x, sy + 0.58, S.z, faceYaw + Math.PI / 2);
+  iBox(MI.woodDk, 1.62, 0.06, 0.05, S.x, sy - 0.16, S.z, faceYaw + Math.PI / 2);
+  [-0.78, 0.78].forEach((ox) => {
+    const dx = Math.cos(faceYaw) * ox, dz = -Math.sin(faceYaw) * ox;
+    iBox(MI.woodDk, 0.07, sy + 0.7, 0.07, S.x + dx, 0, S.z + dz);
+  });
+  /* 바닥 작은 화환 */
+  iGeo(MI.pine, new THREE.TorusGeometry(0.3, 0.055, 6, 16), S.x, 0.3, S.z + 0.35, Math.PI / 2, 0, 0);
+
+  iFlush(G);
+
+  /* 충돌 */
+  const add = (x, z, r) => INTERIOR.colliders.push({ x: INTERIOR_ORIGIN.x + x, z: INTERIOR_ORIGIN.z + z, r });
+  add(C.x - 0.62, C.z, 0.52);
+  add(C.x, C.z, 0.52);
+  add(C.x + 0.62, C.z, 0.52);
+  add(S.x, S.z, 0.55);
+  return G;
+}
+buildLoungeExtras();
+
+/* 모든 코티지 문 위의 '코코아 라운지' 명패 — 바깥에서도 같은 실내로 이어진다는 걸 알린다 */
+function buildLoungeDoorPlaques() {
+  const tex = loungeTextTexture('코코아 라운지', 'COCOA LOUNGE', { w: 512, h: 160, top: '#3a2414', bottom: '#26170c' });
+  tex.anisotropy = 4;
+  const mat = new THREE.MeshStandardMaterial({
+    map: tex, roughness: 0.6, metalness: 0.25,
+    emissive: 0xffb46a, emissiveIntensity: 0.3, emissiveMap: tex,
+  });
+  const geo = new THREE.PlaneGeometry(0.95, 0.3);
+  for (const d of HOUSE_DOORS) {
+    const m = new THREE.Mesh(geo, mat);
+    /* 문 바로 앞이 아니라 문 옆 벽에 눈높이로 건다 (문 위는 아치·리스에 가린다) */
+    m.position.set(
+      d.door.x + d.face.x * 0.16 - d.face.z * 1.28,
+      1.98,
+      d.door.z + d.face.z * 0.16 + d.face.x * 1.28
+    );
+    m.rotation.y = Math.atan2(d.face.x, d.face.z);
+    VILLAGE_ROOT.add(m);
+  }
+}
+buildLoungeDoorPlaques();
+
 /* ===============================================================
    실내 진입 · 이동 화면 · 나가기 · 실내 카메라
    =============================================================== */
@@ -6567,12 +6995,13 @@ function enterInterior(idx, keepReturn) {
   rig.snap = true;                        // 광장→실내 카메라가 사이 공간을 날아가지 않게
   setWorldLayer(true);
   syncZoneVisibility();
-  addChatLine('', '🏠 <b>따뜻한 오두막</b>에 들어왔습니다 · <b>F</b> 나 우측 하단 버튼으로 나갈 수 있어요', false, true);
-  toast('🏠 따뜻한 집 안이에요 — F 를 누르면 광장으로 나갑니다', 3200);
+  addChatLine('', '🏠 모두의 <b>따뜻한 코코아 라운지</b>에 들어왔습니다 · <b>F</b> 나 우측 하단 버튼으로 나갈 수 있어요', false, true);
+  toast('🏠 따뜻한 코코아 라운지예요 — F 를 누르면 광장으로 나갑니다', 3200);
   pushZone();
 }
 
 function exitInterior() {
+  if (COCOA.active) stopCocoa(true);          // 라운지 밖으로 나가면 컵을 내려놓는다
   const d = HOUSE_DOORS[ZONE.door];
   let tx = ZONE.returnX, tz = ZONE.returnZ;
   if (!Number.isFinite(tx) || !Number.isFinite(tz) || !inDoorApproach(tx, tz)) {
@@ -6663,8 +7092,8 @@ async function doorTravel(mode) {
   input.keys.clear();
   vel.set(0, 0);
   if (mode === 'in' && (SIT.active || SIT.enter > 0)) standUp();
-  dtTextEl.textContent = mode === 'in' ? '🏠 따뜻한 집 안으로 들어가는 중…' : '❄️ 눈 내리는 광장으로 나가는 중…';
-  dtSubEl.textContent = mode === 'in' ? '문을 열고 들어갑니다' : '문을 열고 밖으로 나갑니다';
+  dtTextEl.textContent = mode === 'in' ? '☕ 따뜻한 코코아 라운지로 들어가는 중…' : '❄️ 눈 내리는 광장으로 나가는 중…';
+  dtSubEl.textContent = mode === 'in' ? '모든 코티지 문이 하나의 라운지로 이어져요' : '문을 열고 밖으로 나갑니다';
   dtEl.classList.add('show');
   dtEl.setAttribute('aria-hidden', 'false');
   fadeOverlay(1, 420);                         // 따뜻한 빛이 번지며 어두워진다
@@ -8048,7 +8477,7 @@ function renderPlayerList() {
     const zone = p.isMe ? (ZONE.mode === 'interior' ? 'i' : 'p') : p.zone;
     const loc = document.createElement('span');
     loc.className = 'loc';
-    loc.textContent = zone === 'i' ? '🏠 오두막' : '🎄 광장';
+    loc.textContent = zone === 'i' ? '🏠 라운지' : '🎄 광장';
     li.appendChild(loc);
     if (p.isMe) {
       const em = document.createElement('em');
@@ -8547,6 +8976,7 @@ function finishEntry(nick) {
   setTimeout(() => document.getElementById('hint').classList.add('fade'), 7000);
 
   warmOtherCharacters(state.profile.character);   // 나머지 엘프는 뒤에서 조용히
+  treeOnJoin();                                  // 같은 방의 트리 점등 상태·소원 쪽지 되살리기
 }
 
 joinForm.addEventListener('submit', (e) => {
@@ -8684,6 +9114,8 @@ btnBgm.addEventListener('click', () => {
     btnBgm.classList.add('on');
     toast('🎶 캐롤 BGM을 켰습니다');
   }
+  /* 장작 소리도 같은 토글을 따른다 (불에서 멀면 저절로 잦아든다) */
+  try { fireAudio.setEnabled(carol.playing); } catch (_) {}
 });
 
 /* =================================================================
@@ -8903,6 +9335,9 @@ function enterPhotoMode() {
   if (!state.joined || PHOTO.active) return false;
   if (ZONE.mode === 'interior') { toast('📸 포토존은 광장 중앙 트리 앞에 있어요', 2600); return false; }
   if (TRANS.busy) return false;
+  /* 사진 화면에 미니 패널이 남지 않도록 닫고 들어간다 */
+  try { closeOrnPicker(); } catch (_) {}
+  try { closeWishPanel(); } catch (_) {}
   PHOTO.active = true;
   PHOTO.pose = 'stand';
   PHOTO.camMode = 'preset';
@@ -9243,6 +9678,1267 @@ window.addEventListener('keydown', (e) => {
 
 buildPhotoZone();
 syncPhotoUi();
+
+/* =================================================================
+   8-C. 2차 업그레이드
+        🎄 공동 트리 장식 & 점등식 (MQTT 동기화)
+        ☕ 따뜻한 코코아 라운지 (코코아 · 소원 쪽지)
+        ❄️ 작은 그림책 연출 (눈 위 발자국 · 입김 · 장작 소리)
+   ================================================================= */
+
+/* ---------- 8-C-0. 공용 텍스처 ---------- */
+const TEX_PUFF = canvasTexture(64, 64, (c, w, h) => {
+  const g = c.createRadialGradient(w / 2, h / 2, 0, w / 2, h / 2, w / 2);
+  g.addColorStop(0, 'rgba(255,255,255,0.92)');
+  g.addColorStop(0.42, 'rgba(255,255,255,0.42)');
+  g.addColorStop(1, 'rgba(255,255,255,0)');
+  c.fillStyle = g;
+  c.fillRect(0, 0, w, h);
+});
+/* 발자국 — 눈을 눌러 남긴 자국처럼 보이게 발꿈치·발바닥·발가락을 나눠 그린다 */
+const TEX_FOOT = canvasTexture(64, 96, (c, w, h) => {
+  c.clearRect(0, 0, w, h);
+  c.fillStyle = 'rgba(30,48,78,0.9)';
+  const ell = (x, y, rx, ry) => {
+    c.beginPath();
+    c.ellipse(x, y, rx, ry, 0, 0, Math.PI * 2);
+    c.fill();
+  };
+  ell(w * 0.5, h * 0.78, w * 0.23, h * 0.15);   // 발꿈치
+  ell(w * 0.5, h * 0.46, w * 0.27, h * 0.26);   // 발바닥
+  ell(w * 0.5, h * 0.18, w * 0.19, h * 0.12);   // 발가락
+});
+
+/* =================================================================
+   🎄 A. 공동 트리 장식 & 점등식
+   ================================================================= */
+const TREE_STAND = { x: 4.25, z: 9.65 };
+/* 장식대의 앞면(+z)이 광장 쪽을 향해, 다가온 사람이 팻말과 장식을 정면으로 본다 */
+TREE_STAND.yaw = Math.atan2(TREE_STAND.x, TREE_STAND.z);
+
+const TREE_ORNS_INFO = {
+  star:   { ko: '별',        ico: '⭐', col: 0xffd45e },
+  bell:   { ko: '황금 방울', ico: '🔔', col: 0xffc24a },
+  flake:  { ko: '눈꽃',      ico: '❄️', col: 0xbfe4ff },
+  ribbon: { ko: '리본',      ico: '🎀', col: 0xff8090 },
+};
+const TREE_KINDS = ['star', 'bell', 'flake', 'ribbon'];
+
+const TREE_EVENT = {
+  decor: 0, goal: 2, lit: false, mine: 0, kinds: [],
+  glow: 0, showOn: false, showAge: 0, npcTimer: 0, npcUsed: false,
+  orns: [], lastRemote: '', lightAt: 0, shows: 0,
+};
+const TREE_ORNS_G = (() => {
+  const g = new THREE.Group();
+  g.name = 'tree-ornaments';
+  if (tree && tree.group) tree.group.add(g);
+  return g;
+})();
+const ORN_MAT = {
+  star:   new THREE.MeshStandardMaterial({ color: 0xffe9a8, emissive: 0xffc240, emissiveIntensity: 2.2, roughness: 0.32, metalness: 0.6 }),
+  bell:   new THREE.MeshStandardMaterial({ color: 0xffcf6a, emissive: 0xffab30, emissiveIntensity: 1.8, roughness: 0.28, metalness: 0.82 }),
+  flake:  new THREE.MeshStandardMaterial({ color: 0xe8f6ff, emissive: 0x9fd8ff, emissiveIntensity: 1.7, roughness: 0.4, metalness: 0.2 }),
+  ribbon: new THREE.MeshStandardMaterial({ color: 0xd8263e, emissive: 0x9c0f1e, emissiveIntensity: 1.1, roughness: 0.55, metalness: 0.15 }),
+};
+
+/* 광장 트리의 전구·별·불빛 — 점등식에서 한층 밝힌다 */
+const TREE_POINT_LIGHTS = (tree && tree.group)
+  ? tree.group.children.filter((o) => o.isPointLight).map((l) => ({ l, base: l.intensity }))
+  : [];
+const TREE_LIGHT_BASE = {
+  size: tree && tree.lights ? tree.lights.material.size : 0.34,
+  opacity: tree && tree.lights ? tree.lights.material.opacity : 0.95,
+  star: tree && tree.star ? tree.star.material.emissiveIntensity : 1.35,
+};
+
+/* --- 장식대(오너먼트 스탠드) --- */
+let treeStandGroup = null;
+function buildTreeStand() {
+  const G = new THREE.Group();
+  G.name = 'tree-stand';
+  G.position.set(TREE_STAND.x, groundY(TREE_STAND.x, TREE_STAND.z), TREE_STAND.z);
+  G.rotation.y = TREE_STAND.yaw;
+  const put = (geo, mat, x, y, z, ry, rx) => {
+    const m = new THREE.Mesh(geo, mat);
+    m.position.set(x, y, z);
+    m.rotation.set(rx || 0, ry || 0, 0);
+    m.castShadow = true; m.receiveShadow = true;
+    G.add(m);
+    return m;
+  };
+  const TOP = 0.84;
+  /* 상판 · 다리 · 빛나는 천 */
+  put(new THREE.BoxGeometry(1.78, 0.08, 0.74), VMAT.wood, 0, TOP, 0);
+  put(new THREE.BoxGeometry(1.86, 0.06, 0.82), VMAT.woodDk, 0, TOP - 0.07, 0);
+  [[-0.78, -0.28], [0.78, -0.28], [-0.78, 0.28], [0.78, 0.28]].forEach(([x, z]) => {
+    put(new THREE.BoxGeometry(0.1, TOP - 0.08, 0.1), VMAT.woodDk, x, (TOP - 0.08) / 2, z);
+  });
+  /* 앞쪽에 늘어뜨린 붉은 천 */
+  put(new THREE.BoxGeometry(1.78, 0.44, 0.03), VMAT.redDeep, 0, TOP - 0.16, 0.36);
+  put(new THREE.BoxGeometry(1.8, 0.05, 0.05), VMAT.woodDk, 0, TOP - 0.38, 0.36);
+  /* 장식 쟁반 */
+  put(new THREE.CylinderGeometry(0.3, 0.32, 0.035, 20), VMAT.gold, -0.42, TOP + 0.06, 0.02);
+  put(new THREE.CylinderGeometry(0.27, 0.27, 0.02, 20), VMAT.redDeep, -0.42, TOP + 0.085, 0.02);
+  /* 쟁반 위 견본 장식 4개 */
+  const sample = (kind, x) => {
+    const m = ORN_MAT[kind];
+    if (kind === 'star') put(new THREE.OctahedronGeometry(0.14, 0), m, x, TOP + 0.17, 0.02);
+    else if (kind === 'bell') {
+      put(new THREE.ConeGeometry(0.12, 0.17, 10), m, x, TOP + 0.15, 0.02);
+      put(new THREE.SphereGeometry(0.038, 8, 6), m, x, TOP + 0.25, 0.02);
+    } else if (kind === 'flake') {
+      for (let i = 0; i < 3; i++) {
+        put(new THREE.BoxGeometry(0.28, 0.03, 0.03), m, x, TOP + 0.17, 0.02, 0, (i * Math.PI) / 3);
+      }
+    } else put(new THREE.TorusGeometry(0.095, 0.032, 8, 12), m, x, TOP + 0.17, 0.02);
+  };
+  sample('star', -0.6); sample('bell', -0.38); sample('flake', -0.2); sample('ribbon', 0.02);
+  /* 견본이 공중에 뜨지 않도록 작은 받침 */
+  [-0.6, -0.38, -0.2, 0.02].forEach((x, i) => {
+    put(new THREE.CylinderGeometry(0.07, 0.08, 0.05, 10), VMAT.cream, x, TOP + 0.09, 0.02);
+  });
+  /* 오른쪽 — 접시·리본 실패·작은 랜턴 */
+  put(new THREE.CylinderGeometry(0.13, 0.13, 0.02, 16), VMAT.snowDk, 0.5, TOP + 0.06, 0.1);
+  put(new THREE.BoxGeometry(0.16, 0.1, 0.16), VMAT.redDeep, 0.5, TOP + 0.12, 0.1, 0.4);
+  put(new THREE.CylinderGeometry(0.05, 0.06, 0.3, 10), VMAT.iron, 0.78, TOP + 0.18, -0.22);
+  put(new THREE.BoxGeometry(0.16, 0.18, 0.16), VMAT.iron, 0.78, TOP + 0.42, -0.22);
+  const lampGlow = glowSprite(0xffb45e, 0.75, 0.6);
+  lampGlow.position.set(0.78, TOP + 0.42, -0.22);
+  G.add(lampGlow);
+  /* 뒤쪽 팻말 — 위에서부터 천천히 읽힌다 (양면이 각각 바로 읽히게 두 장) */
+  const signF = loungeSignMesh('🎄 트리 장식', 'ORNAMENT STAND', 1.5, 0.44, { color: '#fff0c8' });
+  signF.position.set(0, 2.02, -0.1);
+  signF.rotation.x = -0.08;
+  G.add(signF);
+  const signB = loungeSignMesh('🎄 트리 장식', 'ORNAMENT STAND', 1.5, 0.44, { color: '#fff0c8' });
+  signB.position.set(0, 2.02, -0.14);
+  signB.rotation.y = Math.PI;
+  signB.rotation.x = 0.08;
+  G.add(signB);
+  [-0.66, 0.66].forEach((x) => put(new THREE.BoxGeometry(0.07, 1.2, 0.07), VMAT.woodDk, x, 1.44, -0.12));
+  /* 바닥 장식 — 눈 덮인 선물 상자 */
+  put(new THREE.BoxGeometry(0.3, 0.24, 0.3), VMAT.redDeep, -0.95, 0.12, 0.35, 0.3);
+  put(new THREE.BoxGeometry(0.06, 0.26, 0.32), VMAT.snowDk, -0.95, 0.12, 0.35, 0.3);
+  scene.add(G);
+  addCollider(TREE_STAND.x, TREE_STAND.z, 0.92);
+  return G;
+}
+treeStandGroup = buildTreeStand();
+
+/* --- 트리에 다는 장식 메시 --- */
+function ornamentPos(i) {
+  const u = 0.3 + ((i * 0.129) % 0.52);
+  const y = 0.95 + u * 8.55;
+  const R = 3.95 * Math.pow(1 - u, 0.9) * 1.05;
+  const a = i * 2.39996 + 0.7;
+  return { x: Math.cos(a) * R, y, z: Math.sin(a) * R };
+}
+function makeTreeOrn(kind) {
+  const g = new THREE.Group();
+  const mat = ORN_MAT[kind] || ORN_MAT.star;
+  const geos = [];
+  if (kind === 'bell') {
+    geos.push(new THREE.ConeGeometry(0.19, 0.27, 10).translate(0, -0.02, 0));
+    geos.push(new THREE.TorusGeometry(0.18, 0.028, 6, 12).rotateX(Math.PI / 2).translate(0, -0.15, 0));
+    geos.push(new THREE.SphereGeometry(0.05, 8, 6).translate(0, 0.15, 0));
+  } else if (kind === 'flake') {
+    for (let i = 0; i < 3; i++) {
+      geos.push(new THREE.BoxGeometry(0.46, 0.055, 0.055).rotateZ((i * Math.PI) / 3));
+    }
+  } else if (kind === 'ribbon') {
+    geos.push(new THREE.TorusGeometry(0.15, 0.052, 8, 14));
+    geos.push(new THREE.SphereGeometry(0.065, 8, 6));
+  } else {
+    geos.push(new THREE.OctahedronGeometry(0.21, 0));
+  }
+  /* 한 장식당 메시 1개 — 모바일에서 드로우콜이 늘지 않게 병합 */
+  const merged = geos.length > 1 ? mergeGeometries(geos, false) : geos[0];
+  if (geos.length > 1) geos.forEach((x) => x.dispose());
+  if (merged) g.add(new THREE.Mesh(merged, mat));
+  const halo = glowSprite((TREE_ORNS_INFO[kind] || TREE_ORNS_INFO.star).col, 1.0, 0.55);
+  g.add(halo);
+  g.userData.halo = halo;
+  g.userData.age = 0;
+  g.userData.kind = kind;
+  return g;
+}
+function applyOrnament(i, kind) {
+  if (i < 0 || i >= 8 || TREE_EVENT.orns[i]) return false;
+  const g = makeTreeOrn(kind);
+  const p = ornamentPos(i);
+  g.position.set(p.x, p.y, p.z);
+  g.scale.setScalar(0.01);
+  TREE_ORNS_G.add(g);
+  TREE_EVENT.orns[i] = g;
+  TREE_EVENT.kinds[i] = kind;
+  spawnOrnBurst(p, kind);
+  return true;
+}
+
+/* 장식을 달 때 트리 표면에서 터지는 작은 반짝이 */
+const ORN_BURSTS = [];
+function spawnOrnBurst(p, kind) {
+  const sp = glowSprite((TREE_ORNS_INFO[kind] || TREE_ORNS_INFO.star).col, 0.6, 0.9);
+  sp.position.set(p.x, p.y, p.z);
+  TREE_ORNS_G.add(sp);
+  ORN_BURSTS.push({ sp, age: 0 });
+}
+
+/* --- 점등 연출: 트리 주변 반짝이 + 하늘 작은 불꽃 --- */
+let treeSparks = null;
+const treeSparkData = [];
+const TREE_BURSTS = [];
+function buildTreeShowFx() {
+  const N = IS_TOUCH ? 44 : 68;
+  const pos = new Float32Array(N * 3);
+  const col = new Float32Array(N * 3);
+  for (let i = 0; i < N; i++) {
+    const d = {
+      a: rand(0, TAU), r: rand(5.2, 8.4), y: rand(0.5, 12.5),
+      sp: rand(0.9, 2.4), ph: rand(0, TAU), sw: rand(0.6, 1.6),
+    };
+    treeSparkData.push(d);
+    pos[i * 3] = Math.cos(d.a) * d.r;
+    pos[i * 3 + 1] = d.y;
+    pos[i * 3 + 2] = Math.sin(d.a) * d.r;
+    const c = new THREE.Color(pick([0xffe9a8, 0xfff6d8, 0xffc247, 0xfff0b0]));
+    col[i * 3] = c.r; col[i * 3 + 1] = c.g; col[i * 3 + 2] = c.b;
+  }
+  const geo = new THREE.BufferGeometry();
+  geo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+  geo.setAttribute('color', new THREE.BufferAttribute(col, 3));
+  const mat = new THREE.PointsMaterial({
+    size: 0.62, map: TEX_GLOW, vertexColors: true, transparent: true, opacity: 0,
+    depthWrite: false, blending: THREE.AdditiveBlending, sizeAttenuation: true, toneMapped: false,
+  });
+  treeSparks = new THREE.Points(geo, mat);
+  treeSparks.frustumCulled = false;
+  if (tree && tree.group) tree.group.add(treeSparks);
+
+  /* 하늘의 작은 불꽃 3발 — 트리 위로 터진다 */
+  const spots = [[0, 23, 1, 0.5], [-7.5, 26, -4, 1.7], [7.0, 25, 3.5, 2.9]];
+  spots.forEach(([x, y, z, delay]) => {
+    const sp = glowSprite(0xffe0a0, 1, 0);
+    sp.position.set(x, y, z);
+    sp.visible = false;
+    scene.add(sp);
+    TREE_BURSTS.push({ sp, delay, seg: 0 });
+  });
+}
+buildTreeShowFx();
+
+/* --- 점등 상태 적용 --- */
+let treeAura = null;
+function buildTreeAura() {
+  if (!tree || !tree.group) return;
+  treeAura = glowSprite(0xffc46a, 15.5, 0);
+  treeAura.position.set(0, 5.6, 0);
+  treeAura.material.opacity = 0;
+  tree.group.add(treeAura);
+}
+buildTreeAura();
+function applyTreeGlow(glow) {
+  if (tree && tree.lights && tree.lights.material) {
+    tree.lights.material.size = TREE_LIGHT_BASE.size * (1 + glow * 0.4);
+    tree.lights.material.opacity = clamp(TREE_LIGHT_BASE.opacity + glow * 0.05, 0, 1);
+  }
+  TREE_POINT_LIGHTS.forEach((o) => { o.l.intensity = o.base * (1 + glow * 0.55); });
+  if (treeAura) treeAura.material.opacity = glow * 0.24;
+}
+
+function updateTreeHud() {
+  if (!treeHudEl) return;
+  const n = Math.min(TREE_EVENT.decor, 8);
+  const goal = TREE_EVENT.goal;
+  treeHudEl.classList.toggle('lit', TREE_EVENT.lit);
+  treeHudTextEl.textContent = TREE_EVENT.lit
+    ? (TREE_EVENT.mine > 0 ? '트리 점등 완료 ✨ · 내 장식 ' + TREE_EVENT.mine : '트리 점등 완료 ✨')
+    : `점등 준비 ${n} / ${goal}`;
+  treeHudBarEl.style.width = `${Math.round(Math.min(1, n / Math.max(1, goal)) * 100)}%`;
+  treeHudEl.title = TREE_EVENT.lit
+    ? '모두의 장식으로 트리에 불이 들어왔어요 · 장식대에서 점등식을 다시 볼 수 있어요'
+    : `광장 트리에 장식을 달아 불을 켜요 (${n} / ${goal})`;
+}
+
+function refreshTreeGoal() {
+  const others = [...players.values()].filter((p) => !p.isMe && !p.isNpc).length;
+  const goal = (net.mode === 'live' && others > 0) ? Math.max(3, others + 1) : 2;
+  if (goal !== TREE_EVENT.goal) {
+    TREE_EVENT.goal = goal;
+    updateTreeHud();
+  }
+  if (!TREE_EVENT.lit && TREE_EVENT.decor >= TREE_EVENT.goal && TREE_EVENT.decor > 0) {
+    lightTreeNow({});
+    publishTree();
+  }
+}
+
+/* --- 저장 (같은 방으로 다시 들어왔을 때 점등된 트리를 그대로) --- */
+function treeStoreKey() { return 'xmas-tree-v1:' + (state.room || 'main'); }
+function saveTreeState() {
+  try {
+    localStorage.setItem(treeStoreKey(), JSON.stringify({
+      kinds: TREE_EVENT.kinds.slice(0, 8), lit: TREE_EVENT.lit,
+    }));
+  } catch (_) {}
+}
+function restoreTreeState() {
+  let saved = null;
+  try { saved = JSON.parse(localStorage.getItem(treeStoreKey()) || 'null'); } catch (_) {}
+  if (!saved || !Array.isArray(saved.kinds)) return;
+  saved.kinds.slice(0, 8).forEach((k, i) => {
+    if (TREE_KINDS.indexOf(k) < 0) return;
+    applyOrnament(i, k);
+    TREE_EVENT.decor = i + 1;
+  });
+  if (saved.lit && TREE_EVENT.decor > 0) {
+    TREE_EVENT.lit = true;
+    TREE_EVENT.glow = 1;
+    applyTreeGlow(1);
+  }
+}
+
+function playTreeChime() {
+  try {
+    if (!carol.ctx || !carol.playing) return;
+    const t0 = carol.ctx.currentTime + 0.05;
+    const seq = [[523.25, 0], [659.25, 0.14], [783.99, 0.28], [1046.5, 0.44], [783.99, 0.62], [1046.5, 0.78]];
+    seq.forEach(([f, d]) => carol.playTone(f, t0 + d, 0.5));
+  } catch (_) {}
+}
+
+/* --- 점등식 --- */
+function startTreeShow(opts = {}) {
+  TREE_EVENT.showOn = true;
+  TREE_EVENT.showAge = 0;
+  TREE_EVENT.shows++;
+  treeShowBannerEl.classList.add('show');
+  toast(opts.replay ? '🎉 트리 점등식을 다시 보여드려요' : '🎉 트리 점등식! 트리가 황금빛으로 빛나요 ✨', 3400);
+  if (!opts.replay) {
+    addChatLine('', '🎄 <b>트리 점등식</b> — 모두의 장식으로 트리에 불이 들어왔어요 ✨', false, true);
+    playTreeChime();
+  }
+  updateTreeHud();
+}
+
+function lightTreeNow(opts = {}) {
+  if (TREE_EVENT.lit) return false;
+  TREE_EVENT.lit = true;
+  TREE_EVENT.lightAt = performance.now();
+  saveTreeState();
+  startTreeShow(opts);
+  return true;
+}
+
+function publishTree() {
+  try { net.sendTree({ decor: TREE_EVENT.decor, lit: TREE_EVENT.lit, kinds: TREE_EVENT.kinds }); } catch (_) {}
+}
+
+/* --- 장식 달기 --- */
+function addTreeOrnament(kind, opts = {}) {
+  const k = TREE_KINDS.indexOf(kind) >= 0 ? kind : 'star';
+  if (TREE_EVENT.decor >= 8) {
+    if (!opts.silent) toast('🎄 트리가 장식으로 가득 찼어요', 2200);
+    return false;
+  }
+  const i = TREE_EVENT.decor;
+  applyOrnament(i, k);
+  TREE_EVENT.decor = i + 1;
+  if (!opts.remote) TREE_EVENT.mine++;
+  updateTreeHud();
+  saveTreeState();
+  if (!opts.remote) {
+    toast(`${(TREE_ORNS_INFO[k] || {}).ico || '⭐'} ${(TREE_ORNS_INFO[k] || {}).ko || '장식'}을 트리에 달았어요 — ${Math.min(TREE_EVENT.decor, TREE_EVENT.goal)} / ${TREE_EVENT.goal}`, 2600);
+    /* 마지막 장식으로 점등될 때는 축하 배너를 가리지 않게 플로터를 띄우지 않는다 */
+    if (TREE_EVENT.decor < TREE_EVENT.goal) {
+      spawnFloater('me', (TREE_ORNS_INFO[k] || {}).ico || '⭐');
+    }
+  }
+  if (!TREE_EVENT.lit && TREE_EVENT.decor >= TREE_EVENT.goal) {
+    lightTreeNow({ remote: !!opts.remote });
+  }
+  if (!opts.remote) publishTree();
+  return true;
+}
+
+/* 같은 방의 다른 화면(장식 개수·점등 상태)을 그대로 받아들인다 */
+function onRemoteTree(m) {
+  if (!m) return;
+  const remoteDecor = Math.min(8, +m.decor || 0);
+  const kinds = Array.isArray(m.kinds) ? m.kinds : [];
+  let changed = false;
+  for (let i = TREE_EVENT.decor; i < remoteDecor; i++) {
+    const k = TREE_KINDS.indexOf(kinds[i]) >= 0 ? kinds[i] : 'star';
+    applyOrnament(i, k);
+    TREE_EVENT.decor = i + 1;
+    changed = true;
+  }
+  if (changed && remoteDecor > 0) {
+    toast(`🎄 ${m.nickname || '친구'} 님이 트리에 장식을 달았어요 (${TREE_EVENT.decor} / ${TREE_EVENT.goal})`, 2600);
+  }
+  if (m.lit && !TREE_EVENT.lit) {
+    lightTreeNow({ remote: true });
+    changed = true;
+  }
+  /* 상대 화면에서 이미 목표를 채웠는데 lit 표시가 빠져 있으면 여기서 마저 점등 */
+  if (!TREE_EVENT.lit && TREE_EVENT.decor >= TREE_EVENT.goal && TREE_EVENT.decor > 0) {
+    lightTreeNow({ remote: true });
+    changed = true;
+  }
+  if (changed) { updateTreeHud(); saveTreeState(); }
+}
+
+/* --- 장식 고르기 패널 --- */
+const ornPickerEl = document.getElementById('ornPicker');
+let ornPickerOpen = false;
+function openOrnPicker() {
+  if (!state.joined) return false;
+  if (ZONE.mode === 'interior') { toast('🎄 트리 장식대는 광장 중앙 트리 옆에 있어요', 2400); return false; }
+  if (TREE_EVENT.lit && TREE_EVENT.decor >= 8) { startTreeShow({ replay: true }); return false; }
+  ornPickerOpen = true;
+  ornPickerEl.classList.add('show');
+  ornPickerEl.setAttribute('aria-hidden', 'false');
+  return true;
+}
+function closeOrnPicker() {
+  ornPickerOpen = false;
+  ornPickerEl.classList.remove('show');
+  ornPickerEl.setAttribute('aria-hidden', 'true');
+}
+
+/* --- 장식대 버튼 --- */
+const treeBtnEl = document.getElementById('treeBtn');
+function treeButtonAction() {
+  if (!state.joined) return;
+  if (TREE_EVENT.lit) { startTreeShow({ replay: true }); return; }
+  openOrnPicker();
+}
+if (treeBtnEl) treeBtnEl.addEventListener('click', treeButtonAction);
+if (ornPickerEl) {
+  ornPickerEl.addEventListener('click', (e) => {
+    const b = e.target.closest('button[data-orn]');
+    if (b) { addTreeOrnament(b.dataset.orn); closeOrnPicker(); return; }
+    if (e.target.closest('#ornRandom')) { addTreeOrnament(pick(TREE_KINDS)); closeOrnPicker(); return; }
+    if (e.target.closest('#ornCancel')) closeOrnPicker();
+  });
+}
+
+/* =================================================================
+   ☕ B. 따뜻한 코코아 라운지 — 코코아 마시기 · 소원 쪽지
+   ================================================================= */
+const COCOA = { active: false, t: 0, dur: 8.0, cup: null, w: 0, count: 0 };
+const _cupV = new THREE.Vector3();
+const _cupLocal = new THREE.Vector3();
+
+function makeCocoaCup() {
+  const g = new THREE.Group();
+  const white = new THREE.MeshStandardMaterial({ color: 0xf7f0e2, roughness: 0.55, metalness: 0.05 });
+  const cocoaMat = new THREE.MeshStandardMaterial({ color: 0x6a3a20, roughness: 0.35, metalness: 0.05, emissive: 0x2a1206, emissiveIntensity: 0.7 });
+  const body = new THREE.Mesh(new THREE.CylinderGeometry(0.046, 0.036, 0.095, 14, 1, true), white);
+  const bottom = new THREE.Mesh(new THREE.CylinderGeometry(0.036, 0.036, 0.008, 14), white);
+  const drink = new THREE.Mesh(new THREE.CylinderGeometry(0.042, 0.042, 0.007, 14), cocoaMat);
+  const handle = new THREE.Mesh(new THREE.TorusGeometry(0.027, 0.008, 6, 12), white);
+  const saucer = new THREE.Mesh(new THREE.CylinderGeometry(0.072, 0.062, 0.008, 16), white);
+  bottom.position.y = 0.004;
+  body.position.y = 0.052;
+  drink.position.y = 0.094;
+  handle.position.set(0.052, 0.058, 0);
+  handle.rotation.y = Math.PI / 2;
+  saucer.position.y = -0.006;
+  g.add(body, bottom, drink, handle, saucer);
+  g.scale.setScalar(1.32);
+  /* 김이 모락모락 — 작은 스프라이트 3장을 이어 올린다 */
+  const steam = [];
+  for (let i = 0; i < 3; i++) {
+    const sp = new THREE.Sprite(new THREE.SpriteMaterial({
+      map: TEX_PUFF, color: 0xffffff, transparent: true, opacity: 0,
+      depthWrite: false, blending: THREE.AdditiveBlending, fog: false,
+    }));
+    sp.scale.set(0.08, 0.08, 1);
+    g.add(sp);
+    steam.push({ sp, life: (i / 3) * 1.8, dur: 1.9, ph: i * 2.1 });
+  }
+  g.userData.steam = steam;
+  return g;
+}
+
+function cocoaSpot() {
+  return {
+    x: INTERIOR_ORIGIN.x + LOUNGE.counter.x,
+    z: INTERIOR_ORIGIN.z + LOUNGE.counter.z + 0.66,
+  };
+}
+function wishSpot() {
+  return { x: INTERIOR_ORIGIN.x + LOUNGE.board.x, z: INTERIOR_ORIGIN.z + LOUNGE.board.z };
+}
+function nearCocoa() {
+  if (ZONE.mode !== 'interior') return false;
+  const s = cocoaSpot();
+  return Math.hypot(playerPos.x - s.x, playerPos.z - s.z) < 2.35;
+}
+function nearWish() {
+  if (ZONE.mode !== 'interior') return false;
+  const s = wishSpot();
+  return Math.hypot(playerPos.x - s.x, playerPos.z - s.z) < 2.3;
+}
+
+const COCOA_LINES = [
+  '☕ 따뜻한 코코아 한 잔 — 손끝까지 따뜻해져요',
+  '☕ 마시멜로가 둥실둥실 — 기분 좋은 한 모금',
+  '☕ 창밖엔 눈이 내리고, 안은 따뜻해요',
+  '☕ 코코아 향이 라운지 가득 퍼져요',
+];
+
+function startCocoa() {
+  if (!state.joined) return false;
+  if (ZONE.mode !== 'interior') { toast('☕ 코코아는 따뜻한 라운지 안에서 마셔요', 2400); return false; }
+  if (!nearCocoa()) { toast('☕ 코코아 카운터 앞으로 가까이 가 주세요', 2200); return false; }
+  const p = players.get('me');
+  if (!p) return false;
+  if (!COCOA.cup) COCOA.cup = makeCocoaCup();
+  if (COCOA.cup.parent) COCOA.cup.parent.remove(COCOA.cup);
+  p.root.add(COCOA.cup);
+  COCOA.cup.position.set(0.16, 1.0, 0.22);
+  COCOA.cup.visible = true;
+  COCOA.active = true;
+  COCOA.t = 0;
+  COCOA.count++;
+  toast(COCOA_LINES[(COCOA.count - 1) % COCOA_LINES.length], 2800);
+  try { net.sendReaction('☕'); } catch (_) {}
+  if (SIT.active) { /* 앉아서도 마실 수 있다 */ }
+  return true;
+}
+
+function stopCocoa(silent) {
+  if (!COCOA.active) return false;
+  COCOA.active = false;
+  COCOA.t = 0;
+  if (!silent) toast('☕ 코코아를 다 마셨어요 — 마음이 따뜻해졌어요', 2200);
+  return true;
+}
+
+function updateCocoa(dt) {
+  const p = players.get('me');
+  if (!p) return;
+  if (COCOA.active) {
+    COCOA.t += dt;
+    if (COCOA.t > COCOA.dur) stopCocoa(false);
+  }
+  /* 팔 자세 — 오른팔로 컵을 입가로 올린다 */
+  const ud = p.root.userData;
+  if (ud && ud.bones) {
+    ud.cocoaW = lerp(ud.cocoaW || 0, COCOA.active ? 1 : 0, Math.min(1, dt * (COCOA.active ? 5.5 : 7)));
+    const w = ud.cocoaW;
+    if (w > 0.004 && !PHOTO.active) {
+      const fy = playerYaw.v;
+      const bx = Math.sin(fy), bz = Math.cos(fy);
+      const ox = Math.cos(fy), oz = -Math.sin(fy);
+      const aim = (f, u, o) => _photoDir.set(bx * f + ox * o, u, bz * f + oz * o);
+      aimBoneBlend(ud, 'R_Upperarm', aim(0.30, -0.66, -0.08), w);
+      aimBoneBlend(ud, 'R_Forearm', aim(0.62, 0.56, 0.20), w);
+      boneRotZ(ud, 'Head', -0.03 * w);
+    }
+  }
+  const cup = COCOA.cup;
+  if (!cup) return;
+  if (!COCOA.active) {
+    cup.visible = false;
+    return;
+  }
+  cup.visible = true;
+  /* 손 위치를 따라가되, 천천히 입가 쪽으로 올린다 */
+  const hand = ud && ud.bones && ud.bones['R_Hand'];
+  if (hand) {
+    hand.updateWorldMatrix(true, false);
+    hand.getWorldPosition(_cupV);
+    p.root.updateWorldMatrix(true, false);
+    _cupLocal.copy(_cupV);
+    p.root.worldToLocal(_cupLocal);
+    _cupLocal.y += 0.02;
+  } else {
+    _cupLocal.set(0.2, 1.05, 0.24);
+  }
+  const raise = smoothstep(0.25, 1.5, COCOA.t);
+  const sip = Math.sin(COCOA.t * 1.9) * 0.012;
+  const tx = lerp(_cupLocal.x, 0.055, raise);
+  const ty = lerp(_cupLocal.y, 1.235 + sip, raise);
+  const tz = lerp(_cupLocal.z, 0.185, raise);
+  cup.position.lerp(_cupV.set(tx, ty, tz), Math.min(1, dt * 8));
+  cup.rotation.x = lerp(-0.15, -0.62, raise);
+  cup.rotation.z = lerp(0.1, -0.18, raise);
+  /* 김 — 위로 피어올랐다가 사라진다 */
+  const steam = cup.userData.steam || [];
+  for (const s2 of steam) {
+    s2.life += dt;
+    if (s2.life > s2.dur) s2.life -= s2.dur;
+    const k = s2.life / s2.dur;
+    s2.sp.position.set(
+      Math.sin(s2.life * 2.4 + s2.ph) * 0.022 * (1 + k * 2),
+      0.125 + k * 0.2,
+      Math.cos(s2.life * 2.0 + s2.ph) * 0.016 * (1 + k * 2)
+    );
+    const sc = 0.035 + k * 0.075;
+    s2.sp.scale.set(sc, sc, 1);
+    s2.sp.material.opacity = Math.sin(Math.min(1, k) * Math.PI) * 0.45;
+  }
+}
+
+/* --- 소원 쪽지 게시판 --- */
+const WISH = { list: [], cards: [], max: 8, root: null };
+function wishStoreKey() { return 'xmas-wishes-v1:' + (state.room || 'main'); }
+function buildWishBoardRoot() {
+  const g = new THREE.Group();
+  g.name = 'wish-cards';
+  interiorRoot.add(g);
+  WISH.root = g;
+  return g;
+}
+buildWishBoardRoot();
+
+const WISH_PAPER = ['#fdf6e3', '#f3e6d0', '#e8f2ff', '#fbeee2', '#f7efe0'];
+function wishCardTexture(text, nick, i) {
+  return canvasTexture(256, 190, (c, w, h) => {
+    c.fillStyle = WISH_PAPER[i % WISH_PAPER.length];
+    c.fillRect(0, 0, w, h);
+    /* 종이 결 · 모서리 그리기 */
+    for (let k = 0; k < 14; k++) {
+      c.strokeStyle = `rgba(120,96,64,${0.04 + (k % 3) * 0.012})`;
+      c.lineWidth = 1;
+      const y = (k / 14) * h;
+      c.beginPath(); c.moveTo(0, y); c.lineTo(w, y + 2); c.stroke();
+    }
+    c.strokeStyle = 'rgba(150,120,80,.35)';
+    c.lineWidth = 5;
+    c.strokeRect(2.5, 2.5, w - 5, h - 5);
+    /* 본문 — 두 줄까지 */
+    c.fillStyle = '#3a2b1c';
+    c.textAlign = 'center';
+    c.textBaseline = 'middle';
+    c.font = '800 27px "Apple SD Gothic Neo","Noto Sans KR",system-ui,sans-serif';
+    const words = String(text || '').split(' ');
+    const lines = [];
+    let cur = '';
+    for (const wd of words) {
+      const next = cur ? cur + ' ' + wd : wd;
+      if (c.measureText(next).width > w - 34 && cur) { lines.push(cur); cur = wd; }
+      else cur = next;
+      if (lines.length >= 2) break;
+    }
+    if (lines.length < 2 && cur) lines.push(cur);
+    lines.slice(0, 2).forEach((ln, i2) => c.fillText(ln, w / 2, h * 0.4 + i2 * 34, w - 30));
+    c.font = '700 17px system-ui,sans-serif';
+    c.fillStyle = 'rgba(90,66,40,.72)';
+    c.fillText('— ' + String(nick || '엘프').slice(0, 8), w / 2, h * 0.8, w - 34);
+  });
+}
+
+function placeWishCard(i, text, nick) {
+  const B = LOUNGE.board;
+  const col = i % 4, row = Math.floor(i / 4) % 2;
+  const zOff = -0.42 + col * 0.28;
+  const y = 1.7 - row * 0.3;
+  const tex = wishCardTexture(text, nick, i);
+  tex.anisotropy = 4;
+  const mat = new THREE.MeshStandardMaterial({ map: tex, roughness: 0.92, metalness: 0 });
+  const m = new THREE.Mesh(new THREE.PlaneGeometry(0.24, 0.18), mat);
+  m.position.set(B.x + 0.055, y, B.z + zOff);
+  m.rotation.y = Math.PI / 2;
+  m.rotation.z = (i % 2 ? 1 : -1) * 0.03;
+  m.renderOrder = 1;
+  WISH.root.add(m);
+  const pin = glowSprite(0xffd479, 0.11, 0.85);
+  pin.position.set(B.x + 0.07, y + 0.075, B.z + zOff);
+  WISH.root.add(pin);
+  WISH.cards[i] = { m, pin };
+}
+
+function loadWishes() {
+  let saved = null;
+  try { saved = JSON.parse(localStorage.getItem(wishStoreKey()) || 'null'); } catch (_) {}
+  WISH.list = Array.isArray(saved) ? saved.slice(-WISH.max) : [];
+  WISH.cards.length = 0;
+  if (WISH.root) {
+    while (WISH.root.children.length) {
+      const c = WISH.root.children.pop();
+      if (c.material) { if (c.material.map) c.material.map.dispose(); c.material.dispose(); }
+      if (c.geometry) c.geometry.dispose();
+    }
+  }
+  WISH.list.forEach((w, i) => placeWishCard(i, w.text, w.nick));
+}
+function saveWishes() {
+  try { localStorage.setItem(wishStoreKey(), JSON.stringify(WISH.list.slice(-WISH.max))); } catch (_) {}
+}
+function addWish(text, nick, opts = {}) {
+  const t = String(text || '').replace(/\s+/g, ' ').trim().slice(0, 30);
+  if (!t) return false;
+  WISH.list.push({ text: t, nick: String(nick || '엘프').slice(0, 10), at: Date.now() });
+  if (WISH.list.length > WISH.max) WISH.list = WISH.list.slice(-WISH.max);
+  saveWishes();
+  loadWishes();
+  if (!opts.remote) {
+    toast('📝 소원 쪽지가 게시판에 걸렸어요 — ' + t, 3200);
+    addChatLine('', `📝 <b>${String(nick || '나').slice(0, 10)}</b> 님이 소원 쪽지를 남겼어요 — “${t}”`, false, true);
+  }
+  return true;
+}
+
+/* --- 소원 쪽지 패널 --- */
+const wishPanelEl = document.getElementById('wishPanel');
+const wishInputEl = document.getElementById('wishInput');
+const wishBtnEl = document.getElementById('wishBtn');
+const cocoaBtnEl = document.getElementById('cocoaBtn');
+function openWishPanel() {
+  if (!state.joined) return false;
+  if (ZONE.mode !== 'interior') { toast('📝 소원 쪽지는 코코아 라운지 게시판에서 남겨요', 2400); return false; }
+  if (!nearWish()) { toast('📝 라운지 게시판 앞으로 가까이 가 주세요', 2200); return false; }
+  wishPanelEl.classList.add('show');
+  wishPanelEl.setAttribute('aria-hidden', 'false');
+  wishInputEl.value = '';
+  setTimeout(() => { try { wishInputEl.focus(); } catch (_) {} }, 60);
+  return true;
+}
+function closeWishPanel() {
+  wishPanelEl.classList.remove('show');
+  wishPanelEl.setAttribute('aria-hidden', 'true');
+}
+function submitWish() {
+  const t = (wishInputEl.value || '').trim();
+  if (!t) { wishInputEl.focus(); return false; }
+  const nick = (state.profile && state.profile.nickname) || '나';
+  addWish(t, nick);
+  try { net.sendWish(t); } catch (_) {}
+  closeWishPanel();
+  return true;
+}
+if (wishBtnEl) wishBtnEl.addEventListener('click', openWishPanel);
+if (cocoaBtnEl) cocoaBtnEl.addEventListener('click', startCocoa);
+if (wishPanelEl) {
+  wishPanelEl.addEventListener('click', (e) => {
+    if (e.target.closest('#wishSubmit')) submitWish();
+    else if (e.target.closest('#wishCancel')) closeWishPanel();
+  });
+  wishPanelEl.addEventListener('keydown', (e) => {
+    if (e.code === 'Enter') { e.preventDefault(); submitWish(); }
+    else if (e.code === 'Escape') { e.preventDefault(); closeWishPanel(); }
+  });
+}
+
+/* 들어온 사람의 소원 쪽지 — 채팅으로도 알린다 */
+net.on('wish', (w) => {
+  if (!w || !w.text) return;
+  if (w.mine) return;                     // 내 쪽지는 입력하는 순간 이미 걸었다
+  addWish(w.text, w.nickname, { remote: true });
+  addChatLine('', `📝 <b>${w.nickname}</b> 님이 소원 쪽지를 남겼어요 — “${w.text}”`, false, true);
+});
+net.on('tree', (m) => onRemoteTree(m));
+
+/* =================================================================
+   ❄️ C. 작은 그림책 연출 — 눈 위 발자국 · 입김
+   ================================================================= */
+const FOOT_WALK = { prints: [], idx: 0, lastX: 0, lastZ: 0, side: 0, acc: 0, spawned: 0 };
+function buildFootprints() {
+  const N = IS_TOUCH ? 26 : 46;
+  const geo = new THREE.PlaneGeometry(0.17, 0.26);
+  for (let i = 0; i < N; i++) {
+    const mat = new THREE.MeshBasicMaterial({
+      map: TEX_FOOT, color: 0x8aa4c8, transparent: true, opacity: 0,
+      depthWrite: false, toneMapped: false,
+      polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -2,
+    });
+    const m = new THREE.Mesh(geo, mat);
+    m.rotation.x = -Math.PI / 2;
+    m.visible = false;
+    m.renderOrder = 2;
+    m.frustumCulled = false;
+    scene.add(m);
+    FOOT_WALK.prints.push({ m, life: 0, dur: 1, on: false });
+  }
+}
+buildFootprints();
+
+function footprintBudget() {
+  return qualityPreset === 'light' ? 14 : (IS_TOUCH ? 22 : 40);
+}
+function spawnFootprint(x, z, yaw, side) {
+  const dur = qualityPreset === 'light' ? 4.5 : 9.0;
+  const p = FOOT_WALK.prints[FOOT_WALK.idx % FOOT_WALK.prints.length];
+  FOOT_WALK.idx++;
+  const ox = Math.cos(yaw) * side * 0.09;
+  const oz = -Math.sin(yaw) * side * 0.09;
+  p.m.position.set(x + ox, groundY(x, z) + 0.016, z + oz);
+  p.m.rotation.set(-Math.PI / 2, 0, -yaw);
+  p.m.visible = true;
+  p.m.material.opacity = 0.34;
+  p.life = 0;
+  p.dur = dur;
+  p.on = true;
+  FOOT_WALK.spawned++;
+}
+function updateFootprints(dt) {
+  /* 남은 발자국 페이드 */
+  let active = 0;
+  for (const p of FOOT_WALK.prints) {
+    if (!p.on) continue;
+    p.life += dt;
+    const k = p.life / p.dur;
+    if (k >= 1) { p.on = false; p.m.visible = false; p.m.material.opacity = 0; continue; }
+    p.m.material.opacity = 0.36 * Math.pow(1 - k, 1.5);
+    active++;
+  }
+  if (!state.joined || PHOTO.active || ZONE.mode === 'interior' || SIT.active) return;
+  const moved = Math.hypot(playerPos.x - FOOT_WALK.lastX, playerPos.z - FOOT_WALK.lastZ);
+  if (moved > 0.52 && active < footprintBudget()) {
+    FOOT_WALK.acc += moved;
+    FOOT_WALK.side = -FOOT_WALK.side || 1;
+    spawnFootprint(playerPos.x, playerPos.z, playerYaw.v, FOOT_WALK.side);
+    FOOT_WALK.lastX = playerPos.x;
+    FOOT_WALK.lastZ = playerPos.z;
+  } else if (moved > 3) {
+    FOOT_WALK.lastX = playerPos.x;
+    FOOT_WALK.lastZ = playerPos.z;
+  }
+}
+
+/* 입김 — 야외에서 몇 초마다 입 앞에 작고 은은한 하얀 숨결 */
+const BREATH = { pool: [], idx: 0, t: 0, spawned: 0 };
+function buildBreath() {
+  for (let i = 0; i < 5; i++) {
+    const sp = new THREE.Sprite(new THREE.SpriteMaterial({
+      map: TEX_PUFF, color: 0xffffff, transparent: true, opacity: 0,
+      depthWrite: false, blending: THREE.AdditiveBlending, fog: false,
+    }));
+    sp.visible = false;
+    sp.frustumCulled = false;
+    scene.add(sp);
+    BREATH.pool.push({ sp, life: 0, dur: 1.7, on: false, vx: 0, vz: 0, vy: 0 });
+  }
+}
+buildBreath();
+function spawnBreath() {
+  const b = BREATH.pool[BREATH.idx % BREATH.pool.length];
+  BREATH.idx++;
+  const yaw = playerYaw.v;
+  const fx = Math.sin(yaw), fz = Math.cos(yaw);
+  b.sp.position.set(playerPos.x + fx * 0.14, playerPos.y + 1.33, playerPos.z + fz * 0.14);
+  b.vx = fx * 0.3; b.vz = fz * 0.3; b.vy = 0.1;
+  b.sp.visible = true;
+  b.sp.scale.set(0.1, 0.1, 1);
+  b.life = 0;
+  b.dur = rand(1.5, 2.0);
+  b.on = true;
+  BREATH.spawned++;
+}
+function updateBreath(dt) {
+  for (const b of BREATH.pool) {
+    if (!b.on) continue;
+    b.life += dt;
+    const k = b.life / b.dur;
+    if (k >= 1) { b.on = false; b.sp.visible = false; continue; }
+    b.sp.position.x += b.vx * dt;
+    b.sp.position.z += b.vz * dt;
+    b.sp.position.y += b.vy * dt;
+    const s = 0.1 + k * 0.16;
+    b.sp.scale.set(s, s, 1);
+    b.sp.material.opacity = Math.sin(k * Math.PI) * 0.42;
+  }
+  if (!state.joined || PHOTO.active) return;
+  if (ZONE.mode === 'interior') return;      // 실내에서는 입김이 없다
+  BREATH.t += dt;
+  if (BREATH.t > 3.4) {
+    BREATH.t = 0;
+    spawnBreath();
+  }
+}
+
+/* =================================================================
+   🔥 D. 모닥불 · 벽난로 장작 소리 (Web Audio 합성, 외부 파일 없음)
+   ================================================================= */
+function fireProximity() {
+  if (!state.joined) return 0;
+  if (ZONE.mode === 'interior') {
+    const lx = playerPos.x - INTERIOR_ORIGIN.x, lz = playerPos.z - INTERIOR_ORIGIN.z;
+    const d = Math.hypot(lx + 3.6, lz + 6.0);      // 실내 벽난로 (FX=-3.6, z=-7+1)
+    return clamp(1 - d / 7.5, 0, 1);
+  }
+  const d = Math.hypot(playerPos.x - CAMPFIRE.x, playerPos.z - CAMPFIRE.z);
+  return clamp(1 - d / 9.5, 0, 1);
+}
+
+class FireCrackle {
+  constructor() {
+    this.enabled = false; this.ready = false;
+    this.gain = null; this.timer = null; this.level = 0;
+  }
+  _ensure() {
+    if (this.ready) return true;
+    if (!carol.ctx || !carol.master) return false;
+    const ctx = carol.ctx;
+    this.ctx = ctx;
+    this.gain = ctx.createGain();
+    this.gain.gain.value = 0;
+    this.gain.connect(carol.master);
+    /* 낮게 웅웅거리는 장작 불의 바닥 소리 */
+    const len = Math.floor(ctx.sampleRate * 2.0);
+    const buf = ctx.createBuffer(1, len, ctx.sampleRate);
+    const d = buf.getChannelData(0);
+    let last = 0;
+    for (let i = 0; i < len; i++) {
+      const w = Math.random() * 2 - 1;
+      last = (last + 0.02 * w) / 1.02;
+      d[i] = last * 3.4;
+    }
+    const src = ctx.createBufferSource();
+    src.buffer = buf; src.loop = true;
+    const lp = ctx.createBiquadFilter();
+    lp.type = 'lowpass'; lp.frequency.value = 300; lp.Q.value = 0.7;
+    this.rumble = ctx.createGain();
+    this.rumble.gain.value = 0.55;
+    src.connect(lp); lp.connect(this.rumble); this.rumble.connect(this.gain);
+    src.start();
+    this.ready = true;
+    return true;
+  }
+  _burst() {
+    if (!this.ready) return;
+    const ctx = this.ctx;
+    const dur = 0.025 + Math.random() * 0.06;
+    const n = Math.max(8, Math.floor(ctx.sampleRate * dur));
+    const buf = ctx.createBuffer(1, n, ctx.sampleRate);
+    const d = buf.getChannelData(0);
+    for (let i = 0; i < n; i++) d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / n, 2.6);
+    const src = ctx.createBufferSource();
+    src.buffer = buf;
+    const bp = ctx.createBiquadFilter();
+    bp.type = 'bandpass';
+    bp.Q.value = 1.2 + Math.random() * 1.4;
+    bp.frequency.value = 850 + Math.random() * 2700;
+    const g = ctx.createGain();
+    g.gain.value = 0.05 + Math.random() * 0.1;
+    src.connect(bp); bp.connect(g); g.connect(this.gain);
+    src.start();
+  }
+  _tick() {
+    if (!this.enabled || !this.ready) return;
+    const level = fireProximity();
+    this.level = level;
+    const now = this.ctx.currentTime;
+    this.gain.gain.setTargetAtTime(0.6 * Math.pow(level, 1.25), now, 0.35);
+    if (level > 0.04 && Math.random() < 0.1 + level * 0.55) this._burst();
+  }
+  setEnabled(on) {
+    this.enabled = !!on;
+    if (this.enabled) {
+      if (!this._ensure()) return false;
+      if (!this.timer) this.timer = setInterval(() => this._tick(), 95);
+      return true;
+    }
+    if (this.timer) { clearInterval(this.timer); this.timer = null; }
+    if (this.ready) this.gain.gain.setTargetAtTime(0, this.ctx.currentTime, 0.2);
+    return false;
+  }
+  get state() {
+    return { enabled: this.enabled, ready: this.ready, level: +this.level.toFixed(2), gain: this.ready ? +this.gain.gain.value.toFixed(3) : 0 };
+  }
+}
+const fireAudio = new FireCrackle();
+
+/* =================================================================
+   🧭 E. 장소 버튼 · 매 프레임 갱신
+   ================================================================= */
+const treeHudEl = document.getElementById('treeHud');
+const treeHudTextEl = document.getElementById('treeHudText');
+const treeHudBarEl = document.getElementById('treeHudBar');
+const treeShowBannerEl = document.getElementById('treeShowBanner');
+let treeBtnShown = false, cocoaBtnShown = false, wishBtnShown = false;
+let activityAcc = 0;
+
+function updateActivityButtons(dt) {
+  activityAcc += dt;
+  if (activityAcc < 0.12) return;
+  activityAcc = 0;
+  if (!state.joined) {
+    if (treeBtnShown) { treeBtnEl.classList.remove('show'); treeBtnShown = false; }
+    if (cocoaBtnShown) { cocoaBtnEl.classList.remove('show'); cocoaBtnShown = false; }
+    if (wishBtnShown) { wishBtnEl.classList.remove('show'); wishBtnShown = false; }
+    return;
+  }
+  const plaza = ZONE.mode !== 'interior';
+  const treeNear = plaza && !PHOTO.active && !TRANS.busy
+    && Math.hypot(playerPos.x - TREE_STAND.x, playerPos.z - TREE_STAND.z) < 3.15;
+  if (treeNear !== treeBtnShown) {
+    treeBtnEl.classList.toggle('show', treeNear);
+    treeBtnShown = treeNear;
+    if (treeNear && !TREE_EVENT.lit) {
+      const n = Math.min(TREE_EVENT.decor, 8);
+      if (n === 0) toast('🎄 장식대 — 트리에 달 장식을 골라 보세요', 2600);
+      else toast(`🎄 트리 점등 준비 ${n} / ${TREE_EVENT.goal} — 다른 친구도 함께 달 수 있어요`, 2400);
+    }
+  }
+  const label = TREE_EVENT.lit
+    ? '🎉 트리 점등식 다시 보기'
+    : `🎄 트리 장식 달기 (${Math.min(TREE_EVENT.decor, 8)}/${TREE_EVENT.goal})`;
+  if (treeBtnEl.textContent !== label) treeBtnEl.textContent = label;
+  treeBtnEl.classList.toggle('lit', TREE_EVENT.lit);
+
+  const cocoaNear = ZONE.mode === 'interior' && !PHOTO.active && !TRANS.busy && nearCocoa();
+  if (cocoaNear !== cocoaBtnShown) {
+    cocoaBtnEl.classList.toggle('show', cocoaNear);
+    cocoaBtnShown = cocoaNear;
+    if (cocoaNear && !COCOA.active) toast('☕ 코코아 카운터 — 따뜻한 한 잔 어떠세요?', 2400);
+  }
+  const cocoaLabel = COCOA.active ? '☕ 코코아 마시는 중…' : '☕ 코코아 마시기';
+  if (cocoaBtnEl.textContent !== cocoaLabel) cocoaBtnEl.textContent = cocoaLabel;
+
+  const wishNear = ZONE.mode === 'interior' && !PHOTO.active && !TRANS.busy && nearWish();
+  if (wishNear !== wishBtnShown) {
+    wishBtnEl.classList.toggle('show', wishNear);
+    wishBtnShown = wishNear;
+    if (wishNear) toast(`📝 소원 게시판 — 쪽지 ${WISH.list.length}장이 걸려 있어요`, 2400);
+  }
+}
+
+function updateTreeEvent(dt) {
+  /* 목표 인원은 천천히 다시 센다 (입·퇴장 반영) */
+  TREE_EVENT.goalTick = (TREE_EVENT.goalTick || 0) + dt;
+  if (TREE_EVENT.goalTick > 1.2) { TREE_EVENT.goalTick = 0; refreshTreeGoal(); }
+
+  const target = TREE_EVENT.lit ? 1 : 0;
+  TREE_EVENT.glow = lerp(TREE_EVENT.glow, target, Math.min(1, dt * 1.15));
+  const gl = TREE_EVENT.glow;
+  applyTreeGlow(gl);
+  if (tree && tree.star && tree.star.material) {
+    tree.star.material.emissiveIntensity = TREE_LIGHT_BASE.star * (1 + gl * 1.15)
+      + Math.sin(performance.now() * 0.0016) * 0.3 * (1 + gl);
+  }
+  /* 장식이 나타날 때 톡 튀어나오는 느낌 */
+  for (let i = 0; i < TREE_EVENT.orns.length; i++) {
+    const g = TREE_EVENT.orns[i];
+    if (!g) continue;
+    g.userData.age += dt;
+    const a = g.userData.age;
+    const s = a < 0.16 ? 0.01 + (a / 0.16) * 1.12 : (a < 0.38 ? 1.12 - ((a - 0.16) / 0.22) * 0.12 : 1);
+    g.scale.setScalar(Math.max(0.01, s));
+    g.rotation.y += dt * 0.5;
+    if (g.userData.halo) {
+      g.userData.halo.material.opacity = 0.35 + 0.3 * (0.5 + 0.5 * Math.sin(performance.now() * 0.0025 + i));
+    }
+  }
+
+  /* 장식이 달릴 때 터지는 반짝이 */
+  for (let i = ORN_BURSTS.length - 1; i >= 0; i--) {
+    const b = ORN_BURSTS[i];
+    b.age += dt;
+    const k = b.age / 0.7;
+    if (k >= 1) {
+      TREE_ORNS_G.remove(b.sp);
+      b.sp.material.dispose();
+      ORN_BURSTS.splice(i, 1);
+      continue;
+    }
+    const s = 0.6 + k * 1.5;
+    b.sp.scale.set(s, s, 1);
+    b.sp.material.opacity = (1 - k) * 0.9;
+  }
+
+  /* 점등식 연출 */
+  if (TREE_EVENT.showOn) {
+    TREE_EVENT.showAge += dt;
+    const t = TREE_EVENT.showAge;
+    const fade = clamp(1 - Math.max(0, t - 4.6) / 2.6, 0, 1);
+    const ramp = clamp(t / 0.7, 0, 1);
+    if (treeSparks) {
+      treeSparks.material.opacity = 0.9 * ramp * fade;
+      const arr = treeSparks.geometry.attributes.position.array;
+      for (let i = 0; i < treeSparkData.length; i++) {
+        const d = treeSparkData[i];
+        const yy = 0.4 + ((d.y + t * d.sp) % 13.0);
+        const rr = d.r + Math.sin(t * d.sw + d.ph) * 0.5;
+        arr[i * 3] = Math.cos(d.a + t * 0.25) * rr;
+        arr[i * 3 + 1] = yy;
+        arr[i * 3 + 2] = Math.sin(d.a + t * 0.25) * rr;
+      }
+      treeSparks.geometry.attributes.position.needsUpdate = true;
+    }
+    for (const b of TREE_BURSTS) {
+      const p = t - 1.0 - b.delay;
+      if (p < 0 || p > 1.5) { b.sp.visible = false; continue; }
+      const k = p / 1.5;
+      b.sp.visible = true;
+      const s = 1.2 + k * 15;
+      b.sp.scale.set(s, s, 1);
+      b.sp.material.opacity = Math.pow(1 - k, 1.7) * 0.8;
+    }
+    if (t > 4.4) treeShowBannerEl.classList.remove('show');
+    if (t > 7.2) {
+      TREE_EVENT.showOn = false;
+      if (treeSparks) treeSparks.material.opacity = 0;
+      TREE_BURSTS.forEach((b) => { b.sp.visible = false; });
+      treeShowBannerEl.classList.remove('show');
+    }
+  } else if (treeSparks && treeSparks.material.opacity !== 0) {
+    treeSparks.material.opacity = 0;
+    TREE_BURSTS.forEach((b) => { b.sp.visible = false; });
+  }
+
+  /* 혼자 둘러보기 — NPC 가 함께 장식을 달아 준다 */
+  if (!TREE_EVENT.lit && TREE_EVENT.decor > 0 && !TREE_EVENT.npcUsed && ZONE.mode !== 'interior') {
+    const bots = [...players.values()].filter((p) => p.isNpc);
+    if (bots.length) {
+      TREE_EVENT.npcTimer += dt;
+      if (TREE_EVENT.npcTimer > 2.6) {
+        TREE_EVENT.npcUsed = true;
+        const bot = pick(bots);
+        const kind = pick(TREE_KINDS);
+        addTreeOrnament(kind, { remote: true, silent: true });
+        addChatLine(bot.nickname, `${(TREE_ORNS_INFO[kind] || {}).ico || '⭐'} 저도 하나 달았어요!`, false);
+        showBubble(bot.id, `${(TREE_ORNS_INFO[kind] || {}).ko || '장식'} 달았어요! ✨`);
+        spawnFloater(bot.id, (TREE_ORNS_INFO[kind] || {}).ico || '⭐');
+        toast(`${bot.nickname} 님이 ${(TREE_ORNS_INFO[kind] || {}).ko || '장식'}을 함께 달았어요 — ${TREE_EVENT.decor} / ${TREE_EVENT.goal}`, 2800);
+      }
+    }
+  }
+}
+
+/* 같은 방에 들어왔을 때 — 저장된 점등 상태·소원 쪽지를 되살린다 */
+function treeOnJoin() {
+  TREE_EVENT.decor = 0; TREE_EVENT.kinds = []; TREE_EVENT.lit = false;
+  TREE_EVENT.mine = 0; TREE_EVENT.glow = 0; TREE_EVENT.npcTimer = 0; TREE_EVENT.npcUsed = false;
+  TREE_EVENT.orns = [];
+  if (TREE_ORNS_G) TREE_ORNS_G.clear();
+  ORN_BURSTS.length = 0;
+  restoreTreeState();
+  refreshTreeGoal();
+  updateTreeHud();
+  if (treeHudEl) treeHudEl.classList.remove('hidden');
+  loadWishes();
+  FOOT_WALK.lastX = playerPos.x; FOOT_WALK.lastZ = playerPos.z;
+}
+
+/* 한 프레임 갱신 (tick 에서 호출) */
+function updateSecondWave(dt) {
+  updateTreeEvent(dt);
+  updateFootprints(dt);
+  updateBreath(dt);
+  updateCocoa(dt);
+  updateActivityButtons(dt);
+}
+
+/* 진단 훅 */
+window.__plazaAudit = {
+  get tree() {
+    return {
+      decor: TREE_EVENT.decor, goal: TREE_EVENT.goal, lit: TREE_EVENT.lit,
+      mine: TREE_EVENT.mine, kinds: TREE_EVENT.kinds.slice(0, 8),
+      glow: +TREE_EVENT.glow.toFixed(2), showOn: TREE_EVENT.showOn, shows: TREE_EVENT.shows,
+      ornMeshes: TREE_EVENT.orns.filter(Boolean).length,
+      stand: { x: TREE_STAND.x, z: TREE_STAND.z },
+      standDist: +Math.hypot(playerPos.x - TREE_STAND.x, playerPos.z - TREE_STAND.z).toFixed(2),
+      btn: treeBtnEl ? { shown: treeBtnEl.classList.contains('show'), label: treeBtnEl.textContent } : null,
+      hud: treeHudEl ? { text: treeHudTextEl.textContent, lit: treeHudEl.classList.contains('lit'), bar: treeHudBarEl.style.width, hidden: treeHudEl.classList.contains('hidden') } : null,
+      picker: ornPickerEl ? ornPickerEl.classList.contains('show') : false,
+      banner: treeShowBannerEl ? treeShowBannerEl.classList.contains('show') : false,
+      starEmissive: tree && tree.star ? +tree.star.material.emissiveIntensity.toFixed(2) : null,
+      lightsSize: tree && tree.lights ? +tree.lights.material.size.toFixed(3) : null,
+      pointLights: TREE_POINT_LIGHTS.map((o) => +o.l.intensity.toFixed(1)),
+      sparks: treeSparks ? +treeSparks.material.opacity.toFixed(2) : null,
+    };
+  },
+  decorate(kind) { addTreeOrnament(kind || 'star'); return this.tree; },
+  /* 다른 접속자의 메시지를 받는 경로를 그대로 태우는 검사용 훅 */
+  remote(obj) { onRemoteTree(Object.assign({ remote: true, nickname: '친구' }, obj || {})); return this.tree; },
+  decorateAt(idx) { addTreeOrnament(TREE_KINDS[idx % 4]); return this.tree; },
+  replay() { startTreeShow({ replay: true }); return this.tree; },
+  clear() {
+    TREE_EVENT.decor = 0; TREE_EVENT.kinds = []; TREE_EVENT.lit = false; TREE_EVENT.glow = 0;
+    TREE_EVENT.orns = []; if (TREE_ORNS_G) TREE_ORNS_G.clear();
+    applyTreeGlow(0); updateTreeHud(); saveTreeState();
+    return this.tree;
+  },
+  gotoStand() {
+    playerPos.set(TREE_STAND.x + 1.6, 0, TREE_STAND.z + 1.9);
+    playerYaw.v = Math.atan2(TREE_STAND.x - playerPos.x, TREE_STAND.z - playerPos.z);
+    const p = players.get('me'); if (p) p.root.position.copy(playerPos);
+    rig.lookAt.set(playerPos.x, 1.5, playerPos.z); rig.snap = true;
+    return [+playerPos.x.toFixed(2), +playerPos.z.toFixed(2)];
+  },
+  get lounge() {
+    const c = cocoaSpot(), b = wishSpot();
+    return {
+      zone: ZONE.mode,
+      counterDist: +Math.hypot(playerPos.x - c.x, playerPos.z - c.z).toFixed(2),
+      boardDist: +Math.hypot(playerPos.x - b.x, playerPos.z - b.z).toFixed(2),
+      cocoaBtn: cocoaBtnEl ? { shown: cocoaBtnEl.classList.contains('show'), label: cocoaBtnEl.textContent } : null,
+      wishBtn: wishBtnEl ? { shown: wishBtnEl.classList.contains('show'), label: wishBtnEl.textContent } : null,
+      cocoa: { active: COCOA.active, t: +COCOA.t.toFixed(1), count: COCOA.count, cupVisible: !!(COCOA.cup && COCOA.cup.visible), cupParent: COCOA.cup && COCOA.cup.parent ? COCOA.cup.parent.type : null },
+      wishes: WISH.list.map((w) => w.text), cards: WISH.cards.filter(Boolean).length,
+      wishPanel: wishPanelEl ? wishPanelEl.classList.contains('show') : false,
+      panel: wantPanelSnapshot(),
+    };
+  },
+  gotoCounter() {
+    const c = cocoaSpot();
+    playerPos.set(c.x, 0, c.z + 0.6);
+    playerYaw.v = Math.PI;
+    const p = players.get('me'); if (p) p.root.position.copy(playerPos);
+    rig.lookAt.set(playerPos.x, 1.2, playerPos.z); rig.snap = true;
+    return [+playerPos.x.toFixed(2), +playerPos.z.toFixed(2)];
+  },
+  gotoBoard() {
+    const b = wishSpot();
+    playerPos.set(b.x + 1.3, 0, b.z);
+    playerYaw.v = -Math.PI / 2;
+    const p = players.get('me'); if (p) p.root.position.copy(playerPos);
+    rig.lookAt.set(playerPos.x, 1.4, playerPos.z); rig.snap = true;
+    return [+playerPos.x.toFixed(2), +playerPos.z.toFixed(2)];
+  },
+  cocoa() { startCocoa(); return this.lounge; },
+  stopCocoa() { stopCocoa(true); return this.lounge; },
+  stopCocoa() { stopCocoa(true); return this.lounge; },
+  wish(text) {
+    const nick = (state.profile && state.profile.nickname) || '나';
+    addWish(text || '모두 메리 크리스마스!', nick);
+    return this.lounge;
+  },
+  get fx() {
+    const activePrints = FOOT_WALK.prints.filter((p) => p.on).length;
+    const activeBreath = BREATH.pool.filter((b) => b.on).length;
+    return {
+      prints: activePrints, printsTotal: FOOT_WALK.prints.length, printsSpawned: FOOT_WALK.spawned,
+      breath: activeBreath, breathSpawned: BREATH.spawned, budget: footprintBudget(),
+      first: (() => { const p = FOOT_WALK.prints.find((x) => x.on); return p ? { pos: p.m.position.toArray().map((n) => +n.toFixed(2)), opacity: +p.m.material.opacity.toFixed(2) } : null; })(),
+    };
+  },
+  get audio() { return fireAudio.state; },
+  audioOn() { return audioToggle(true); },
+  audioOff() { return audioToggle(false); },
+  get cam() { return { yaw: +rig.yaw.toFixed(2), pitch: +rig.pitch.toFixed(2), dist: +rig.dist.toFixed(2) }; },
+  look(yaw, pitch, dist) { rig.yaw = yaw; rig.pitch = pitch; rig.dist = dist; rig.targetDist = dist; return true; },
+  get post() { return window.__plaza ? window.__plaza.post : null; },
+};
+
+/* BGM 토글과 장작 소리 연동 */
+function audioToggle(on) {
+  const want = on === undefined ? !carol.playing : !!on;
+  if (want && !carol.playing) {
+    carol.start();
+    btnBgm.textContent = '🔊';
+    btnBgm.classList.add('on');
+  } else if (!want && carol.playing) {
+    carol.stop();
+    btnBgm.textContent = '🔇';
+    btnBgm.classList.remove('on');
+  }
+  fireAudio.setEnabled(carol.playing);
+  return fireAudio.state;
+}
+
+function wantPanelSnapshot() {
+  const el = wishPanelEl;
+  return el ? { shown: el.classList.contains('show'), input: wishInputEl ? wishInputEl.value : '' } : null;
+}
+
 
 /* ---------------------------------------------------------------
    9. 메인 루프
@@ -9783,18 +11479,19 @@ function updateSnow(dt) {
 const tmpCol = new THREE.Color();
 function twinkleTree() {
   if (!tree) return;   // 절차적 트리는 .glb 디오라마로 대체됨
+  const glowBoost = 1 + (TREE_EVENT.glow || 0) * 0.45;
   const attr = tree.lights.geometry.attributes.color;
   const arr = attr.array;
   for (let i = 0; i < tree.baseCol.length; i++) {
     const c = tree.baseCol[i];
-    const k = 0.4 + 0.6 * (0.5 + 0.5 * Math.sin(elapsed * 2.4 + i * 1.7));
+    const k = (0.4 + 0.6 * (0.5 + 0.5 * Math.sin(elapsed * 2.4 + i * 1.7))) * glowBoost;
     arr[i * 3] = c.r * k;
     arr[i * 3 + 1] = c.g * k;
     arr[i * 3 + 2] = c.b * k;
   }
   attr.needsUpdate = true;
   tree.star.rotation.y = elapsed * 0.45;
-  tree.star.material.emissiveIntensity = 1.3 + Math.sin(elapsed * 1.5) * 0.28;
+  tree.star.material.emissiveIntensity = (1.3 + Math.sin(elapsed * 1.5) * 0.28) * (1 + (TREE_EVENT.glow || 0) * 1.1);
 }
 
 /* 굴뚝 연기 */
@@ -9877,6 +11574,7 @@ function tick(dt) {
   updatePhotoZone(dt);
   updatePhotoFacing(dt);
   updatePhotoPose(dt);
+  updateSecondWave(dt);
   updateLabels();
 
   /* 접속자 패널의 위치 표시(광장/오두막) — 0.4초마다 달라졌는지 확인해 다시 그린다 */
@@ -10397,6 +12095,22 @@ window.__plaza = {
     updateLabels();
     renderFrame();
   },
+  /* --- 2차 업그레이드 진단 (트리 점등식 · 라운지 · 연출) --- */
+  get tree() { return window.__plazaAudit.tree; },
+  get lounge() { return window.__plazaAudit.lounge; },
+  get fx() { return window.__plazaAudit.fx; },
+  get audio() { return window.__plazaAudit.audio; },
+  decorate(k) { return window.__plazaAudit.decorate(k); },
+  remoteTree(o) { return window.__plazaAudit.remote(o); },
+  replayTree() { return window.__plazaAudit.replay(); },
+  clearTree() { return window.__plazaAudit.clear(); },
+  gotoTreeStand() { return window.__plazaAudit.gotoStand(); },
+  gotoCounter() { return window.__plazaAudit.gotoCounter(); },
+  gotoBoard() { return window.__plazaAudit.gotoBoard(); },
+  cocoa() { return window.__plazaAudit.cocoa(); },
+  stopCocoa() { return window.__plazaAudit.stopCocoa(); },
+  wish(t) { return window.__plazaAudit.wish(t); },
+  audioToggle(on) { return audioToggle(on); },
   ready: true,
 };
 </script>
