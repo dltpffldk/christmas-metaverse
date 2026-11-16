@@ -5943,7 +5943,11 @@ function buildVillage() {
   ];
   firSpots.forEach(([ad, R, hh, star]) => {
     const rad = (ad * Math.PI) / 180;
-    addFir(Math.sin(rad) * R, Math.cos(rad) * R, hh, { star, bulbs: hh > 4.2 });
+    const fx0 = Math.sin(rad) * R, fz0 = Math.cos(rad) * R;
+    /* ⛸️ 얼음 연못 · 눈사람 눈밭 둘레는 비워 둔다 (카메라가 나무에 걸리지 않게) */
+    if (Math.hypot(fx0 - POND.x, fz0 - POND.z) < POND.rim + 5.4) return;
+    if (Math.hypot(fx0 - SNOW_PATCH.x, fz0 - SNOW_PATCH.z) < SNOW_PATCH.r + 2.4) return;
+    addFir(fx0, fz0, hh, { star, bulbs: hh > 4.2 });
   });
 
   // 광장 가장자리 가로등 — 광장 바닥 높이를 그대로 써서 딱 붙인다
