@@ -8803,7 +8803,8 @@ function photoCameraTarget(outPos, outLook) {
   const camY = groundY(cx, cz) + 2.0;
   const halfV = THREE.MathUtils.degToRad(camera.fov * 0.5);
   const halfH = Math.atan(Math.tan(halfV) * Math.max(0.2, camera.aspect));
-  const treeTop = Math.max(6, photoTreeH);
+  /* 나무 꼭대기 별 장식은 박스 높이 밖으로 조금 솟으므로 여유를 둔다 */
+  const treeTop = Math.max(6, photoTreeH) * 1.06;
   const limitV = halfV * 0.9;                // 위아래 여유 10%
   const limitH = halfH * 0.92;               // 좌우 여유 8% (세로 화면에서는 이쪽이 빡빡하다)
 
@@ -8811,7 +8812,7 @@ function photoCameraTarget(outPos, outLook) {
   /* 거리 상한 — 트리를 통째로 담으려고 카메라가 13m 밖까지 물러나면 정작 주인공인
      캐릭터가 손톱만해진다. 트리의 위아래 여유는 조금 줄이더라도 얼굴과 포즈가
      읽히는 거리에서 구도를 잡는다. */
-  const dMax = narrow ? 8.2 : 9.6;
+  const dMax = narrow ? 9.2 : 10.4;
   for (const sgn of [1, -1, 0]) {
     for (let D = 5.2; D <= dMax; D += 0.3) {
       const px = cx + dx * D - dz * side * sgn;
@@ -8838,7 +8839,7 @@ function photoCameraTarget(outPos, outLook) {
     pick = { D: 7, px, pz, distTree: Math.max(2, Math.hypot(px, pz)), aTopTree: halfV * 0.9, aFeet: -halfV * 0.5 };
   }
   let axis = pick.aFeet + halfV * 0.62;         // 캐릭터 발이 화면 아래 1/6 위에 오게
-  if (axis < pick.aTopTree - halfV * 0.98) axis = pick.aTopTree - halfV * 0.98;
+  if (axis < pick.aTopTree - halfV * 0.96) axis = pick.aTopTree - halfV * 0.96;
   outPos.set(pick.px, camY, pick.pz);
   outPos.y = Math.max(outPos.y, groundY(outPos.x, outPos.z) + 1.2);
   outLook.set(0, camY + Math.tan(clamp(axis, -0.5, 1.1)) * pick.distTree, 0);
