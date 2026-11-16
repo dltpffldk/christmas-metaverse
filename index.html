@@ -127,7 +127,7 @@
 
   #chatForm{
     position:fixed;left:50%;transform:translateX(-50%);
-    bottom:calc(16px + var(--safe-b));z-index:26;
+    bottom:calc(16px + var(--safe-b));z-index:34;
     width:min(460px,calc(100% - 220px));
     display:flex;gap:8px;
   }
@@ -154,6 +154,7 @@
   #dock{
     position:fixed;right:16px;bottom:calc(16px + var(--safe-b));z-index:26;
     display:flex;flex-direction:column;align-items:flex-end;gap:8px;
+    transition:bottom .18s ease;
   }
   #emojiRow{display:flex;gap:8px}
   .emoji-btn{
@@ -470,9 +471,12 @@
     }
     #chatForm{
       display:none;width:calc(100% - 24px);left:12px;transform:none;
-      bottom:calc(140px + var(--safe-b));
+      bottom:calc(140px + var(--safe-b));z-index:34;
     }
     #chatForm.open{display:flex}
+    /* 채팅 입력창이 열리면 우측 액션 버튼(나가기·일어서기)을 입력창 위로 올린다
+       — 예전엔 같은 높이에 겹쳐 '보내기' 버튼이 가려졌다 */
+    body.chatting #dock{bottom:calc(200px + var(--safe-b))}
     #chatInput{height:46px;font-size:15px}
     #chatForm button{width:66px;height:46px;font-size:13px}
     #hint{display:none}
@@ -6857,16 +6861,36 @@ function buildLoungeExtras() {
   /* 카운터 위 미니 전구 */
   iGeo(MI.bulb, new THREE.SphereGeometry(0.045, 8, 6), C.x + 0.1, 1.62, C.z, 0, 0, 0);
   iCyl(MI.iron, 0.008, 0.008, 0.5, C.x + 0.1, 1.62, C.z, 6);
-  /* 벽면 코코아 팻말 */
-  const cocoSign = loungeSignMesh('☕ 코코아', '따뜻한 한 잔', 1.05, 0.5);
-  cocoSign.position.set(C.x + 0.75, 2.2, -Z + 0.12);
+  /* 벽면 코코아 팻말 — 어두운 라운지에서도 한눈에 띄도록 크게 + 자체발광 */
+  const SIGN_Y = 2.26, SIGN_Z = -Z + 0.14;
+  const cocoSign = loungeSignMesh('☕ 코코아', '카운터에서 한 잔', 1.42, 0.64, { color: '#fff4d8', subColor: 'rgba(255,240,214,.95)' });
+  cocoSign.material.emissiveIntensity = 0.44;                 // 표지판 자체가 빛난다
+  cocoSign.position.set(C.x + 0.75, SIGN_Y, SIGN_Z);
   G.add(cocoSign);
-  iBox(MI.woodDk, 1.14, 0.5, 0.03, C.x + 0.75, 1.95, -Z + 0.1);
+  iBox(MI.woodDk, 1.54, 0.7, 0.05, C.x + 0.75, SIGN_Y - 0.35, SIGN_Z - 0.046);   // 나무 액자
+  /* 상판 앞몸리 따뜻한 라인 조명 — 카운터 윤곽이 빛나 보인다 */
+  iBox(MI.bulb, 1.84, 0.022, 0.022, C.x, 0.948, C.z + 0.345);
+  iBox(MI.bulb, 0.022, 0.022, 0.6, C.x - 0.955, 0.948, C.z);
+  iBox(MI.bulb, 0.022, 0.022, 0.6, C.x + 0.955, 0.948, C.z);
+  /* 바닥 빛웅덩이 — 카운터 앞이 밝아 보인다 */
+  const counterPool = new THREE.Mesh(new THREE.PlaneGeometry(3.8, 2.4), new THREE.MeshBasicMaterial({
+    map: TEX_GLOW, color: 0xffa955, transparent: true, opacity: 0.12,
+    blending: THREE.AdditiveBlending, depthWrite: false, toneMapped: false, fog: false,
+  }));
+  counterPool.rotation.x = -Math.PI / 2;
+  counterPool.position.set(C.x, 0.02, C.z + 1.15);
+  counterPool.renderOrder = 2;
+  G.add(counterPool);
 
-  const counterLight = new THREE.PointLight(0xffb070, 4.2, 6.5, 2);
-  counterLight.position.set(C.x, 2.05, C.z + 0.5);
+  const counterLight = new THREE.PointLight(0xffb070, 5.4, 8.0, 2);
+  counterLight.position.set(C.x + 0.2, 2.25, C.z + 0.55);
   interiorRoot.add(counterLight);
   INTERIOR.lights.push(counterLight);
+  /* 카운터 바로 앞쪽 보조광 — 상판·머그가 따뜻하게 받친다 */
+  const counterFill = new THREE.PointLight(0xffd0a0, 1.9, 4.2, 2);
+  counterFill.position.set(C.x, 1.35, C.z + 1.0);
+  interiorRoot.add(counterFill);
+  INTERIOR.lights.push(counterFill);
 
   /* ---------- 소원 쪽지 게시판 (서쪽 벽) ---------- */
   iBox(MI.woodDk, 0.07, 1.0, 1.32, B.x - 0.04, 1.16, B.z);        // 나무 판
@@ -6886,19 +6910,27 @@ function buildLoungeExtras() {
   /* ---------- 입구 안쪽 웰컴 팻말 (A자형) ---------- */
   const sy = 0.95;
   const faceYaw = S.yaw;
+  const BW = 1.5, BH = 0.72;                       // 판넬 크기
+  const boardCY = sy + 0.22;                        // 판넬 중심 높이 (1.17)
   [-1, 1].forEach((k) => {
-    const board = loungeSignMesh(k > 0 ? LOUNGE.name : 'WELCOME', k > 0 ? '모든 코티아 문이 이어지는 곳' : '오늘은 코코야 한 잔', 1.5, 0.72, { color: k > 0 ? '#ffe6b3' : '#fff3d6' });
-    board.position.set(S.x - Math.sin(faceYaw) * 0.06 * k, sy + 0.22, S.z - Math.cos(faceYaw) * 0.06 * k);
+    const board = loungeSignMesh(k > 0 ? LOUNGE.name : 'WELCOME', k > 0 ? '모든 코티아 문이 이어지는 곳' : '오늘은 코코아 한 잔', BW, BH, { color: k > 0 ? '#ffe6b3' : '#fff3d6' });
+    board.position.set(S.x - Math.sin(faceYaw) * 0.06 * k, boardCY, S.z - Math.cos(faceYaw) * 0.06 * k);
     board.rotation.y = faceYaw + (k > 0 ? 0 : Math.PI);
     board.rotation.x = k > 0 ? -0.06 : 0.06;
     G.add(board);
   });
-  /* 팻말 프레임 · 다리 */
-  iBox(MI.woodDk, 1.62, 0.06, 0.05, S.x, sy + 0.58, S.z, faceYaw + Math.PI / 2);
-  iBox(MI.woodDk, 1.62, 0.06, 0.05, S.x, sy - 0.16, S.z, faceYaw + Math.PI / 2);
-  [-0.78, 0.78].forEach((ox) => {
-    const dx = Math.cos(faceYaw) * ox, dz = -Math.sin(faceYaw) * ox;
-    iBox(MI.woodDk, 0.07, sy + 0.7, 0.07, S.x + dx, 0, S.z + dz);
+  /* 팻말 프레임 · 기둥
+     — 가로대는 판넬 '폭' 방향(faceYaw)으로만 뻗는다. 예전에는 faceYaw+90° 로 돌려
+       가로대가 판넬 앞뒤를 1.6m 관통해 부서진 것처럼 보였다.
+     — 기둥은 판넬 양옆 바깥(±0.86)에 세워 글자와 판넬 면을 가리지 않는다. */
+  const latX = Math.cos(faceYaw), latZ = -Math.sin(faceYaw);   // 판넬 폭 방향 단위벡터
+  const topY = boardCY + BH / 2, botY = boardCY - BH / 2;
+  iBox(MI.woodDk, BW + 0.18, 0.085, 0.19, S.x, topY - 0.0425, S.z, faceYaw);   // 위 가로대 (판넬 상단을 감싼다)
+  iBox(MI.woodDk, BW + 0.18, 0.085, 0.19, S.x, botY - 0.0425, S.z, faceYaw);   // 아래 가로대 (판넬 하단)
+  [-1, 1].forEach((k) => {
+    const px = S.x + latX * 0.86 * k, pz = S.z + latZ * 0.86 * k;
+    iBox(MI.woodDk, 0.085, sy + 0.62, 0.085, px, 0, pz);                        // 세로 기둥
+    iBox(MI.woodDk, 0.09, 0.05, 0.42, px, 0, pz, faceYaw);                      // 바닥 받침
   });
   /* 바닥 작은 화환 */
   iGeo(MI.pine, new THREE.TorusGeometry(0.3, 0.055, 6, 16), S.x, 0.3, S.z + 0.35, Math.PI / 2, 0, 0);
@@ -9089,10 +9121,17 @@ chatForm.addEventListener('submit', (e) => {
   e.preventDefault();
   sendChat(chatInput.value);
   if (IS_TOUCH) {
-    chatForm.classList.remove('open');
+    setChatOpen(false);
     chatInput.blur();
   }
 });
+/* 채팅 입력창 열림/닫힘 — body.chatting 으로 우측 액션 버튼을 입력창 위로 올린다 */
+function setChatOpen(open) {
+  chatForm.classList.toggle('open', open);
+  document.body.classList.toggle('chatting', open);
+  btnChat.classList.toggle('on', open);
+  if (open) { chatInput.focus(); chatLog.scrollTop = chatLog.scrollHeight; }
+}
 
 /* 리액션 */
 document.querySelectorAll('.emoji-btn').forEach((b) => {
@@ -9125,9 +9164,7 @@ btnHelp.addEventListener('click', () => {
   btnHelp.classList.toggle('on', !helpPanel.classList.contains('hidden'));
 });
 btnChat.addEventListener('click', () => {
-  const open = chatForm.classList.toggle('open');
-  btnChat.classList.toggle('on', open);
-  if (open) { chatInput.focus(); chatLog.scrollTop = chatLog.scrollHeight; }
+  setChatOpen(!chatForm.classList.contains('open'));
 });
 btnBgm.addEventListener('click', () => {
   if (carol.playing) {
@@ -10207,7 +10244,18 @@ function wishSpot() {
 function nearCocoa() {
   if (ZONE.mode !== 'interior') return false;
   const s = cocoaSpot();
-  return Math.hypot(playerPos.x - s.x, playerPos.z - s.z) < 2.35;
+  /* 카운터 앞쪽 넓은 구간이면 뜨게 (예전 2.35m 는 카운터 바로 앞에서만) */
+  return Math.hypot(playerPos.x - s.x, playerPos.z - s.z) < 3.6;
+}
+/* 라운지 안 의자·소파·통나무에 앉아 있어도 한 잔 — 테이블에 앉아 코코아를 마시는 게 자연스럽다 */
+function seatedInLounge() {
+  if (!SIT.active || ZONE.mode !== 'interior') return false;
+  const s = SEATS[SIT.seat];
+  return !!(s && s.zone === 'i');
+}
+/* 코코아 마시기가 열리는 조건 — 카운터 근처거나 라운지 안에 앉아 있을 때 */
+function canCocoa() {
+  return ZONE.mode === 'interior' && (nearCocoa() || seatedInLounge());
 }
 function nearWish() {
   if (ZONE.mode !== 'interior') return false;
@@ -10225,7 +10273,7 @@ const COCOA_LINES = [
 function startCocoa() {
   if (!state.joined) return false;
   if (ZONE.mode !== 'interior') { toast('☕ 코코아는 따뜻한 라운지 안에서 마셔요', 2400); return false; }
-  if (!nearCocoa()) { toast('☕ 코코아 카운터 앞으로 가까이 가 주세요', 2200); return false; }
+  if (!canCocoa()) { toast('☕ 코코아 카운터 앞으로 가까이 가 주세요', 2200); return false; }
   const p = players.get('me');
   if (!p) return false;
   if (!COCOA.cup) COCOA.cup = makeCocoaCup();
@@ -10714,11 +10762,12 @@ function updateActivityButtons(dt) {
   if (treeBtnEl.textContent !== label) treeBtnEl.textContent = label;
   treeBtnEl.classList.toggle('lit', TREE_EVENT.lit);
 
-  const cocoaNear = ZONE.mode === 'interior' && !PHOTO.active && !TRANS.busy && nearCocoa();
+  const cocoaNear = ZONE.mode === 'interior' && !PHOTO.active && !TRANS.busy && canCocoa();
   if (cocoaNear !== cocoaBtnShown) {
     cocoaBtnEl.classList.toggle('show', cocoaNear);
     cocoaBtnShown = cocoaNear;
-    if (cocoaNear && !COCOA.active) toast('☕ 코코아 카운터 — 따뜻한 한 잔 어떠세요?', 2400);
+    /* 앉은 직후엔 안내를 띄우지 않는다 — 앉을 때마다 뜨면 성가시다 */
+    if (cocoaNear && !COCOA.active && !SIT.active) toast('☕ 코코아 카운터 — 따뜻한 한 잔 어떠세요?', 2400);
   }
   const cocoaLabel = COCOA.active ? '☕ 코코아 마시는 중…' : '☕ 코코아 마시기';
   if (cocoaBtnEl.textContent !== cocoaLabel) cocoaBtnEl.textContent = cocoaLabel;
