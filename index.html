@@ -689,7 +689,7 @@ import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
 import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
 import { ShaderPass } from 'three/addons/postprocessing/ShaderPass.js';
 import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
-import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
+import { mergeGeometries, mergeVertices } from 'three/addons/utils/BufferGeometryUtils.js';
 
 /* =====================================================================
    🎄 크리스마스 광장 — 엘프의 겨울 마을 (동화풍 개편)
@@ -946,7 +946,9 @@ class DemoNetwork extends NetworkAdapter {
       }
     }
 
-    this.emit('state', { players: [...this.players.values()].map((p) => ({
+    /* 내 캐릭터('me')는 로컬 이동 코드가 소유한다 — 남의 상태로 되돌리면
+       루프가 멈춰 있을 때 캐릭터가 엉뚱한 곳으로 튀므로 보내지 않는다 */
+    this.emit('state', { players: [...this.players.values()].filter((p) => p.id !== 'me').map((p) => ({
       id: p.id, x: p.x, z: p.z, yaw: p.yaw, moving: p.moving, zone: p.zone || 'p',
     })) });
   }
@@ -5263,12 +5265,12 @@ const INTERIOR = {
   built: null,                 // 절차적 실내 그룹 (glb 교체 시 숨긴다)
   glb: null,
   source: 'procedural',
-  height: 3.5,                 // 천장 높이
-  bounds: { minX: -4.58, maxX: 4.58, minZ: -3.8, maxZ: 4.12 },      // 걸을 수 있는 실내
-  hall: { minX: -0.62, maxX: 0.62, minZ: 4.12, maxZ: 6.9 },         // 문 안쪽 현관 홀
-  cam: { minX: -4.9, maxX: 4.9, minZ: -4.1, maxZ: 4.16 },           // 카메라 허용
-  camHall: { minX: -0.95, maxX: 0.95, minZ: 4.16, maxZ: 7.1 },
-  spawn: { x: 0, z: 3.35 },
+  height: 4.3,                 // 천장 높이 (홀처럼 높게)
+  bounds: { minX: -8.26, maxX: 8.26, minZ: -6.76, maxZ: 6.92 },     // 걸을 수 있는 실내 (17×14m)
+  hall: { minX: -0.7, maxX: 0.7, minZ: 6.92, maxZ: 9.9 },           // 문 안쪽 현관 홀
+  cam: { minX: -8.36, maxX: 8.36, minZ: -6.86, maxZ: 6.98 },        // 카메라 허용
+  camHall: { minX: -0.95, maxX: 0.95, minZ: 6.98, maxZ: 10.15 },
+  spawn: { x: 0, z: 6.2 },
   colliders: [],               // 가구 충돌 (월드 좌표)
   lights: [],
   flames: [],
@@ -5413,8 +5415,9 @@ const MI = {
   plaster: new THREE.MeshStandardMaterial({ color: 0xe9d4b6, roughness: 0.96, envMapIntensity: 0.22 }),
   wood:    new THREE.MeshStandardMaterial({ color: 0x7a5233, roughness: 0.82, envMapIntensity: 0.25 }),
   woodDk:  new THREE.MeshStandardMaterial({ color: 0x4a3120, roughness: 0.88, envMapIntensity: 0.2 }),
-  beam:    new THREE.MeshStandardMaterial({ color: 0x3d2718, roughness: 0.9, envMapIntensity: 0.16 }),
-  ceiling: new THREE.MeshStandardMaterial({ color: 0x5b3f28, roughness: 0.92, envMapIntensity: 0.16 }),
+  /* 들보·천장은 불빛이 닿지 않아 까맣게 죽기 쉬워 아주 옅은 자체발광을 준다 */
+  beam:    new THREE.MeshStandardMaterial({ color: 0x4d331f, roughness: 0.9, envMapIntensity: 0.18, emissive: 0x1b1209, emissiveIntensity: 1 }),
+  ceiling: new THREE.MeshStandardMaterial({ color: 0x7d5838, roughness: 0.92, envMapIntensity: 0.22, emissive: 0x241809, emissiveIntensity: 1 }),
   stone:   new THREE.MeshStandardMaterial({ color: 0xb0a08c, roughness: 0.92, envMapIntensity: 0.3, map: TEX_STONEWALL }),
   stoneDk: new THREE.MeshStandardMaterial({ color: 0x6e6459, roughness: 0.94, envMapIntensity: 0.22 }),
   fabric:  new THREE.MeshStandardMaterial({ color: 0x8a3a34, roughness: 0.95, envMapIntensity: 0.18 }),
@@ -5467,6 +5470,7 @@ function iFlush(parent) {
   let n = 0;
   for (const [mat, geos] of ISINK) {
     const merged = mergeGeometries(geos, false);
+    if (!merged) console.warn('[interior] 재질 병합 실패 — 이 묶음은 그리지 않는다');
     geos.forEach((g) => g.dispose());
     if (!merged) continue;
     merged.computeBoundingSphere();
@@ -5480,23 +5484,29 @@ function iFlush(parent) {
   return n;
 }
 
-/* ---------- 실내 한 칸 (약 10.4m × 8.8m) ---------- */
+/* ---------- 실내 한 칸 (약 17m × 14m — 열 명이 어울려도 넉넉한 파티 홀) ---------- */
 function buildInteriorRoom() {
   const G = new THREE.Group();
   G.name = 'interior-procedural';
   interiorRoot.add(G);
   INTERIOR.built = G;
 
-  const X = 5.0, Z = 4.2, H = INTERIOR.height, TH = 0.3;
-  const DW = 1.05;                      // 문틀 반폭
-  const DH = 2.45;                      // 문 높이
-  const FX = -0.4;                      // 벽난로 중심 x
+  const X = 8.5, Z = 7.0, H = INTERIOR.height, TH = 0.3;
+  const DW = 1.2;                       // 문틀 반폭
+  const DH = 2.6;                       // 문 높이
+  const FX = -3.6;                      // 벽난로 중심 x
+  /* 좌표 회전 헬퍼 — (ox,oz,yaw) 기준 로컬(lx,ly,lz)로 부품을 놓는다 */
+  const at = (ox, oz, yaw) => {
+    const c = Math.cos(yaw), s = Math.sin(yaw);
+    return (mat, w, h, d, lx, ly, lz) => iBox(mat, w, h, d, ox + lx * c + lz * s, ly, oz - lx * s + lz * c, yaw);
+  };
 
   /* --- 바닥 · 러그 --- */
-  iBox(MI.floor, X * 2 + TH * 2, 0.24, Z * 2 + TH * 2 + 2.1, 0, -0.24, 0.95);
-  iPlane(MI.rug, 5.0, 3.6, FX - 0.8, 0.012, -0.9, -Math.PI / 2, 0);
-  /* 현관 홀 러너 */
-  iPlane(MI.rug, 1.3, 1.8, 0, 0.012, 5.2, -Math.PI / 2, 0);
+  iBox(MI.floor, X * 2 + TH * 2, 0.24, Z * 2 + TH * 2, 0, -0.24, 0);
+  iBox(MI.floor, 2.4, 0.24, 3.2, 0, -0.24, Z + TH + 1.5);            // 현관 홀 바닥
+  iPlane(MI.rug, 8.6, 5.4, -3.3, 0.012, -2.9, -Math.PI / 2, 0);      // 벽난로 앞 큰 러그
+  iPlane(MI.rug, 6.2, 2.9, 4.6, 0.013, -2.6, -Math.PI / 2, 0);       // 다이닝 러그
+  iPlane(MI.rug, 1.5, 2.6, 0, 0.012, 5.7, -Math.PI / 2, 0);          // 현관 러너
 
   /* --- 벽 --- */
   iBox(MI.plaster, TH, H, Z * 2 + TH * 2, -X - TH / 2, 0, 0);
@@ -5507,179 +5517,398 @@ function buildInteriorRoom() {
   iBox(MI.plaster, sideW, H, TH, DW + sideW / 2, 0, Z + TH / 2);
   iBox(MI.plaster, DW * 2, H - DH, TH, 0, DH, Z + TH / 2);
 
-  /* --- 하단 목재 웨인스코트 + 걸레받이 · 걸이대 --- */
-  const WH = 1.05;
-  iBox(MI.wood, 0.05, WH, Z * 2, -X + 0.025, 0, 0);
-  iBox(MI.wood, 0.05, WH, Z * 2, X - 0.025, 0, 0);
-  iBox(MI.wood, X * 2, WH, 0.05, 0, 0, -Z + 0.025);
+  /* --- 하단 목재 웨인스코트 + 걸레받이(허리선) --- */
+  const WH = 1.15;
+  iBox(MI.wood, 0.06, WH, Z * 2, -X + 0.03, 0, 0);
+  iBox(MI.wood, 0.06, WH, Z * 2, X - 0.03, 0, 0);
+  iBox(MI.wood, X * 2, WH, 0.06, 0, 0, -Z + 0.03);
   const sw2 = X - DW;
-  iBox(MI.wood, sw2, WH, 0.05, -(DW + sw2 / 2), 0, Z - 0.025);
-  iBox(MI.wood, sw2, WH, 0.05, DW + sw2 / 2, 0, Z - 0.025);
-  iBox(MI.beam, 0.09, 0.1, Z * 2, -X + 0.045, WH, 0);
-  iBox(MI.beam, 0.09, 0.1, Z * 2, X - 0.045, WH, 0);
-  iBox(MI.beam, X * 2, 0.1, 0.09, 0, WH, -Z + 0.045);
-  iBox(MI.beam, sw2, 0.1, 0.09, -(DW + sw2 / 2), WH, Z - 0.045);
-  iBox(MI.beam, sw2, 0.1, 0.09, DW + sw2 / 2, WH, Z - 0.045);
+  iBox(MI.wood, sw2, WH, 0.06, -(DW + sw2 / 2), 0, Z - 0.03);
+  iBox(MI.wood, sw2, WH, 0.06, DW + sw2 / 2, 0, Z - 0.03);
+  iBox(MI.beam, 0.1, 0.11, Z * 2, -X + 0.05, WH, 0);
+  iBox(MI.beam, 0.1, 0.11, Z * 2, X - 0.05, WH, 0);
+  iBox(MI.beam, X * 2, 0.11, 0.1, 0, WH, -Z + 0.05);
+  iBox(MI.beam, sw2, 0.11, 0.1, -(DW + sw2 / 2), WH, Z - 0.05);
+  iBox(MI.beam, sw2, 0.11, 0.1, DW + sw2 / 2, WH, Z - 0.05);
+  /* 벽 기둥 — 홀처럼 보이게 */
+  [[-X + 0.14, -Z + 0.14], [X - 0.14, -Z + 0.14], [-X + 0.14, Z - 0.14], [X - 0.14, Z - 0.14]]
+    .forEach(([px, pz]) => iBox(MI.beam, 0.28, H, 0.28, px, 0, pz));
 
-  /* --- 기둥 · 천장 · 들보 --- */
-  [[-X + 0.12, -Z + 0.12], [X - 0.12, -Z + 0.12], [-X + 0.12, Z - 0.12], [X - 0.12, Z - 0.12]].forEach(([px, pz]) => {
-    iBox(MI.beam, 0.24, H, 0.24, px, 0, pz);
-  });
-  iBox(MI.ceiling, X * 2 + TH * 2, 0.24, Z * 2 + TH * 2, 0, H, 0);
-  [-2.9, -1.0, 0.9, 2.8].forEach((bz) => iBox(MI.beam, X * 2, 0.2, 0.22, 0, H - 0.2, bz));
+  /* --- 천장 · 들보 --- */
+  iBox(MI.ceiling, X * 2 + TH * 2, 0.26, Z * 2 + TH * 2, 0, H, 0);
+  for (let z = -6.0; z <= 6.1; z += 1.7) iBox(MI.beam, X * 2, 0.22, 0.24, 0, H - 0.22, z);
+  [-4.4, 0, 4.4].forEach((bx) => iBox(MI.beam, 0.2, 0.18, Z * 2, bx, H - 0.4, 0));
+  /* 천장 판넬 띠 */
+  for (let z = -5.2; z <= 5.3; z += 3.4) iBox(MI.woodDk, X * 2 - 0.4, 0.06, 0.5, 0, H - 0.05, z);
 
   /* --- 현관 홀 (문 안쪽 3.0m — 카메라가 들어와 문틀로 방을 비춘다) --- */
-  const HZ0 = Z + TH, HZ1 = Z + TH + 3.0;      // 4.5 ~ 7.5 (카메라가 들어올 여유)
-  iBox(MI.plaster, TH, 2.75, 3.0, -1.2, 0, (HZ0 + HZ1) / 2);
-  iBox(MI.plaster, TH, 2.75, 3.0, 1.2, 0, (HZ0 + HZ1) / 2);
-  iBox(MI.wood, 0.05, WH, 3.0, -1.05, 0, (HZ0 + HZ1) / 2 + 0.02);
-  iBox(MI.wood, 0.05, WH, 3.0, 1.05, 0, (HZ0 + HZ1) / 2 + 0.02);
-  iBox(MI.ceiling, 2.7, 0.2, 3.3, 0, 2.75, (HZ0 + HZ1) / 2);
-  iBox(MI.woodDk, 2.7, 2.75, TH, 0, 0, HZ1 + TH / 2);
+  const HZ0 = Z + TH, HZ1 = Z + TH + 3.0;
+  iBox(MI.plaster, TH, 2.95, 3.0, -1.2, 0, (HZ0 + HZ1) / 2);
+  iBox(MI.plaster, TH, 2.95, 3.0, 1.2, 0, (HZ0 + HZ1) / 2);
+  iBox(MI.wood, 0.06, WH, 3.0, -1.03, 0, (HZ0 + HZ1) / 2 + 0.02);
+  iBox(MI.wood, 0.06, WH, 3.0, 1.03, 0, (HZ0 + HZ1) / 2 + 0.02);
+  iBox(MI.ceiling, 2.7, 0.2, 3.3, 0, 2.95, (HZ0 + HZ1) / 2);
+  iBox(MI.woodDk, 2.7, 2.95, TH, 0, 0, HZ1 + TH / 2);
   /* 현관 문 (닫힌 나무문) */
-  iBox(MI.woodDk, 1.95, 2.4, 0.1, 0, 0, HZ1 - 0.03);
-  iBox(MI.beam, 1.95, 0.09, 0.14, 0, 2.4, HZ1 - 0.03);
-  [-0.62, 0.62].forEach((px) => iBox(MI.beam, 0.09, 2.4, 0.14, px, 0, HZ1 - 0.03));
+  iBox(MI.woodDk, 1.95, 2.45, 0.1, 0, 0, HZ1 - 0.03);
+  iBox(MI.beam, 1.95, 0.09, 0.14, 0, 2.45, HZ1 - 0.03);
+  [-0.62, 0.62].forEach((px) => iBox(MI.beam, 0.09, 2.45, 0.14, px, 0, HZ1 - 0.03));
   iBall(MI.brass, 0.055, 0.62, 1.05, HZ1 - 0.11);
   /* 현관 문 위 리스 */
-  iGeo(MI.pine, new THREE.TorusGeometry(0.26, 0.065, 8, 18), 0, 1.98, HZ1 - 0.1, 0, 0, 0);
+  iGeo(MI.pine, new THREE.TorusGeometry(0.28, 0.07, 8, 20), 0, 2.02, HZ1 - 0.1, 0, 0, 0);
+  iGeo(MI.giftA, new THREE.SphereGeometry(0.05, 8, 6), 0.2, 2.18, HZ1 - 0.12, 0, 0, 0);
+  iGeo(MI.giftA, new THREE.SphereGeometry(0.045, 8, 6), -0.17, 2.12, HZ1 - 0.12, 0, 0, 0);
   /* 문틀 트림 */
-  [-DW - 0.06, DW + 0.06].forEach((px) => iBox(MI.beam, 0.12, DH + 0.12, TH + 0.08, px, 0, Z + TH / 2));
-  iBox(MI.beam, DW * 2 + 0.24, 0.12, TH + 0.08, 0, DH, Z + TH / 2);
+  [-DW - 0.07, DW + 0.07].forEach((px) => iBox(MI.beam, 0.14, DH + 0.14, TH + 0.09, px, 0, Z + TH / 2));
+  iBox(MI.beam, DW * 2 + 0.28, 0.14, TH + 0.09, 0, DH, Z + TH / 2);
+  /* 문 옆 옷걸이 · 신발장 */
+  iCyl(MI.woodDk, 0.055, 0.07, 1.85, -1.75, 0, 6.25, 12);
+  iGeo(MI.brass, new THREE.TorusGeometry(0.16, 0.022, 6, 12), -1.75, 1.72, 6.25, Math.PI / 2, 0, 0);
+  iBox(MI.fabric2, 0.16, 0.5, 0.12, -1.62, 1.26, 6.22, 0.3);
+  iBox(MI.wood, 1.0, 0.06, 0.34, -1.35, 0.42, 6.6);
+  iBox(MI.woodDk, 0.9, 0.42, 0.5, -1.35, 0, 6.6);
 
-  /* --- 벽난로 --- */
-  iBox(MI.stoneDk, 3.1, 0.18, 1.15, FX, 0, -Z + 0.55);              // 화덕 앞 단
-  iBox(MI.stone, 0.62, 1.32, 0.46, FX - 1.06, 0.18, -Z + 0.23);     // 좌 기둥
-  iBox(MI.stone, 0.62, 1.32, 0.46, FX + 1.06, 0.18, -Z + 0.23);     // 우 기둥
-  iBox(MI.stone, 2.74, 0.5, 0.46, FX, 1.5, -Z + 0.23);              // 상인방
-  iBox(MI.stone, 2.74, H - 2.0, 0.44, FX, 2.0, -Z + 0.22);          // 굴뚝 벽
-  iBox(MI.stoneDk, 1.5, 1.32, 0.16, FX, 0.18, -Z + 0.34);           // 화덕 어둠
-  iBox(MI.stoneDk, 1.6, 0.08, 0.2, FX, 1.44, -Z + 0.36);
-  iBox(MI.wood, 3.0, 0.13, 0.56, FX, 1.63, -Z + 0.26);              // 선반
+  /* --- 벽난로 (북쪽 벽) : 큰 화덕 · 선반 · 양말 · 장작 --- */
+  const FW = 1.0;                        // 화덕 반폭
+  const FH = 1.72;                       // 화덕 높이
+  iBox(MI.stoneDk, FW * 2 + 1.9, 0.24, 1.6, FX, 0, -Z + 0.8);          // 화덕 앞 헌치
+  iBox(MI.stone, 0.72, FH, 0.54, FX - (FW + 0.36), 0.24, -Z + 0.3);    // 좌 기둥
+  iBox(MI.stone, 0.72, FH, 0.54, FX + (FW + 0.36), 0.24, -Z + 0.3);    // 우 기둥
+  iBox(MI.stoneDk, FW * 2, FH, 0.2, FX, 0.24, -Z + 0.18);              // 화덕 안쪽 어둠
+  iBox(MI.stone, FW * 2 + 1.5, 0.56, 0.54, FX, FH, -Z + 0.3);          // 상인방
+  iBox(MI.stone, FW * 2 + 1.2, H - (FH + 0.56), 0.46, FX, FH + 0.56, -Z + 0.24);  // 굴뚝 벽
+  iBox(MI.wood, FW * 2 + 2.1, 0.14, 0.68, FX, FH + 0.56, -Z + 0.34);   // 선반(상판)
+  iBox(MI.beam, FW * 2 + 2.0, 0.1, 0.1, FX, FH + 0.42, -Z + 0.66);     // 선반 받침
+  /* 화덕 아치 장식 */
+  iGeo(MI.stoneDk, new THREE.TorusGeometry(FW * 0.92, 0.07, 6, 16, Math.PI), FX, FH + 0.02, -Z + 0.3, 0, 0, 0);
   /* 장작 · 불씨 */
-  iGeo(MI.woodDk, new THREE.CylinderGeometry(0.085, 0.085, 0.82, 10), FX - 0.06, 0.3, -Z + 0.52, 0, 0, Math.PI / 2);
-  iGeo(MI.woodDk, new THREE.CylinderGeometry(0.075, 0.075, 0.74, 10), FX + 0.06, 0.36, -Z + 0.5, 0.2, 0.5, Math.PI / 2);
-  iGeo(MI.ember, new THREE.CylinderGeometry(0.07, 0.07, 0.7, 8), FX, 0.27, -Z + 0.5, 0, 0.9, Math.PI / 2);
-  /* 벽난로 위 그림 · 양말 */
-  iBox(MI.woodDk, 1.16, 0.82, 0.06, FX, 2.35, -Z + 0.45);
-  iPlane(MI.picture, 1.0, 0.68, FX, 2.76, -Z + 0.49, 0, 0);
-  [-0.72, 0, 0.72].forEach((px, i) => {
-    iBox(i === 1 ? MI.fabric2 : MI.fabric, 0.2, 0.36, 0.1, FX + px, 1.2, -Z + 0.5);
-    iBox(MI.cream, 0.22, 0.09, 0.11, FX + px, 1.5, -Z + 0.5);
+  iGeo(MI.woodDk, new THREE.CylinderGeometry(0.095, 0.095, 0.9, 10), FX - 0.06, 0.36, -Z + 0.6, 0, 0, Math.PI / 2);
+  iGeo(MI.woodDk, new THREE.CylinderGeometry(0.085, 0.085, 0.8, 10), FX + 0.08, 0.43, -Z + 0.58, 0.2, 0.5, Math.PI / 2);
+  iGeo(MI.woodDk, new THREE.CylinderGeometry(0.075, 0.075, 0.72, 9), FX - 0.02, 0.5, -Z + 0.54, -0.16, -0.35, Math.PI / 2);
+  iGeo(MI.ember, new THREE.CylinderGeometry(0.075, 0.075, 0.78, 8), FX, 0.3, -Z + 0.58, 0, 0.9, Math.PI / 2);
+  /* 선반 위 그림 · 양말 · 장식 */
+  iBox(MI.woodDk, 1.5, 1.05, 0.07, FX, 2.6, -Z + 0.5);
+  iPlane(MI.picture, 1.3, 0.88, FX, 3.12, -Z + 0.55, 0, 0);
+  [-1.62, -1.18, 1.18, 1.62].forEach((px, i) => {
+    iBox(i % 2 ? MI.fabric2 : MI.fabric, 0.24, 0.4, 0.12, FX + px, 1.52, -Z + 0.66);      // 벽난로 기둥 앞 양말
+    iBox(MI.cream, 0.26, 0.1, 0.13, FX + px, 1.92, -Z + 0.66);                             // 접힌 끝
+  });
+  /* 선반 위 촛불 · 트리 작은 장식 */
+  [-1.9, 1.9].forEach((px) => {
+    iCyl(MI.brass, 0.035, 0.05, 0.16, FX + px, FH + 0.7, -Z + 0.4, 10);
+    iGeo(MI.bulb, new THREE.SphereGeometry(0.035, 8, 6), FX + px, FH + 0.9, -Z + 0.4, 0, 0, 0);
+  });
+  /* 벽난로 위 화환(가랜드) */
+  for (let i = 0; i < 22; i++) {
+    const t = i / 21;
+    const gx = FX - FW - 1.0 + t * (FW * 2 + 2.0);
+    const gy = FH + 0.62 + Math.sin(t * Math.PI) * 0.06 - 0.02;
+    iGeo(MI.pine, new THREE.ConeGeometry(0.13, 0.3, 5), gx, gy, -Z + 0.7, Math.PI / 2, 0, 0.4);
+    if (i % 4 === 0) iGeo(MI.giftA, new THREE.SphereGeometry(0.055, 7, 5), gx, gy - 0.02, -Z + 0.76, 0, 0, 0);
+  }
+
+  /* --- 서쪽 벽 창문 2개 (밖은 눈 내리는 밤) --- */
+  const winW = 1.9, winH = 1.62, winY = 1.15;
+  [-1.6, 2.5].forEach((WZ) => {
+    iPlane(MI.glassWin, winW, winH, -X + 0.06, winY + winH / 2, WZ, 0, Math.PI / 2);
+    iBox(MI.beam, 0.17, winH + 0.26, 0.13, -X + 0.09, winY - 0.13, WZ - winW / 2 - 0.07);
+    iBox(MI.beam, 0.17, winH + 0.26, 0.13, -X + 0.09, winY - 0.13, WZ + winW / 2 + 0.07);
+    iBox(MI.beam, 0.17, 0.13, winW + 0.26, -X + 0.09, winY - 0.13, WZ);
+    iBox(MI.beam, 0.17, 0.13, winW + 0.26, -X + 0.09, winY + winH, WZ);
+    iBox(MI.beam, 0.11, winH, 0.06, -X + 0.11, winY, WZ);
+    iBox(MI.beam, 0.11, 0.06, winW, -X + 0.11, winY + winH * 0.52, WZ);
+    iBox(MI.wood, 0.34, 0.09, winW + 0.4, -X + 0.17, winY - 0.18, WZ);          // 창대
+    /* 커튼 */
+    iPlane(MI.fabric, 0.52, 2.0, -X + 0.19, winY + 0.9, WZ - winW / 2 - 0.18, 0, Math.PI / 2);
+    iPlane(MI.fabric, 0.52, 2.0, -X + 0.19, winY + 0.9, WZ + winW / 2 + 0.18, 0, Math.PI / 2);
+    iBox(MI.brass, 0.05, 0.05, winW + 1.1, -X + 0.19, winY + 1.92, WZ);
+    /* 창가 화분 */
   });
 
-  /* --- 창문 (서쪽 벽) --- */
-  const WZ = -1.9, WW = 1.7, WH2 = 1.34, WY = 1.22;
-  iPlane(MI.glassWin, WW, WH2, -X + 0.055, WY + WH2 / 2, WZ, 0, Math.PI / 2);
-  iBox(MI.beam, 0.16, WH2 + 0.24, 0.12, -X + 0.08, WY - 0.12, WZ - WW / 2 - 0.06);
-  iBox(MI.beam, 0.16, WH2 + 0.24, 0.12, -X + 0.08, WY - 0.12, WZ + WW / 2 + 0.06);
-  iBox(MI.beam, 0.16, 0.12, WW + 0.24, -X + 0.08, WY - 0.12, WZ);
-  iBox(MI.beam, 0.16, 0.12, WW + 0.24, -X + 0.08, WY + WH2, WZ);
-  iBox(MI.beam, 0.1, WH2, 0.05, -X + 0.1, WY, WZ);
-  iBox(MI.beam, 0.1, 0.05, WW, -X + 0.1, WY + WH2 / 2, WZ);
-  iBox(MI.wood, 0.3, 0.08, WW + 0.34, -X + 0.15, WY - 0.16, WZ);      // 창대
-  /* 커튼 */
-  iPlane(MI.fabric, 0.46, 1.75, -X + 0.16, WY + 0.78, WZ - WW / 2 - 0.16, 0, Math.PI / 2);
-  iPlane(MI.fabric, 0.46, 1.75, -X + 0.16, WY + 0.78, WZ + WW / 2 + 0.16, 0, Math.PI / 2);
-  iBox(MI.brass, 0.04, 0.04, WW + 0.9, -X + 0.16, WY + 1.62, WZ);
+  /* --- 동쪽 벽 창문 --- */
+  {
+    const EZ = -5.3;
+    iPlane(MI.glassWin, winW, winH, X - 0.06, winY + winH / 2, EZ, 0, -Math.PI / 2);
+    iBox(MI.beam, 0.17, winH + 0.26, 0.13, X - 0.09, winY - 0.13, EZ - winW / 2 - 0.07);
+    iBox(MI.beam, 0.17, winH + 0.26, 0.13, X - 0.09, winY - 0.13, EZ + winW / 2 + 0.07);
+    iBox(MI.beam, 0.17, 0.13, winW + 0.26, X - 0.09, winY - 0.13, EZ);
+    iBox(MI.beam, 0.17, 0.13, winW + 0.26, X - 0.09, winY + winH, EZ);
+    iBox(MI.beam, 0.11, winH, 0.06, X - 0.11, winY, EZ);
+    iBox(MI.beam, 0.11, 0.06, winW, X - 0.11, winY + winH * 0.52, EZ);
+    iBox(MI.wood, 0.34, 0.09, winW + 0.4, X - 0.17, winY - 0.18, EZ);
+    iPlane(MI.fabric2, 0.5, 2.0, X - 0.19, winY + 0.9, EZ - winW / 2 - 0.17, 0, -Math.PI / 2);
+    iPlane(MI.fabric2, 0.5, 2.0, X - 0.19, winY + 0.9, EZ + winW / 2 + 0.17, 0, -Math.PI / 2);
+    iBox(MI.brass, 0.05, 0.05, winW + 1.06, X - 0.19, winY + 1.92, EZ);
+  }
 
-  /* --- 동쪽 벽: 책장 · 그림 --- */
-  const BZ = 2.3;
-  iBox(MI.woodDk, 0.34, 2.15, 1.0, X - 0.17, 0, BZ);
-  for (let s = 0; s < 4; s++) iBox(MI.wood, 0.3, 0.05, 0.92, X - 0.18, 0.34 + s * 0.52, BZ);
-  for (let s = 0; s < 4; s++) {
-    for (let b = 0; b < 7; b++) {
-      const bh = 0.2 + ((b * 7 + s * 3) % 5) * 0.022;
-      const cols = [MI.fabric, MI.fabric2, MI.cream, MI.giftC, MI.pine, MI.giftA];
-      iBox(cols[(s * 3 + b) % cols.length], 0.16, bh, 0.075, X - 0.19, 0.39 + s * 0.52, BZ - 0.36 + b * 0.105);
+  /* --- 소파 (벽난로를 바라본다) --- */
+  const SOX = -3.4, SOZ = 0.45, SOYAW = Math.PI;
+  {
+    const B = at(SOX, SOZ, SOYAW);
+    B(MI.woodDk, 4.3, 0.18, 1.06, 0, 0.04, 0);
+    B(MI.fabric, 4.3, 0.2, 1.02, 0, 0.22, 0);
+    [-1.4, 0, 1.4].forEach((lx) => {
+      B(MI.fabric, 1.28, 0.14, 0.9, lx, 0.42, 0.02);                 // 좌석 쿠션 (상면 0.56)
+    });
+    B(MI.fabric, 4.3, 0.78, 0.3, 0, 0.44, -0.4);                    // 등받이
+    B(MI.fabric, 3.9, 0.2, 0.28, 0, 1.22, -0.4);                    // 등받이 상단
+    [-2.1, 2.1].forEach((lx) => {
+      B(MI.fabric, 0.28, 0.66, 1.04, lx, 0.22, 0);                  // 팔걸이
+      B(MI.fabric, 0.28, 0.12, 1.04, lx, 0.88, 0);
+    });
+    B(MI.cream, 0.6, 0.4, 0.18, -1.5, 0.58, -0.24);                 // 쿠션
+    B(MI.fabric2, 0.56, 0.38, 0.18, 1.5, 0.56, -0.24);
+    B(MI.cream, 0.62, 0.07, 0.86, -0.1, 0.57, 0.06);               // 무릎담요
+  }
+  /* 좌석 높이 : 프레임 0.22+0.26 = 0.48 → 쿠션 상면 0.48 */
+  const SOFA_TOP = 0.56;
+  addInteriorSeat(-4.6, 0.42, SOYAW, SOFA_TOP, 'sofa', { x: 0, z: 1 });
+  addInteriorSeat(-3.4, 0.42, SOYAW, SOFA_TOP, 'sofa', { x: 0, z: 1 });
+  addInteriorSeat(-2.2, 0.42, SOYAW, SOFA_TOP, 'sofa', { x: 0, z: 1 });
+
+  /* --- 탁자 (소파 앞) --- */
+  iBox(MI.wood, 2.7, 0.09, 1.2, -3.4, 0.44, -1.95);
+  [[-1.2, -0.46], [1.2, -0.46], [-1.2, 0.46], [1.2, 0.46]].forEach(([lx, lz]) => {
+    iBox(MI.woodDk, 0.09, 0.44, 0.09, -3.4 + lx, 0, -1.95 + lz);
+  });
+  iCyl(MI.cream, 0.06, 0.05, 0.11, -4.1, 0.53, -2.0, 14);
+  iCyl(MI.cream, 0.06, 0.05, 0.11, -3.9, 0.53, -1.8, 14);
+  iCyl(MI.giftC, 0.055, 0.055, 0.18, -2.7, 0.53, -2.05, 12);        // 초
+  iGeo(MI.bulb, new THREE.SphereGeometry(0.03, 8, 6), -2.7, 0.72, -2.05, 0, 0, 0);
+  iBox(MI.giftA, 0.4, 0.06, 0.28, -2.95, 0.53, -1.8, 0.2);          // 책
+  iCyl(MI.brass, 0.2, 0.24, 0.05, -3.9, 0.53, -1.95, 16);           // 쟁반
+
+  /* --- 안락의자 (벽난로 왼쪽) --- */
+  const ACX = -6.55, ACZ = -2.35, ACYAW = Math.atan2(FX - ACX, -Z + 1.1 - ACZ);
+  {
+    const B = at(ACX, ACZ, ACYAW);
+    B(MI.woodDk, 1.0, 0.16, 0.98, 0, 0.06, 0);
+    B(MI.fabric2, 0.94, 0.3, 0.92, 0, 0.22, 0.02);
+    B(MI.fabric2, 0.94, 0.86, 0.24, 0, 0.4, -0.38);
+    [-0.48, 0.48].forEach((lx) => {
+      B(MI.fabric2, 0.22, 0.58, 0.92, lx, 0.26, 0.02);
+      B(MI.fabric2, 0.22, 0.1, 0.92, lx, 0.84, 0.02);
+    });
+    B(MI.cream, 0.44, 0.32, 0.14, 0.1, 0.62, -0.24);
+  }
+  addInteriorSeat(ACX, ACZ + 0.15, ACYAW, 0.47, 'sofa', { x: -Math.sin(ACYAW), z: -Math.cos(ACYAW) });
+
+  /* --- 흔들의자 (벽난로 오른쪽) — 곡선 다리 · 나무 프레임 --- */
+  const RCX = -0.55, RCZ = -4.55;
+  const RCYAW = Math.atan2(FX - RCX, -Z + 1.6 - RCZ);
+  const rocker = buildRockingChair(G, RCX, RCZ, RCYAW);
+  const rcSeat = addInteriorSeat(RCX, RCZ, RCYAW, 0.53, 'rock', { x: Math.sin(RCYAW), z: Math.cos(RCYAW) }, true);
+  rcSeat.obj = rocker.tilt;
+  rcSeat.phase = 0;
+
+  /* --- 다이닝 테이블 (긴 파티 테이블) --- */
+  const DX = 4.6, DZ = -2.6;
+  iBox(MI.wood, 4.5, 0.1, 1.62, DX, 0.72, DZ);                       // 상판
+  iBox(MI.cream, 4.72, 0.02, 1.84, DX, 0.82, DZ);                    // 식탁보
+  [[-2.0, -0.66], [2.0, -0.66], [-2.0, 0.66], [2.0, 0.66]].forEach(([lx, lz]) => {
+    iBox(MI.woodDk, 0.14, 0.72, 0.14, DX + lx, 0, DZ + lz);
+  });
+  iBox(MI.woodDk, 3.8, 0.12, 0.14, DX, 0.5, DZ);
+  /* 케이크 */
+  iCyl(MI.cream, 0.34, 0.34, 0.26, DX + 0.2, 0.84, DZ, 20);
+  iCyl(MI.giftA, 0.35, 0.35, 0.06, DX + 0.2, 1.06, DZ, 20);
+  for (let i = 0; i < 6; i++) {
+    const a = (i / 6) * TAU;
+    iGeo(MI.giftA, new THREE.SphereGeometry(0.05, 8, 6), DX + 0.2 + Math.cos(a) * 0.28, 1.12, DZ + Math.sin(a) * 0.28, 0, 0, 0);
+  }
+  iGeo(MI.gold, mergeVertices(new THREE.OctahedronGeometry(0.07, 0)), DX + 0.2, 1.22, DZ, 0, 0, 0);
+  /* 접시 · 머그 · 촛대 */
+  [[-1.55, -0.4], [-0.6, 0.42], [0.55, -0.44], [1.35, 0.36], [1.75, -0.4], [-1.6, 0.44]].forEach(([lx, lz], i) => {
+    iCyl(MI.cream, 0.16, 0.16, 0.025, DX + lx, 0.84, DZ + lz, 14);
+    if (i % 2 === 0) iCyl(i % 4 === 0 ? MI.giftB : MI.fabric, 0.065, 0.055, 0.13, DX + lx + 0.02, 0.865, DZ + lz + 0.02, 10);
+    else iCyl(MI.cream, 0.05, 0.045, 0.1, DX + lx, 0.865, DZ + lz, 10);
+  });
+  [-1.1, 1.1].forEach((lx) => {
+    iCyl(MI.brass, 0.04, 0.06, 0.22, DX + lx, 0.84, DZ, 10);
+    iCyl(MI.cream, 0.03, 0.03, 0.16, DX + lx, 1.06, DZ, 8);
+    iGeo(MI.bulb, new THREE.SphereGeometry(0.028, 8, 6), DX + lx, 1.25, DZ, 0, 0, 0);
+  });
+  /* 의자 8개 (긴 변 3 + 3, 양 끝 1 + 1) */
+  const diningSeats = [
+    [3.3, -3.55, 0], [4.6, -3.55, 0], [5.9, -3.55, 0],
+    [3.3, -1.65, Math.PI], [4.6, -1.65, Math.PI], [5.9, -1.65, Math.PI],
+    [7.15, -2.6, -Math.PI / 2], [2.05, -2.6, Math.PI / 2],
+  ];
+  diningSeats.forEach(([cx, cz, cy]) => {
+    iDiningChair(cx, cz, cy);
+    addInteriorSeat(cx, cz, cy, 0.54, 'chair', { x: -Math.sin(cy), z: -Math.cos(cy) });
+  });
+
+  /* --- 동쪽 벽 책장 --- */
+  {
+    const BZ = 1.9, BW = 2.6, BD = 0.4;
+    iBox(MI.woodDk, BD, 2.6, BW, X - BD / 2 - 0.02, 0, BZ);
+    for (let s = 0; s < 5; s++) iBox(MI.wood, BD - 0.04, 0.05, BW - 0.06, X - BD / 2 - 0.02, 0.4 + s * 0.52, BZ);
+    iBox(MI.beam, BD + 0.08, 0.1, BW + 0.12, X - BD / 2 - 0.02, 2.6, BZ);   // 상판 몰딩
+    for (let s = 0; s < 5; s++) {
+      for (let b = 0; b < 9; b++) {
+        const bh = 0.2 + ((b * 7 + s * 3) % 5) * 0.024;
+        const cols = [MI.fabric, MI.fabric2, MI.cream, MI.giftC, MI.pine, MI.giftA];
+        iBox(cols[(s * 5 + b) % cols.length], BD - 0.12, bh, 0.075, X - BD / 2 - 0.02, 0.45 + s * 0.52, BZ - 1.1 + b * 0.1);
+      }
+    }
+    /* 책장 위 소품 */
+    iCyl(MI.giftC, 0.14, 0.11, 0.26, X - 0.2, 2.7, BZ - 0.9, 12);
+    iBall(MI.fabric, 0.16, X - 0.2, 3.06, BZ - 0.9);
+  }
+  /* 동쪽 벽 그림 */
+  iBox(MI.woodDk, 0.08, 0.9, 1.2, X - 0.05, 1.5, 4.6);
+  iPlane(MI.picture, 1.02, 0.74, X - 0.1, 1.98, 4.6, 0, -Math.PI / 2);
+
+  /* --- 크리스마스트리 (동남쪽 코너) --- */
+  const TX = 6.4, TZ = 4.3;
+  iCyl(MI.woodDk, 0.14, 0.2, 0.5, TX, 0, TZ, 12);
+  iCone(MI.pine, 1.36, 1.42, TX, 0.42, TZ, 18);
+  iCone(MI.pine, 1.1, 1.24, TX, 1.32, TZ, 18);
+  iCone(MI.pine, 0.84, 1.1, TX, 2.14, TZ, 18);
+  iCone(MI.pine, 0.58, 0.98, TX, 2.9, TZ, 18);
+  iGeo(MI.gold, mergeVertices(new THREE.OctahedronGeometry(0.17, 0)), TX, 3.98, TZ, 0, 0, 0);
+  iCyl(MI.fabric, 1.55, 1.6, 0.025, TX, 0.006, TZ, 26);
+  /* 트리 오너먼트 — 색 공 여러 개 */
+  {
+    const ORN = [MI.giftA, MI.gold, MI.cream, MI.fabric2];
+    const CONES = [[0.42, 1.42, 1.36], [1.32, 1.24, 1.1], [2.14, 1.1, 0.84], [2.9, 0.98, 0.58]];
+    const coneR = (y) => {
+      let r = 0;
+      for (const [y0, h, R] of CONES) {
+        if (y >= y0 && y <= y0 + h) r = Math.max(r, R * (1 - (y - y0) / h));
+      }
+      return r;
+    };
+    for (let i = 0; i < 30; i++) {
+      const t = ((i * 29) % 100) / 100;
+      const y = 0.6 + t * 3.0;
+      const a = i * 2.399;
+      const rr = coneR(y) + 0.05;
+      iBall(ORN[i % ORN.length], 0.06 + ((i * 7) % 3) * 0.013,
+        TX + Math.cos(a) * rr, y, TZ + Math.sin(a) * rr, 1, 1, 1);
     }
   }
-  iBox(MI.woodDk, 0.07, 0.66, 0.92, X - 0.04, 1.35, -0.9);
-  iPlane(MI.picture, 0.78, 0.52, X - 0.08, 1.68, -0.9, 0, -Math.PI / 2);
+  /* 트리 아래 선물 */
+  iBox(MI.giftA, 0.46, 0.36, 0.46, TX - 0.95, 0.02, TZ + 0.6, 0.28);
+  iBox(MI.giftB, 0.38, 0.32, 0.38, TX + 0.8, 0.02, TZ + 0.62, -0.2);
+  iBox(MI.giftC, 0.54, 0.26, 0.4, TX - 0.35, 0.02, TZ + 0.98, 0.5);
+  iBox(MI.cream, 0.09, 0.38, 0.48, TX - 0.95, 0.02, TZ + 0.6, 0.28);
+  iBox(MI.cream, 0.4, 0.34, 0.09, TX + 0.8, 0.02, TZ + 0.62, -0.2);
+  iBox(MI.giftB, 0.3, 0.22, 0.3, TX + 0.55, 0.36, TZ + 0.5, 0.8);
 
-  /* --- 소파 (벽난로를 바라본다, 문에서 들어오는 길은 비워 둔다) --- */
-  const SX = FX - 1.6, SZ = 1.55;
-  iBox(MI.woodDk, 2.8, 0.16, 1.0, SX, 0.06, SZ);
-  iBox(MI.fabric, 2.8, 0.32, 1.0, SX, 0.22, SZ);
-  iBox(MI.fabric, 0.9, 0.16, 0.92, SX - 0.9, 0.54, SZ - 0.02);
-  iBox(MI.fabric, 0.9, 0.16, 0.92, SX, 0.54, SZ - 0.02);
-  iBox(MI.fabric, 0.9, 0.16, 0.92, SX + 0.9, 0.54, SZ - 0.02);
-  iBox(MI.fabric, 2.8, 0.68, 0.24, SX, 0.42, SZ + 0.38);
-  [1, -1].forEach((s) => {
-    iBox(MI.fabric, 0.26, 0.62, 1.0, SX + s * 1.27, 0.22, SZ);
-    iBox(MI.fabric, 0.26, 0.1, 1.0, SX + s * 1.27, 0.84, SZ);
+  /* --- 화분 · 소품 --- */
+  [[-7.85, 6.2, 1.0], [7.85, -6.35, 0.9], [-7.9, -6.1, 0.85]].forEach(([px, pz, sc]) => {
+    iCyl(MI.giftC, 0.26 * sc, 0.2 * sc, 0.4 * sc, px, 0, pz, 14);
+    for (let i = 0; i < 8; i++) {
+      const a = (i / 8) * TAU;
+      iGeo(MI.pine, new THREE.ConeGeometry(0.18 * sc, 0.86 * sc, 6),
+        px + Math.cos(a) * 0.2 * sc, 0.4 + 0.42 * sc, pz + Math.sin(a) * 0.2 * sc,
+        Math.cos(a) * 0.5, 0, Math.sin(a) * 0.5);
+    }
   });
-  iBox(MI.cream, 0.5, 0.34, 0.16, SX - 0.68, 0.62, SZ + 0.24, 0.18);   // 쿠션
-  iBox(MI.fabric2, 0.46, 0.32, 0.15, SX + 0.72, 0.62, SZ + 0.24, -0.14);
-  iBox(MI.cream, 0.56, 0.06, 0.9, SX + 1.18, 0.9, SZ - 0.02, 0.1);     // 무릎담요
-
-  /* --- 탁자 --- */
-  iBox(MI.wood, 1.72, 0.08, 0.92, SX, 0.44, 0.05);
-  [[-0.76, -0.36], [0.76, -0.36], [-0.76, 0.36], [0.76, 0.36]].forEach(([lx, lz]) => {
-    iBox(MI.woodDk, 0.08, 0.44, 0.08, SX + lx, 0, 0.05 + lz);
-  });
-  iCyl(MI.cream, 0.055, 0.045, 0.1, SX - 0.42, 0.52, 0.02, 14);
-  iCyl(MI.cream, 0.055, 0.045, 0.1, SX - 0.2, 0.52, 0.18, 14);
-  iCyl(MI.giftC, 0.05, 0.05, 0.14, SX + 0.4, 0.52, 0.06, 12);          // 초
-  iBox(MI.giftA, 0.34, 0.05, 0.24, SX + 0.15, 0.52, -0.22);            // 책
-
-  /* --- 안락의자 (벽난로 쪽으로) --- */
-  const AX = 2.7, AZ = 0.55, AR = -2.35;
-  iBox(MI.fabric2, 0.92, 0.4, 0.9, AX, 0.18, AZ, AR);
-  iBox(MI.fabric2, 0.92, 0.62, 0.2, AX + Math.sin(AR) * -0.4, 0.52, AZ + Math.cos(AR) * -0.4, AR);
-  iBox(MI.cream, 0.8, 0.12, 0.78, AX, 0.56, AZ, AR);
-
-  /* --- 크리스마스트리 --- */
-  const TX = 3.55, TZ = -3.05;
-  iCyl(MI.woodDk, 0.12, 0.16, 0.5, TX, 0, TZ, 10);
-  iCone(MI.pine, 1.05, 1.15, TX, 0.42, TZ, 16);
-  iCone(MI.pine, 0.86, 1.0, TX, 1.15, TZ, 16);
-  iCone(MI.pine, 0.66, 0.92, TX, 1.82, TZ, 16);
-  iCone(MI.pine, 0.44, 0.8, TX, 2.45, TZ, 16);
-  iGeo(MI.gold, new THREE.OctahedronGeometry(0.15, 0), TX, 3.3, TZ, 0, 0, 0);
-  iCyl(MI.fabric, 1.25, 1.3, 0.02, TX, 0.005, TZ, 24);
-  /* 선물 */
-  iBox(MI.giftA, 0.42, 0.34, 0.42, TX - 0.75, 0.02, TZ + 0.5, 0.28);
-  iBox(MI.giftB, 0.34, 0.28, 0.34, TX + 0.62, 0.02, TZ + 0.55, -0.2);
-  iBox(MI.giftC, 0.5, 0.24, 0.36, TX - 0.3, 0.02, TZ + 0.85, 0.5);
-  iBox(MI.cream, 0.08, 0.36, 0.44, TX - 0.75, 0.02, TZ + 0.5, 0.28);
-  iBox(MI.cream, 0.36, 0.3, 0.08, TX + 0.62, 0.02, TZ + 0.55, -0.2);
-
-  /* --- 작은 소품 --- */
+  /* 협탁 · 촛대 */
+  iBox(MI.wood, 0.62, 0.06, 0.62, -1.15, 0.56, 0.7);
+  iBox(MI.woodDk, 0.08, 0.56, 0.08, -1.15, 0, 0.7);
+  iCyl(MI.cream, 0.09, 0.075, 0.2, -1.15, 0.62, 0.7, 12);
+  iCyl(MI.cream, 0.04, 0.04, 0.22, -1.15, 0.82, 0.7, 8);
+  /* --- 벽 그림 몇 점 (빈 벽 채우기) --- */
+  iBox(MI.woodDk, 1.26, 0.94, 0.07, 3.4, 2.0, Z - 0.06);
+  iPlane(MI.picture, 1.06, 0.74, 3.4, 2.47, Z - 0.11, 0, Math.PI);
+  iBox(MI.woodDk, 0.07, 0.86, 1.12, X - 0.05, 2.0, 2.9);
+  iPlane(MI.picture, 0.92, 0.66, X - 0.1, 2.42, 2.9, 0, -Math.PI / 2);
+  iBox(MI.woodDk, 0.07, 0.8, 1.05, -X + 0.05, 2.05, 0.75);
+  iPlane(MI.picture, 0.86, 0.6, -X + 0.1, 2.44, 0.75, 0, Math.PI / 2);
+  iBox(MI.woodDk, 1.1, 0.8, 0.07, 6.3, 2.05, -Z + 0.06);
+  iPlane(MI.picture, 0.92, 0.6, 6.3, 2.44, -Z + 0.11, 0, 0);
   /* 벽시계 */
-  iGeo(MI.woodDk, new THREE.CylinderGeometry(0.26, 0.26, 0.06, 22), 1.85, 2.55, -Z + 0.08, Math.PI / 2, 0, 0);
-  iGeo(MI.cream, new THREE.CylinderGeometry(0.21, 0.21, 0.02, 22), 1.85, 2.55, -Z + 0.12, Math.PI / 2, 0, 0);
-  iBox(MI.iron, 0.02, 0.14, 0.01, 1.85, 2.55, -Z + 0.14);
-  iBox(MI.iron, 0.1, 0.02, 0.01, 1.9, 2.55, -Z + 0.14);
-  /* 화분 */
-  iCyl(MI.giftC, 0.2, 0.15, 0.3, -4.2, 0, -3.5, 14);
-  for (let i = 0; i < 7; i++) {
-    const a = (i / 7) * TAU;
-    iGeo(MI.pine, new THREE.ConeGeometry(0.16, 0.7, 6), -4.2 + Math.cos(a) * 0.16, 0.62, -3.5 + Math.sin(a) * 0.16, Math.cos(a) * 0.5, 0, Math.sin(a) * 0.5);
+  iGeo(MI.woodDk, new THREE.CylinderGeometry(0.32, 0.32, 0.07, 22), 3.0, 2.9, -Z + 0.1, Math.PI / 2, 0, 0);
+  iGeo(MI.cream, new THREE.CylinderGeometry(0.26, 0.26, 0.02, 22), 3.0, 2.9, -Z + 0.14, Math.PI / 2, 0, 0);
+  iBox(MI.iron, 0.025, 0.17, 0.01, 3.0, 2.9, -Z + 0.16);
+  iBox(MI.iron, 0.13, 0.022, 0.01, 3.06, 2.9, -Z + 0.16);
+  /* --- 남서쪽 독서 코너 (둥근 탁자 + 의자 2개) + 남쪽 벽 책장 --- */
+  {
+    const NX = -5.6, NZ = 4.5;
+    iCyl(MI.wood, 0.66, 0.66, 0.08, NX, 0.68, NZ, 22);
+    iCyl(MI.woodDk, 0.1, 0.1, 0.68, NX, 0, NZ, 12);
+    iCyl(MI.woodDk, 0.46, 0.5, 0.06, NX, 0, NZ, 18);
+    iCyl(MI.cream, 0.1, 0.08, 0.09, NX + 0.24, 0.76, NZ - 0.16, 12);
+    iCyl(MI.cream, 0.05, 0.05, 0.14, NX - 0.3, 0.76, NZ + 0.2, 12);
+    iBox(MI.giftA, 0.34, 0.05, 0.24, NX - 0.05, 0.76, NZ + 0.05, 0.4);
+    iDiningChair(NX - 0.1, NZ - 1.3, Math.PI);
+    addInteriorSeat(NX - 0.1, NZ - 1.3, Math.PI, 0.54, 'chair', { x: 0, z: 1 });
+    iDiningChair(NX - 0.1, NZ + 1.3, 0);
+    addInteriorSeat(NX - 0.1, NZ + 1.3, 0, 0.54, 'chair', { x: 0, z: -1 });
+    /* 남쪽 벽 책장 */
+    iBox(MI.woodDk, 2.4, 2.4, 0.36, NX + 0.4, 0, Z - 0.24);
+    for (let s2 = 0; s2 < 4; s2++) iBox(MI.wood, 2.34, 0.05, 0.32, NX + 0.4, 0.42 + s2 * 0.52, Z - 0.24);
+    iBox(MI.beam, 2.5, 0.09, 0.42, NX + 0.4, 2.4, Z - 0.24);
+    for (let s2 = 0; s2 < 4; s2++) {
+      for (let b = 0; b < 8; b++) {
+        const bh = 0.19 + ((b * 5 + s2 * 3) % 4) * 0.03;
+        const cols = [MI.fabric, MI.fabric2, MI.cream, MI.giftC, MI.pine, MI.giftB];
+        iBox(cols[(s2 * 4 + b) % cols.length], 0.09, bh, 0.28, NX - 0.5 + b * 0.115, 0.47 + s2 * 0.52, Z - 0.26);
+      }
+    }
+    iCyl(MI.giftC, 0.16, 0.13, 0.3, NX + 1.35, 2.5, Z - 0.28, 12);
   }
-  /* 장작더미 */
-  for (let i = 0; i < 5; i++) {
-    iGeo(MI.woodDk, new THREE.CylinderGeometry(0.1, 0.1, 0.66, 9), 1.55 + (i % 2) * 0.22, 0.11 + Math.floor(i / 2) * 0.2, -3.85 + (i % 3) * 0.04, 0, 0, Math.PI / 2);
+  /* --- 서쪽 벽 창가 벤치 (앉을 수 있는 자리) --- */
+  {
+    const BX = -8.02, BZ = 0.45, BL = 2.2;
+    iBox(MI.wood, 0.66, 0.1, BL, BX, 0.34, BZ);
+    iBox(MI.woodDk, 0.6, 0.34, BL - 0.1, BX, 0, BZ);
+    iBox(MI.fabric2, 0.6, 0.12, BL - 0.12, BX, 0.44, BZ);
+    iBox(MI.cream, 0.2, 0.34, 0.42, BX + 0.28, 0.56, BZ - 0.5);
+    iBox(MI.fabric, 0.2, 0.3, 0.36, BX + 0.28, 0.54, BZ + 0.62);
+    iBox(MI.wood, 0.34, 0.05, 0.3, BX + 0.34, 0.5, BZ + 0.1, 0.3);
+    addInteriorSeat(BX + 0.1, BZ, Math.PI / 2, 0.56, 'sofa', { x: 1, z: 0 });
   }
-  /* 걸레받이용 작은 협탁 */
-  iBox(MI.wood, 0.6, 0.05, 0.6, -3.9, 0.5, 1.35);
-  iBox(MI.woodDk, 0.07, 0.5, 0.07, -3.9, 0, 1.35);
-  iCyl(MI.cream, 0.07, 0.06, 0.16, -3.9, 0.55, 1.35, 12);
 
-  /* --- 조명 기구: 샹들리에 --- */
-  iCyl(MI.iron, 0.012, 0.012, 0.75, FX, H - 0.95, -0.55, 6);
-  iCyl(MI.brass, 0.04, 0.34, 0.42, FX, H - 1.32, -0.55, 18);            // 갓
-  iGeo(MI.bulb, new THREE.SphereGeometry(0.11, 14, 10), FX, H - 1.36, -0.55, 0, 0, 0);
+  /* 벽난로 옆 장작더미 */
+  for (let i = 0; i < 9; i++) {
+    iGeo(MI.woodDk, new THREE.CylinderGeometry(0.1, 0.1, 0.8, 9), 0.35 + (i % 2) * 0.22,
+      0.11 + Math.floor(i / 2) * 0.19, -Z + 0.7 + (i % 3) * 0.04, 0, 0, Math.PI / 2);
+  }
+  /* 걸레받이 근처 장식 선물 상자 몇 개 */
+  iBox(MI.giftA, 0.5, 0.34, 0.42, 1.9, 0.02, 5.6, 0.3);
+  iBox(MI.cream, 0.09, 0.36, 0.44, 1.9, 0.02, 5.6, 0.3);
+  iBox(MI.giftB, 0.36, 0.3, 0.36, 2.3, 0.02, 5.3, -0.4);
+
+  /* --- 조명 기구 --- */
+  /* 샹들리에 (라운지 위) */
+  const CHX = -3.2, CHZ = -1.9;
+  iCyl(MI.iron, 0.014, 0.014, 1.0, CHX, H - 1.0, CHZ, 6);
+  iGeo(MI.brass, new THREE.TorusGeometry(0.42, 0.03, 8, 22), CHX, H - 1.04, CHZ, Math.PI / 2, 0, 0);
+  for (let i = 0; i < 6; i++) {
+    const a = (i / 6) * TAU;
+    const ax = Math.cos(a), az = Math.sin(a);
+    iGeo(MI.brass, new THREE.TorusGeometry(0.2, 0.02, 6, 12, Math.PI), CHX + ax * 0.55, H - 1.18, CHZ + az * 0.55, 0, -a, Math.PI / 2);
+    iCyl(MI.cream, 0.045, 0.04, 0.16, CHX + ax * 0.62, H - 1.16, CHZ + az * 0.62, 8);
+    iGeo(MI.bulb, new THREE.SphereGeometry(0.05, 8, 6), CHX + ax * 0.62, H - 0.98, CHZ + az * 0.62, 0, 0, 0);
+  }
+  iGeo(MI.brass, new THREE.SphereGeometry(0.1, 12, 8), CHX, H - 1.34, CHZ, 0, 0, 0);
+  iGeo(MI.bulb, new THREE.SphereGeometry(0.13, 14, 10), CHX, H - 1.48, CHZ, 0, 0, 0);
+  /* 다이닝 펜던트 3개 */
+  [3.3, 4.6, 5.9].forEach((lx) => {
+    iCyl(MI.iron, 0.012, 0.012, H - 2.4, lx, 2.4, DZ, 5);
+    iCyl(MI.brass, 0.2, 0.055, 0.26, lx, 2.16, DZ, 14);
+    iGeo(MI.bulb, new THREE.SphereGeometry(0.07, 10, 8), lx, 2.1, DZ, 0, 0, 0);
+  });
+  /* 문 양옆 벽 촛대 */
+  [-1.75, 1.75].forEach((px) => {
+    iCyl(MI.brass, 0.03, 0.06, 0.2, px, 2.0, Z - 0.12, 8);
+    iGeo(MI.bulb, new THREE.SphereGeometry(0.055, 8, 6), px, 2.24, Z - 0.14, 0, 0, 0);
+  });
 
   /* --- 트리 전구 (Points) --- */
   {
-    const N = 54;
+    const N = 70;
     const pos = new Float32Array(N * 3);
     const col = new Float32Array(N * 3);
     for (let i = 0; i < N; i++) {
       const t = i / N;
-      const y = 0.55 + t * 2.55;
-      const rr = 1.0 * (1 - t * 0.86);
+      const y = 0.55 + t * 3.2;
+      const rr = 1.3 * (1 - t * 0.87);
       const a = i * 2.399;
       pos[i * 3] = TX + Math.cos(a) * rr;
       pos[i * 3 + 1] = y;
@@ -5690,7 +5919,7 @@ function buildInteriorRoom() {
     const g = new THREE.BufferGeometry();
     g.setAttribute('position', new THREE.BufferAttribute(pos, 3));
     g.setAttribute('color', new THREE.BufferAttribute(col, 3));
-    const m = new THREE.PointsMaterial({ size: 0.12, map: TEX_GLOW, vertexColors: true, transparent: true, opacity: 0.95, depthWrite: false, blending: THREE.AdditiveBlending, sizeAttenuation: true, toneMapped: false });
+    const m = new THREE.PointsMaterial({ size: 0.14, map: TEX_GLOW, vertexColors: true, transparent: true, opacity: 0.95, depthWrite: false, blending: THREE.AdditiveBlending, sizeAttenuation: true, toneMapped: false });
     const pts = new THREE.Points(g, m);
     pts.name = 'tree-lights';
     G.add(pts);
@@ -5699,27 +5928,27 @@ function buildInteriorRoom() {
 
   /* --- 벽난로 불꽃 (개별 메시) --- */
   const fireMat = new THREE.MeshBasicMaterial({ map: TEX_I_FLAME, transparent: true, opacity: 0.9, depthWrite: false, blending: THREE.AdditiveBlending, toneMapped: false, side: THREE.DoubleSide });
-  for (let i = 0; i < 4; i++) {
-    const s = 0.55 - i * 0.1;
+  for (let i = 0; i < 5; i++) {
+    const s = 0.66 - i * 0.1;
     const fl = new THREE.Mesh(new THREE.PlaneGeometry(s, s * 1.7), fireMat.clone());
-    fl.position.set(FX - 0.2 + i * 0.14, 0.42 + i * 0.03, -Z + 0.56 + i * 0.01);
-    fl.rotation.y = (i - 1.5) * 0.22;
+    fl.position.set(FX - 0.26 + i * 0.13, 0.5 + i * 0.04, -Z + 0.68 + i * 0.012);
+    fl.rotation.y = (i - 2) * 0.2;
     fl.renderOrder = 3;
     G.add(fl);
     INTERIOR.flames.push({ mesh: fl, ph: i * 1.7, base: s });
   }
   /* 불씨 파티클 */
   {
-    const N = 16;
+    const N = 18;
     const pos = new Float32Array(N * 3);
     const data = [];
     for (let i = 0; i < N; i++) {
-      data.push({ x: FX + rand(-0.25, 0.25), y: rand(0.4, 1.0), z: -Z + 0.52 + rand(-0.06, 0.06), sp: rand(0.25, 0.6), ph: rand(0, TAU) });
+      data.push({ x: FX + rand(-0.3, 0.3), y: rand(0.5, 1.2), z: -Z + 0.62 + rand(-0.07, 0.07), sp: rand(0.25, 0.6), ph: rand(0, TAU) });
       pos[i * 3] = data[i].x; pos[i * 3 + 1] = data[i].y; pos[i * 3 + 2] = data[i].z;
     }
     const g = new THREE.BufferGeometry();
     g.setAttribute('position', new THREE.BufferAttribute(pos, 3));
-    const m = new THREE.PointsMaterial({ size: 0.06, map: TEX_GLOW, color: 0xffb257, transparent: true, opacity: 0.9, depthWrite: false, blending: THREE.AdditiveBlending, toneMapped: false });
+    const m = new THREE.PointsMaterial({ size: 0.07, map: TEX_GLOW, color: 0xffb257, transparent: true, opacity: 0.9, depthWrite: false, blending: THREE.AdditiveBlending, toneMapped: false });
     const em = new THREE.Points(g, m);
     em.name = 'fire-embers';
     G.add(em);
@@ -5727,35 +5956,32 @@ function buildInteriorRoom() {
   }
 
   /* --- 불빛 웅덩이 (바닥 접지) --- */
-  const firePool = new THREE.Mesh(new THREE.PlaneGeometry(3.4, 2.6), new THREE.MeshBasicMaterial({ map: TEX_GLOW, color: 0xff9a45, transparent: true, opacity: 0.3, depthWrite: false, blending: THREE.AdditiveBlending, toneMapped: false }));
+  const firePool = new THREE.Mesh(new THREE.PlaneGeometry(4.6, 3.4), new THREE.MeshBasicMaterial({ map: TEX_GLOW, color: 0xff9a45, transparent: true, opacity: 0.3, depthWrite: false, blending: THREE.AdditiveBlending, toneMapped: false }));
   firePool.rotation.x = -Math.PI / 2;
-  firePool.position.set(FX, 0.02, -Z + 1.25);
+  firePool.position.set(FX, 0.02, -Z + 1.5);
   firePool.renderOrder = 2;
   G.add(firePool);
   INTERIOR.firePool = firePool;
 
   /* --- 실내 조명 --- */
-  const amb = new THREE.HemisphereLight(0x8a6544, 0x3a2718, 1.35);
-  const fireLight = new THREE.PointLight(0xff8a34, 9.5, 9.5, 2);
-  fireLight.position.set(FX, 0.75, -Z + 0.85);
-  const lampLight = new THREE.PointLight(0xffcf8e, 10, 12, 2);
-  lampLight.position.set(FX, H - 1.45, -0.55);
-  const winLight = new THREE.PointLight(0x9fc0ff, 3.4, 7, 2);
-  winLight.position.set(-X + 0.9, 1.9, WZ);
-  const treeLight = new THREE.PointLight(0xffc07a, 3.0, 4.5, 2);
-  treeLight.position.set(TX, 1.7, TZ + 0.5);
-  /* 현관 홀 등 — 문틀 안쪽이 새까맣게 죽지 않게 */
-  const hallLight = new THREE.PointLight(0xffcf9a, 4.5, 6.5, 2);
-  hallLight.position.set(0, 2.35, 6.0);
-  interiorRoot.add(amb);
-  interiorRoot.add(fireLight);
-  interiorRoot.add(lampLight);
-  interiorRoot.add(winLight);
-  interiorRoot.add(treeLight);
-  interiorRoot.add(hallLight);
+  const amb = new THREE.HemisphereLight(0x8a6544, 0x3a2718, 1.3);
+  const ambFlat = new THREE.AmbientLight(0x6a4c33, 0.55);      // 천장·구석이 까맣게 죽지 않게
+  const fireLight = new THREE.PointLight(0xff8a34, 12, 13, 2);
+  fireLight.position.set(FX, 0.95, -Z + 1.05);
+  const lampLight = new THREE.PointLight(0xffcf8e, 11, 15, 2);
+  lampLight.position.set(CHX, H - 1.35, CHZ);
+  const dinLight = new THREE.PointLight(0xffd7a4, 8, 10, 2);
+  dinLight.position.set(DX, 2.3, DZ);
+  const winLight = new THREE.PointLight(0x9fc0ff, 3.6, 9, 2);
+  winLight.position.set(-X + 1.0, 1.95, -1.6);
+  const treeLight = new THREE.PointLight(0xffc07a, 3.4, 5.5, 2);
+  treeLight.position.set(TX, 1.9, TZ + 0.5);
+  const hallLight = new THREE.PointLight(0xffcf9a, 4.5, 7.0, 2);
+  hallLight.position.set(0, 2.45, 6.1);
+  [amb, ambFlat, fireLight, lampLight, dinLight, winLight, treeLight, hallLight].forEach((l) => interiorRoot.add(l));
   INTERIOR.fireLight = fireLight;
   INTERIOR.lampLight = lampLight;
-  INTERIOR.lights.push(amb, fireLight, lampLight, winLight, treeLight, hallLight);
+  INTERIOR.lights.push(amb, ambFlat, fireLight, lampLight, dinLight, winLight, treeLight, hallLight);
 
   iFlush(G);
   buildInteriorColliders();
@@ -5763,25 +5989,144 @@ function buildInteriorRoom() {
   return G;
 }
 
+/* 다이닝 의자 — 등받이 · 다리 · 쿠션 (정적 병합) */
+function iDiningChair(px, pz, yaw) {
+  const c = Math.cos(yaw), s = Math.sin(yaw);
+  const B = (mat, w, h, d, lx, ly, lz) => iBox(mat, w, h, d, px + lx * c + lz * s, ly, pz - lx * s + lz * c, yaw);
+  [[-0.21, -0.21], [0.21, -0.21], [-0.21, 0.21], [0.21, 0.21]].forEach(([lx, lz]) => {
+    B(MI.woodDk, 0.06, 0.42, 0.06, lx, 0, lz);
+  });
+  B(MI.wood, 0.54, 0.07, 0.54, 0, 0.42, 0);                       // 좌판
+  B(MI.fabric, 0.46, 0.05, 0.46, 0, 0.49, 0.01);                   // 방석
+  [-0.23, 0.23].forEach((lx) => B(MI.woodDk, 0.055, 0.52, 0.055, lx, 0.47, -0.23));
+  B(MI.wood, 0.5, 0.1, 0.055, 0, 0.72, -0.23);
+  B(MI.wood, 0.5, 0.09, 0.055, 0, 0.92, -0.23);
+  B(MI.wood, 0.52, 0.06, 0.06, 0, 0.97, -0.235);
+}
+
+/* 흔들의자 — 곡선 바닥날(rocker) 에 매달린 나무 의자.
+   회전 피벗은 바닥날의 원 중심(바닥에서 R) 이라, 앞뒤로 흔들어도 바닥점이 미끄러지지 않는다. */
+const RC = { R: 1.55, seatTop: 0.53 };
+function buildRockingChair(parent, px, pz, yaw) {
+  const R = RC.R;
+  const yawG = new THREE.Group();
+  yawG.name = 'rocking-chair';
+  yawG.position.set(px, 0, pz);
+  yawG.rotation.y = yaw;
+  const tilt = new THREE.Group();
+  tilt.position.y = R;
+  yawG.add(tilt);
+
+  /* 바닥날 두 개 — 원호를 튜브로 */
+  const rockerGeos = [];
+  [-0.31, 0.31].forEach((ox) => {
+    const pts = [];
+    for (let i = 0; i <= 14; i++) {
+      const a = (-0.4 + (i / 14) * 0.8);
+      pts.push(new THREE.Vector3(ox, R - R * Math.cos(a) - R, R * Math.sin(a)));
+    }
+    const tube = new THREE.TubeGeometry(new THREE.CatmullRomCurve3(pts), 16, 0.048, 7, false);
+    rockerGeos.push(tube);
+  });
+  const rockers = new THREE.Mesh(mergeGeometries(rockerGeos, false), MI.woodDk);
+  rockerGeos.forEach((g) => g.dispose());
+  rockers.castShadow = true;
+  tilt.add(rockers);
+
+  /* 프레임 — 다리 · 좌판 · 등받이 · 팔걸이 */
+  const geos = [];
+  const add = (geo, x, y, z, rx, ry, rz) => {
+    _iE.set(rx || 0, ry || 0, rz || 0, 'YXZ');
+    _iQ.setFromEuler(_iE);
+    _iM.compose(_iV.set(x, y - R, z), _iQ, new THREE.Vector3(1, 1, 1));
+    geo.applyMatrix4(_iM);
+    geos.push(geo);
+  };
+  /* 다리 4개 (바닥날 위 → 좌판) */
+  [[-0.31, -0.2], [0.31, -0.2], [-0.31, 0.22], [0.31, 0.22]].forEach(([lx, lz]) => {
+    add(new THREE.BoxGeometry(0.07, 0.36, 0.07), lx, 0.28, lz);
+  });
+  /* 좌판 */
+  add(new THREE.BoxGeometry(0.62, 0.07, 0.62), 0, 0.44, 0);
+  /* 등받이 기둥 (뒤로 살짝 눕힘) */
+  [-0.27, 0.27].forEach((lx) => {
+    add(new THREE.BoxGeometry(0.06, 0.74, 0.06), lx, 0.8, -0.3, -0.14);
+  });
+  /* 등받이 살 4개 */
+  [0.62, 0.78, 0.94, 1.1].forEach((gy, i) => {
+    add(new THREE.BoxGeometry(0.52, 0.055, 0.05), 0, gy + 0.12, -0.29 - (gy - 0.6) * 0.14, -0.14);
+  });
+  /* 팔걸이 */
+  [-0.31, 0.31].forEach((lx) => {
+    add(new THREE.BoxGeometry(0.06, 0.05, 0.56), lx, 0.68, 0.02);
+    add(new THREE.BoxGeometry(0.055, 0.24, 0.055), lx, 0.56, 0.27);
+  });
+  const frame = new THREE.Mesh(mergeGeometries(geos, false), MI.wood);
+  geos.forEach((g) => g.dispose());
+  frame.castShadow = true;
+  tilt.add(frame);
+
+  /* 방석 */
+  const cush = new THREE.Mesh(new THREE.BoxGeometry(0.56, 0.07, 0.54), MI.fabric);
+  cush.position.set(0, 0.5 - R, 0.01);
+  cush.castShadow = true;
+  tilt.add(cush);
+  /* 등받이 쿠션 */
+  const back = new THREE.Mesh(new THREE.BoxGeometry(0.46, 0.3, 0.08), MI.cream);
+  back.position.set(0, 0.86 - R, -0.3);
+  back.rotation.x = -0.14;
+  tilt.add(back);
+
+  parent.add(yawG);
+  return { group: yawG, tilt };
+}
+
 /* 가구 충돌 — 문 안쪽을 걸어 다닐 때만 쓴다 (월드 좌표) */
 function buildInteriorColliders() {
   const C = INTERIOR.colliders;
   C.length = 0;
   const add = (x, z, r) => C.push({ x: INTERIOR_ORIGIN.x + x, z: INTERIOR_ORIGIN.z + z, r });
-  add(-0.4, -3.85, 1.7);      // 벽난로
-  add(-2.0, 1.55, 0.86);      // 소파
-  add(-3.05, 1.55, 0.42);     // 소파 왼쪽 끝
-  add(-0.95, 1.55, 0.42);     // 소파 오른쪽 끝
-  add(-2.0, 0.05, 0.95);      // 탁자
-  add(2.7, 0.55, 0.8);        // 안락의자
-  add(3.55, -3.05, 1.2);      // 트리
-  add(4.6, 2.3, 0.72);        // 책장
-  add(-3.9, 1.35, 0.5);       // 협탁
-  add(-4.2, -3.5, 0.5);       // 화분
-  add(1.6, -3.8, 0.55);       // 장작
+  add(-3.6, -6.4, 2.2);       // 벽난로
+  add(-4.6, 0.45, 1.0);       // 소파 왼쪽
+  add(-3.4, 0.45, 1.0);       // 소파 가운데
+  add(-2.2, 0.45, 1.0);       // 소파 오른쪽
+  add(-3.4, -1.95, 1.0);      // 탁자
+  add(-6.55, -2.35, 0.72);    // 안락의자
+  add(-0.55, -4.55, 0.62);    // 흔들의자
+  add(3.2, -2.6, 0.8);        // 다이닝 테이블
+  add(4.6, -2.6, 0.8);
+  add(6.0, -2.6, 0.8);
+  [[3.3, -3.55], [4.6, -3.55], [5.9, -3.55], [3.3, -1.65], [4.6, -1.65], [5.9, -1.65], [7.15, -2.6], [2.05, -2.6]]
+    .forEach(([x, z]) => add(x, z, 0.26));
+  add(6.4, 4.3, 1.4);         // 트리
+  add(8.25, 1.9, 1.0);        // 책장
+  add(-7.85, 6.2, 0.5);       // 화분
+  add(7.85, -6.35, 0.45);
+  add(-7.9, -6.1, 0.42);
+  add(-1.15, 0.7, 0.42);      // 협탁
+  add(-1.75, 6.25, 0.36);     // 옷걸이
+  add(-1.35, 6.6, 0.5);       // 신발장
+  add(0.55, -6.6, 0.6);       // 장작더미
+  add(-5.6, 4.5, 0.62);       // 독서 코너 탁자
+  add(-5.7, 3.2, 0.26);       // 독서 코너 의자
+  add(-5.7, 5.8, 0.26);
+  add(-5.2, 6.76, 1.0);       // 남쪽 벽 책장
+  add(-8.0, 0.45, 0.5);       // 창가 벤치
 }
 
-/* 문 안쪽 걸을 수 있는 범위 — 방은 문턱(z=4.12)까지, 그 너머는 현관 홀 폭만 */
+/* 실내 좌석 등록 — 광장 SEATS 와 같은 배열을 쓰고 zone 으로 구분한다 */
+function addInteriorSeat(lx, lz, yaw, top, kind, out, rock) {
+  const s = {
+    x: INTERIOR_ORIGIN.x + lx, z: INTERIOR_ORIGIN.z + lz, y: 0,
+    yaw, rot: yaw, top, kind: kind || 'chair', zone: 'i',
+    out: out || { x: -Math.sin(yaw), z: -Math.cos(yaw) },
+    rock: !!rock, ang: 0, phase: 0,
+  };
+  SEATS.push(s);
+  return s;
+}
+
+/* 문 안쪽 걸을 수 있는 범위 — 방은 문턱(z=6.92)까지, 그 너머는 현관 홀 폭만 */
 function interiorWalkableAt(x, z) {
   const lx = x - INTERIOR_ORIGIN.x, lz = z - INTERIOR_ORIGIN.z;
   const B = INTERIOR.bounds, Hh = INTERIOR.hall;
@@ -5880,6 +6225,7 @@ function exitInterior() {
     const bx = tx + d.face.x * 1.5, bz = tz + d.face.z * 1.5;
     if (inDoorApproach(bx, bz)) { tx = bx; tz = bz; }
   }
+  if (SIT.active || SIT.enter > 0) standUp();
   ZONE.mode = 'plaza';
   playerPos.set(tx, 0, tz);
   playerPos.y = groundY(tx, tz);
@@ -6002,7 +6348,7 @@ function limitInteriorCamera(desired) {
   const inRoom = desired.x > C.minX && desired.x < C.maxX && lz > C.minZ && lz < C.maxZ;
   const inHall = desired.x > CH.minX && desired.x < CH.maxX && lz >= C.maxZ && lz < CH.maxZ;
   if (inRoom || inHall) {
-    desired.y = clamp(desired.y, 0.55, inHall ? 2.45 : 3.15);
+    desired.y = clamp(desired.y, 0.55, inHall ? 2.5 : 3.7);
     return;
   }
   const ax = rig.lookAt.x, az = rig.lookAt.z;
@@ -6013,14 +6359,14 @@ function limitInteriorCamera(desired) {
     if ((px > C.minX && px < C.maxX && pzL > C.minZ && pzL < C.maxZ)
       || (px > CH.minX && px < CH.maxX && pzL >= C.maxZ && pzL < CH.maxZ)) {
       desired.x = px; desired.z = pz;
-      desired.y = clamp(desired.y, 0.55, pzL >= C.maxZ ? 2.45 : 3.15);
+      desired.y = clamp(desired.y, 0.55, pzL >= C.maxZ ? 2.5 : 3.7);
       return;
     }
   }
   /* 그래도 안 되면 방 안으로 직접 가둔다 */
   desired.x = clamp(desired.x, C.minX + 0.05, C.maxX - 0.05);
   desired.z = OZ + clamp(lz, C.minZ + 0.05, C.maxZ - 0.05);
-  desired.y = clamp(desired.y, 0.55, 3.15);
+  desired.y = clamp(desired.y, 0.55, 3.7);
 }
 
 /* ---------- 실내 불꽃 · 불빛 (실내에 있을 때만) ---------- */
@@ -6054,6 +6400,21 @@ function updateInterior(dt) {
   }
   if (INTERIOR.treeLights) {
     INTERIOR.treeLights.material.opacity = 0.82 + Math.sin(t * 2.6) * 0.16;
+  }
+  updateRockingChairs(dt);
+}
+
+/* 흔들의자 — 아주 은은하게, 누군가 앉아 있으면 조금 더 크게 앞뒤로 흔들린다 */
+function updateRockingChairs(dt) {
+  for (let i = 0; i < SEATS.length; i++) {
+    const s = SEATS[i];
+    if (!s.rock || !s.obj) continue;
+    const busy = seatOccupied(i);
+    const wantAmp = busy ? 0.062 : 0.019;
+    s.amp = lerp(s.amp === undefined ? wantAmp : s.amp, wantAmp, Math.min(1, dt * 1.6));
+    s.phase = (s.phase || 0) + dt * (busy ? 1.45 : 1.0);
+    s.ang = Math.sin(s.phase) * s.amp;
+    s.obj.rotation.x = s.ang;
   }
 }
 
@@ -6625,7 +6986,8 @@ function makeSnowflake3D(size, mat) {
 --------------------------------------------------------------- */
 const MODEL_YAW_FIX = -Math.PI / 2;      // 모델 정면(+X) → 월드 +Z
 const WALK_BONES = ['L_Thigh', 'R_Thigh', 'L_Calf', 'R_Calf',
-  'L_Upperarm', 'R_Upperarm', 'L_Forearm', 'R_Forearm', 'Spine01', 'Head'];
+  'L_Upperarm', 'R_Upperarm', 'L_Forearm', 'R_Forearm', 'Spine01', 'Spine02',
+  'NeckTwist01', 'NeckTwist02', 'Head'];
 
 const _q = new THREE.Quaternion();
 const _pq = new THREE.Quaternion();
@@ -6634,9 +6996,12 @@ const _v = new THREE.Vector3();
 function makeElfAvatar(charId) {
   const C = charById(charId);
   const root = new THREE.Group();
+  /* tilt — 흔들의자에 앉았을 때 의자 피벗을 따라 몸을 살짝 앞뒤로 기울이는 그룹 */
+  const tilt = new THREE.Group();
+  root.add(tilt);
   const inner = new THREE.Group();
   inner.rotation.y = MODEL_YAW_FIX;
-  root.add(inner);
+  tilt.add(inner);
 
   const proto = CHAR_PROTO.get(C.glb);
   if (!proto) return root;               // 아직 로드 전 (입장 전에는 쓰이지 않음)
@@ -6678,7 +7043,7 @@ function makeElfAvatar(charId) {
   /* axesZ — 몸의 앞뒤(Z)축. 월드 X 회전이 '앞뒤로 젓기'라면 이 축 회전은
      '옆으로 벌리기/모으기'다. Tripo 원본 3종은 바인드 포즈(특히 팔)가
      서로 달라, 앉을 때 팔을 무릎 쪽으로 모으려면 이 축이 필요하다. */
-  const axesZ = {};
+  const axesZ = {}, axesY = {};
   WALK_BONES.forEach((name) => {
     const b = bones[name];
     if (!b || !b.parent) return;
@@ -6687,10 +7052,12 @@ function makeElfAvatar(charId) {
     const inv = rel.clone().invert();
     axes[name] = new THREE.Vector3(1, 0, 0).applyQuaternion(inv).normalize();
     axesZ[name] = new THREE.Vector3(0, 0, 1).applyQuaternion(inv).normalize();
+    axesY[name] = new THREE.Vector3(0, 1, 0).applyQuaternion(inv).normalize();
   });
 
   root.userData = {
-    charId, model, inner, mixer, idleAction, bones, baseQ, axes, axesZ,
+    charId, model, tilt, inner, mixer, idleAction, bones, baseQ, axes, axesZ, axesY,
+    seatTop: SEAT_TOP, rockAng: 0, sitAim: null,
     tune: POSE_TUNE[charId] || POSE_TUNE.luka,
     phase: Math.random() * TAU, walk: 0, drop: 0, speed: 0, soleDrop: 0,
   };
@@ -6775,6 +7142,24 @@ const SIT_AIM = {
   fArmDown: -0.58,
 };
 
+/** 본 하나를 수직축 기준으로 회전 — 고개를 좌우로 돌리기 */
+function boneRotY(ud, name, ang) {
+  const b = ud.bones[name];
+  const ax = ud.axesY && ud.axesY[name];
+  if (!b || !ax || Math.abs(ang) < 1e-4) return;
+  _q.setFromAxisAngle(ax, ang);
+  b.quaternion.premultiply(_q);
+}
+
+/** 본 하나를 앞뒤축 기준으로 회전 — 고개를 갸웃하기 */
+function boneRotZ(ud, name, ang) {
+  const b = ud.bones[name];
+  const ax = ud.axesZ[name];
+  if (!b || !ax || Math.abs(ang) < 1e-4) return;
+  _q.setFromAxisAngle(ax, ang);
+  b.quaternion.premultiply(_q);
+}
+
 function boneRotIn(ud, name, ang) {
   const b = ud.bones[name];
   const ax = ud.axesZ[name];
@@ -6839,6 +7224,9 @@ function updateAvatarPose(ud, root, speed, dt) {
     boneRot(ud, 'Spine01', br * 0.012);
     boneRot(ud, 'Spine02', br * 0.010);
     boneRot(ud, 'Head', -br * 0.012 + sway * 0.02);
+    /* 서 있을 때도 고개가 완전히 굳지 않게 아주 느리게 둘러본다 */
+    boneRotY(ud, 'Head', Math.sin(elapsed * 0.31 + ud.phase * 1.7) * 0.05);
+    boneRotZ(ud, 'Head', Math.sin(elapsed * 0.23 + ud.phase) * 0.018);
     boneRotIn(ud, 'L_Upperarm', sway * 0.018 + br * 0.012);
     boneRotIn(ud, 'R_Upperarm', -sway * 0.018 + br * 0.012);
     boneRot(ud, 'L_Forearm', 0.02 + br * 0.02);
@@ -6861,7 +7249,20 @@ function updateAvatarPose(ud, root, speed, dt) {
     boneRot(ud, 'L_Forearm', -0.22 * w);
     boneRot(ud, 'R_Forearm', -0.22 * w);
     boneRot(ud, 'Spine01', -0.05 * w);
-    boneRot(ud, 'Head', 0.03 * Math.sin(2 * ud.phase) * w);
+    /* --- 고개 리깅 ---
+       발 디딤(phase 한 주기 = 두 걸음)에 맞춰 고개가 아주 작게 끄덕이고,
+       한 걸음마다 좌우로 살짝 기우는 리듬을 준다. 목·등도 조금씩 반대로 비틀어
+       상체가 통나무처럼 굳어 보이지 않게 한다. (최대 3° 안쪽) */
+    const bob = Math.sin(2 * ud.phase + 0.3);           // 한 걸음에 한 번 끄덕
+    const side = Math.sin(ud.phase + 0.5);              // 좌우로 기우는 리듬
+    const glance = Math.sin(ud.phase * 0.5 + 0.7);      // 아주 느린 둘러보기
+    boneRot(ud, 'Head', (0.048 * bob + 0.014) * w);
+    boneRotY(ud, 'Head', (0.052 * glance + 0.016 * side) * w);
+    boneRotZ(ud, 'Head', 0.032 * side * w);
+    boneRot(ud, 'NeckTwist01', 0.02 * bob * w);
+    boneRotY(ud, 'NeckTwist01', 0.03 * glance * w);
+    boneRotY(ud, 'Spine02', -0.03 * side * w);
+    boneRotZ(ud, 'Spine02', 0.014 * side * w);
   }
 
   /* ---------- 앉기 자세 ----------
@@ -6870,23 +7271,23 @@ function updateAvatarPose(ud, root, speed, dt) {
      달라도 같은 자세가 나온다(각도 부호를 캐릭터마다 맞출 필요가 없다). */
   if (sitW > 0.001) {
     const T = ud.tune || POSE_TUNE.luka;
-    const SIT = ud.sitAim || SIT_AIM;
+    const AIM = ud.sitAim || SIT_AIM;   // 좌석 종류별 목표 자세 (전역 SIT 와 이름이 겹치지 않게)
     const yaw = root.rotation.y;
     const fx = Math.sin(yaw), fz = Math.cos(yaw);      // 몸이 보는 앞
     const lx = Math.cos(yaw), lz = -Math.sin(yaw);     // 몸의 왼쪽
     const breath = Math.sin(elapsed * 1.35) * 0.02;
     const V = (x, y, z) => new THREE.Vector3(x, y, z);
     /* 허벅지 — 앞으로 뻗고 살짝 벌린다 */
-    aimBoneBlend(ud, 'L_Thigh', V(fx + lx * SIT.spread, SIT.thighDown, fz + lz * SIT.spread), sitW);
-    aimBoneBlend(ud, 'R_Thigh', V(fx - lx * SIT.spread, SIT.thighDown, fz - lz * SIT.spread), sitW);
+    aimBoneBlend(ud, 'L_Thigh', V(fx + lx * AIM.spread, AIM.thighDown, fz + lz * AIM.spread), sitW);
+    aimBoneBlend(ud, 'R_Thigh', V(fx - lx * AIM.spread, AIM.thighDown, fz - lz * AIM.spread), sitW);
     /* 정강이 — 아래로 (발이 바닥을 향한다) */
-    aimBoneBlend(ud, 'L_Calf', V(-fx * SIT.shinBack, -1, -fz * SIT.shinBack), sitW);
-    aimBoneBlend(ud, 'R_Calf', V(-fx * SIT.shinBack, -1, -fz * SIT.shinBack), sitW);
+    aimBoneBlend(ud, 'L_Calf', V(-fx * AIM.shinBack, -1, -fz * AIM.shinBack), sitW);
+    aimBoneBlend(ud, 'R_Calf', V(-fx * AIM.shinBack, -1, -fz * AIM.shinBack), sitW);
     /* 어깨 — 앞·아래로 조금, 팔꿈치는 굽혀 손이 무릎 위에 */
-    aimBoneBlend(ud, 'L_Upperarm', V(fx * SIT.armFwd + lx * SIT.armOut, SIT.armDown, fz * SIT.armFwd + lz * SIT.armOut), sitW);
-    aimBoneBlend(ud, 'R_Upperarm', V(fx * SIT.armFwd - lx * SIT.armOut, SIT.armDown, fz * SIT.armFwd - lz * SIT.armOut), sitW);
-    aimBoneBlend(ud, 'L_Forearm', V(fx * SIT.fArmFwd + lx * 0.05, SIT.fArmDown, fz * SIT.fArmFwd + lz * 0.05), sitW);
-    aimBoneBlend(ud, 'R_Forearm', V(fx * SIT.fArmFwd - lx * 0.05, SIT.fArmDown, fz * SIT.fArmFwd - lz * 0.05), sitW);
+    aimBoneBlend(ud, 'L_Upperarm', V(fx * AIM.armFwd + lx * AIM.armOut, AIM.armDown, fz * AIM.armFwd + lz * AIM.armOut), sitW);
+    aimBoneBlend(ud, 'R_Upperarm', V(fx * AIM.armFwd - lx * AIM.armOut, AIM.armDown, fz * AIM.armFwd - lz * AIM.armOut), sitW);
+    aimBoneBlend(ud, 'L_Forearm', V(fx * AIM.fArmFwd + lx * 0.05, AIM.fArmDown, fz * AIM.fArmFwd + lz * 0.05), sitW);
+    aimBoneBlend(ud, 'R_Forearm', V(fx * AIM.fArmFwd - lx * 0.05, AIM.fArmDown, fz * AIM.fArmFwd - lz * 0.05), sitW);
     /* 아주 느린 호흡 — 앉아 있는 동안 어깨가 조금 오르내린다 */
     boneRot(ud, 'Spine01', (0.05 + breath) * sitW);
     boneRot(ud, 'Head', (-0.04 - breath * 0.6) * sitW);
@@ -6899,16 +7300,25 @@ function updateAvatarPose(ud, root, speed, dt) {
   let want = -(low + (ud.soleDrop || 0));
   if (sitW > 0.02) {
     /* 지금 포즈에서 골반이 실제로 어디 있는지 재서 좌석 높이에 맞춘다 —
-       고정된 설 때의 hipY 로 계산하면 자세에 따라 엉덩이가 뜨거나 파묻힌다. */
+       고정된 설 때의 hipY 로 계산하면 자세에 따라 엉덩이가 뜨거나 파묻힌다.
+       좌석마다 높이가 다르므로(통나무·소파·다이닝 의자) 앉은 좌석의 top 을 쓴다. */
     const hipB = ud.bones['L_Thigh'];
     if (hipB) {
       hipB.getWorldPosition(_v);
       const hipNow = _v.y - root.position.y;
-      want = lerp(want, (SEAT_TOP + 0.10) - hipNow, sitW);
+      const sTop = ud.seatTop === undefined ? SEAT_TOP : ud.seatTop;
+      want = lerp(want, (sTop + 0.10) - hipNow, sitW);
     }
   }
   ud.drop = lerp(ud.drop, want, Math.min(1, dt * 18));
   ud.inner.position.y = ud.drop;
+
+  /* 흔들의자 — 의자 피벗을 따라 몸도 같이 앞뒤로 기운다 */
+  if (ud.tilt) {
+    const target = sitW > 0.15 ? (ud.rockAng || 0) : 0;
+    ud.tilt.rotation.x = lerp(ud.tilt.rotation.x, target, Math.min(1, dt * 14));
+    ud.tilt.position.z = Math.sin(ud.tilt.rotation.x) * 0.28;
+  }
 }
 /* ---------------------------------------------------------------
    5. 카메라 리그 · 입력
@@ -7527,11 +7937,13 @@ net.on('leave', (p) => {
 });
 net.on('state', ({ players: list }) => {
   for (const s of list) {
+    if (s.id === 'me') continue;          // 내 자리·자세는 로컬이 정한다
     const p = players.get(s.id);
     if (!p) continue;
     p.tx = s.x; p.tz = s.z; p.tyaw = s.yaw;
     p.pose = s.pose || 'stand';
     p.moving = !!s.moving && p.pose !== 'sit';
+    p.seat = s.seat === undefined ? -1 : s.seat;
     p.zone = s.zone || 'p';
     if (p.isMe) { p.root.position.x = s.x; p.root.position.z = s.z; }
     /* 광장/실내가 다르면 그리지 않는다 */
@@ -7818,21 +8230,48 @@ function seatTaken(i) {
   return false;
 }
 
-/** 가까운 빈 좌석 — 다른 사람이 앉은 자리는 뒤로 밀린다 */
-function nearestSeat() {
-  let best = -1, bestScore = 1e9;
+/** 지금 서 있는 공간의 좌석만 — 광장 통나무(p) · 실내 가구(i) */
+function nearestSeatInZone(zone) {
+  let best = -1, bestScore = 1e9, bestDist = 1e9;
   for (let i = 0; i < SEATS.length; i++) {
     const s = SEATS[i];
+    if ((s.zone || 'p') !== zone) continue;
     const d = Math.hypot(playerPos.x - s.x, playerPos.z - s.z);
+    if (d < bestDist) bestDist = d;
     const score = d + (seatTaken(i) ? 6 : 0);
     if (score < bestScore) { bestScore = score; best = i; }
   }
-  return best;
+  return { i: best, d: bestDist };
 }
+/** 가까운 빈 좌석 — 다른 사람이 앉은 자리는 뒤로 밀린다 */
+function nearestSeat() {
+  return nearestSeatInZone(ZONE.mode === 'interior' ? 'i' : 'p').i;
+}
+/** 그 자리에 누군가(나 포함) 앉아 있는지 — 흔들의자 흔들림 세기에 쓴다 */
+function seatOccupied(i) {
+  const s = SEATS[i];
+  if (!s) return false;
+  if (SIT.seat === i && (SIT.active || SIT.enter > 0)) return true;
+  for (const p of players.values()) {
+    if (p.isMe || p.pose !== 'sit') continue;
+    if (Math.hypot(p.root.position.x - s.x, p.root.position.z - s.z) < 0.9) return true;
+  }
+  return false;
+}
+/** 앉을 때의 자세 — 좌석 종류별로 팔·허벅지 각도를 조금씩 다르게 */
+const SIT_AIM_KIND = {
+  sofa: { thighDown: -0.34, spread: 0.17, shinBack: 0.06, armFwd: 0.5, armOut: 0.2, armDown: -0.86, fArmFwd: 0.74, fArmDown: -0.62 },
+  chair: { thighDown: -0.30, spread: 0.14, shinBack: 0.10, armFwd: 0.58, armOut: 0.12, armDown: -0.78, fArmFwd: 0.86, fArmDown: -0.55 },
+  rock: { thighDown: -0.32, spread: 0.16, shinBack: 0.04, armFwd: 0.52, armOut: 0.22, armDown: -0.84, fArmFwd: 0.78, fArmDown: -0.6 },
+};
 
 function updateSeatButton() {
-  const near = state.joined && ZONE.mode === 'plaza'
-    && (SIT.active || Math.hypot(playerPos.x - CAMPFIRE.x, playerPos.z - CAMPFIRE.z) < 4.8);
+  let near = false;
+  if (state.joined) {
+    if (SIT.active || SIT.enter > 0) near = true;
+    else if (ZONE.mode === 'interior') near = nearestSeatInZone('i').d < 2.3;
+    else near = Math.hypot(playerPos.x - CAMPFIRE.x, playerPos.z - CAMPFIRE.z) < 4.8;
+  }
   SIT.near = near;
   seatBtn.classList.toggle('show', near);
   seatBtn.classList.toggle('on', SIT.active);
@@ -7843,12 +8282,14 @@ function updateSeatButton() {
 function sitDown() {
   if (!state.joined || SIT.active || SIT.enter > 0) return;
   const i = nearestSeat();
-  if (i < 0) { toast('🪵 앉을 자리를 못 찾았어요', 1800); return; }
+  if (i < 0) { toast(ZONE.mode === 'interior' ? '🪑 앉을 자리를 못 찾았어요' : '🪵 앉을 자리를 못 찾았어요', 1800); return; }
   const s = SEATS[i];
   SIT.seat = i;
   SIT.from.x = playerPos.x; SIT.from.z = playerPos.z;
   SIT.enter = 0.0001;
   vel.set(0, 0);
+  const p = players.get('me');
+  if (p && p.root.userData) p.root.userData.sitAim = SIT_AIM_KIND[s.kind] || null;
   updateSeatButton();
 }
 
@@ -7858,20 +8299,28 @@ function standUp() {
   SIT.active = false;
   SIT.enter = 0;
   if (s) {
-    /* 통나무 콜라이더에 끼지 않게 한 걸음 비켜서 세운다 */
-    let dx = -s.x, dz = -s.z;
+    /* 좌석 콜라이더에 끼지 않게 좌석이 정해 둔 방향으로 한 걸음 비켜서 세운다 */
+    let dx = s.out ? s.out.x : -s.x, dz = s.out ? s.out.z : -s.z;
     const l = Math.hypot(dx, dz) || 1;
     dx /= l; dz /= l;
-    let nx = s.x + dx * 1.1, nz = s.z + dz * 1.1;
-    if (!walkableAt(nx, nz)) { nx = s.x - dx * 1.1; nz = s.z - dz * 1.1; }
-    if (!walkableAt(nx, nz)) { nx = s.x; nz = s.z; }
+    let nx = s.x, nz = s.z;
+    for (const step of [1.05, 0.8, 1.35]) {
+      const tx = s.x + dx * step, tz = s.z + dz * step;
+      if (walkableAt(tx, tz)) { nx = tx; nz = tz; break; }
+    }
     playerPos.x = nx; playerPos.z = nz;
     playerPos.y = groundY(nx, nz);
   }
   vel.set(0, 0);
   const p = players.get('me');
-  if (p) { p.pose = 'stand'; p.root.position.copy(playerPos); }
-  net.update({ x: playerPos.x, z: playerPos.z, yaw: playerYaw.v, moving: false, pose: 'stand', seat: -1 });
+  if (p) {
+    p.pose = 'stand'; p.root.position.copy(playerPos);
+    if (p.root.userData) { p.root.userData.sitAim = null; p.root.userData.rockAng = 0; }
+  }
+  net.update({
+    x: playerPos.x, z: playerPos.z, yaw: playerYaw.v, moving: false, pose: 'stand', seat: -1,
+    zone: ZONE.mode === 'interior' ? 'i' : 'p',
+  });
   updateSeatButton();
 }
 
@@ -7902,14 +8351,21 @@ function updateSeated(dt) {
     p.root.position.copy(playerPos);
     p.root.rotation.y = playerYaw.v;
     p.pose = SIT.active ? 'sit' : 'stand';
+    if (p.root.userData) {
+      p.root.userData.seatTop = s.top === undefined ? SEAT_TOP : s.top;
+      p.root.userData.rockAng = (s.rock && SIT.active) ? (s.ang || 0) : 0;
+    }
   }
   net.update({
     x: playerPos.x, z: playerPos.z, yaw: playerYaw.v,
-    moving: false, pose: SIT.active ? 'sit' : 'stand', seat: SIT.seat,
+    moving: false, pose: SIT.active ? 'sit' : 'stand', seat: SIT.active ? SIT.seat : -1,
+    zone: ZONE.mode === 'interior' ? 'i' : 'p',
   });
   if (SIT.active && !seatToastShown) {
     seatToastShown = true;
-    toast('🔥 모닥불 앞에 앉았어요 — 이동하면 일어나요', 2600);
+    const msg = s.rock ? '🪵 흔들의자에 앉았어요 — 살랑살랑 흔들려요'
+      : (s.zone === 'i' ? '🛋️ 자리에 앉았어요 — 움직이면 일어나요' : '🔥 모닥불 앞에 앉았어요 — 이동하면 일어나요');
+    toast(msg, 2600);
   }
   if (!SIT.active) seatToastShown = false;
 }
@@ -7938,6 +8394,18 @@ function animateAvatar(p, dt) {
   }
 
   const speed = p.isMe ? Math.hypot(vel.x, vel.y) : (p.moving ? 2.3 : 0);
+  /* 앉은 좌석 — 높이와 흔들림을 내 캐릭터와 다른 사람 캐릭터가 똑같이 따른다 */
+  const seatIdx = p.isMe
+    ? ((SIT.active || SIT.enter > 0) ? SIT.seat : -1)
+    : (p.pose === 'sit' ? p.seat : -1);
+  const seat = seatIdx >= 0 ? SEATS[seatIdx] : null;
+  if (seat) {
+    ud.seatTop = seat.top === undefined ? SEAT_TOP : seat.top;
+    ud.rockAng = seat.rock ? (seat.ang || 0) : 0;
+  } else if ((ud.sit || 0) < 0.02) {
+    ud.seatTop = SEAT_TOP;
+    ud.rockAng = 0;
+  }
   /* 앉기 자세 블렌드 — 로컬·원경 모두 같은 값으로 따라간다 */
   const wantSit = p.pose === 'sit' ? 1 : 0;
   ud.sit = lerp(ud.sit || 0, wantSit, Math.min(1, dt * (wantSit ? 6.5 : 9)));
@@ -8073,10 +8541,8 @@ function updateAmbient(dt) {
   if (sky.fallTex) sky.fallTex.offset.y = (elapsed * 0.22) % 1;
 }
 
-/* 애니메이션 루프 */
-function loop() {
-  const raw = clock.getDelta();
-  const dt = Math.min(raw, 0.05);
+/* 한 프레임의 시뮬레이션 (렌더 제외) — 루프와 진단용 step 이 같은 경로를 쓴다 */
+function tick(dt) {
   elapsed += dt;
   lastDt = dt; frames++;
 
@@ -8105,7 +8571,13 @@ function loop() {
   }
   updateFloaters(dt);
   updateLabels();
+}
 
+/* 애니메이션 루프 */
+function loop() {
+  const raw = clock.getDelta();
+  const dt = Math.min(raw, 0.05);
+  tick(dt);
   renderFrame();
 
   fpsAcc += raw; fpsFrames++;
@@ -8325,6 +8797,7 @@ window.__plaza = {
     return { total: out.reduce((s, o) => s + o.tri, 0), top: out.slice(0, 14) };
   },
   setSitAim(o) { Object.assign(SIT_AIM, o); return SIT_AIM; },
+  setFov(fov) { camera.fov = clamp(fov || 50, 28, 100); camera.updateProjectionMatrix(); return camera.fov; },
   setTune(o) {
     const p = players.get('me');
     if (!p || !p.root.userData.tune) return null;
@@ -8381,8 +8854,63 @@ window.__plaza = {
   /* --- 마을 · 캠프파이어 · 앉기 진단 --- */
   get village() { return villageInfo; },
   get bgFill() { return 0; },
-  get seats() { return SEATS.map((s, i) => ({ i, x: +s.x.toFixed(2), z: +s.z.toFixed(2), yaw: +s.yaw.toFixed(2), top: s.top })); },
+  get seats() {
+    return SEATS.map((s, i) => ({
+      i, x: +s.x.toFixed(2), z: +s.z.toFixed(2), yaw: +s.yaw.toFixed(2), top: s.top,
+      zone: s.zone || 'p', kind: s.kind || 'log', rock: !!s.rock,
+      ang: +(s.ang || 0).toFixed(3), taken: seatTaken(i),
+    }));
+  },
+  get interiorSeats() { return this.seats.filter((s) => s.zone === 'i'); },
+  get head() {
+    const p = players.get('me');
+    if (!p || !p.root.userData || !p.root.userData.bones) return null;
+    const b = p.root.userData.bones['Head'];
+    if (!b) return null;
+    const q = new THREE.Quaternion();
+    b.getWorldQuaternion(q);
+    const rq = new THREE.Quaternion();
+    p.root.getWorldQuaternion(rq);
+    const e = new THREE.Euler().setFromQuaternion(rq.invert().multiply(q), 'YXZ');
+    const v = new THREE.Vector3();
+    b.getWorldPosition(v);
+    const deg = THREE.MathUtils.radToDeg;
+    return {
+      pitch: +deg(e.x).toFixed(2), yaw: +deg(e.y).toFixed(2), roll: +deg(e.z).toFixed(2),
+      y: +(v.y - p.root.position.y).toFixed(3),
+      walk: +((p.root.userData.walk) || 0).toFixed(2),
+      phase: +(p.root.userData.phase || 0).toFixed(2),
+    };
+  },
+  get rock() {
+    const s = SEATS[SIT.seat];
+    const p = players.get('me');
+    return {
+      seat: SIT.seat, kind: s ? s.kind : null, ang: s ? +(s.ang || 0).toFixed(4) : 0,
+      tiltX: p && p.root.userData && p.root.userData.tilt ? +p.root.userData.tilt.rotation.x.toFixed(4) : 0,
+      seatTop: p && p.root.userData ? p.root.userData.seatTop : null,
+    };
+  },
   get campfire() { return { x: CAMPFIRE.x, z: CAMPFIRE.z, y: +CAMPFIRE.y.toFixed(3), lights: villageLights.length }; },
+  /* 진단 — 내 캐릭터와 흔들의자가 월드에서 어디에 있는지 */
+  get meRoot() {
+    const p = players.get('me');
+    if (!p) return null;
+    const ud = p.root.userData || {};
+    return {
+      pos: [+p.root.position.x.toFixed(2), +p.root.position.y.toFixed(2), +p.root.position.z.toFixed(2)],
+      yaw: +p.root.rotation.y.toFixed(2), visible: p.root.visible,
+      sit: +(ud.sit || 0).toFixed(2), drop: ud.inner ? +ud.inner.position.y.toFixed(3) : null,
+      tiltX: ud.tilt ? +ud.tilt.rotation.x.toFixed(3) : null,
+    };
+  },
+  get chairWorld() {
+    const g = scene.getObjectByName('rocking-chair');
+    if (!g) return null;
+    const w = new THREE.Vector3();
+    g.getWorldPosition(w);
+    return { pos: [+w.x.toFixed(2), +w.z.toFixed(2)], yaw: +g.rotation.y.toFixed(2), visible: g.visible };
+  },
   get bones() {
     const p = players.get('me');
     if (!p || !p.root.userData || !p.root.userData.bones) return null;
@@ -8425,7 +8953,16 @@ window.__plaza = {
       return { y: +h.point.y.toFixed(3), type: h.object.type, col: m && m.color ? '#' + m.color.getHexString() : null, name: h.object.name || (m && m.name) || '', parent: h.object.parent ? h.object.parent.name : '' };
     });
   },
-  sitAt(i) { const s = SEATS[i === undefined ? 0 : i]; if (s) { playerPos.x = s.x + 0.6; playerPos.z = s.z + 0.6; } sitDown(); return SIT.seat; },
+  sitAt(i) {
+    const s = SEATS[i === undefined ? 0 : i];
+    if (!s) return -1;
+    const ox = s.out ? s.out.x : 0.6, oz = s.out ? s.out.z : 0.6;
+    playerPos.x = s.x + ox * 0.9; playerPos.z = s.z + oz * 0.9;
+    const p = players.get('me');
+    if (p) p.root.position.copy(playerPos);
+    sitDown();
+    return SIT.seat;
+  },
   standMe() { standUp(); return true; },
   tp(x, z) {
     playerPos.x = x; playerPos.z = z; playerPos.y = groundY(x, z);
@@ -8436,6 +8973,13 @@ window.__plaza = {
   get remotePoses() { return [...players.values()].filter((p) => !p.isMe).map((p) => ({ id: p.id, pose: p.pose, sit: +(p.root.userData && p.root.userData.sit || 0).toFixed(2), x: +p.root.position.x.toFixed(2), z: +p.root.position.z.toFixed(2), y: +p.root.position.y.toFixed(2) })); },
   /* 캡처용: 한 프레임을 즉시 렌더 (스틸 이미지 저장 시 사용) */
   pause() { renderer.setAnimationLoop(null); },
+  /* 캡처용: 프레임을 n 번 계산만 하고 마지막에 한 번 그린다 (소프트웨어 렌더 환경에서 빠르다) */
+  step(n) {
+    const k = clamp(Math.round(n || 1), 1, 900);
+    for (let i = 0; i < k; i++) tick(1 / 60);
+    renderFrame();
+    return frames;
+  },
   resume() { renderer.setAnimationLoop(loop); },
   snap(yaw, pitch, dist, lookY, lookX, lookZ) {
     if (lookY !== undefined) rig.lookAt.set(lookX ?? rig.lookAt.x, lookY, lookZ ?? rig.lookAt.z);
