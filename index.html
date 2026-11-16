@@ -799,6 +799,7 @@
   /* ---------- 점등식 축하 배너 ---------- */
   #treeShowBanner{
     position:fixed;left:50%;top:23%;z-index:62;pointer-events:none;padding:16px 46px 18px;
+    width:max-content;max-width:calc(100vw - 26px);
     background:radial-gradient(62% 72% at 50% 48%, rgba(8,12,26,.72), rgba(8,12,26,.34) 62%, rgba(8,12,26,0) 78%);
     transform:translate(-50%,8px) scale(.92);opacity:0;text-align:center;
     transition:opacity .55s ease, transform .9s cubic-bezier(.2,.7,.3,1);
@@ -814,17 +815,31 @@
   }
 
   @media (max-width:820px), (pointer:coarse){
-    #treeHud{height:34px;padding:0 9px;font-size:10.5px;gap:5px;border-radius:11px}
+    /* 상단 HUD — 좌표는 '타이틀 한 줄 + 배지·버튼 한 줄' 두 줄로 고정한다.
+       (트리 배지가 늘어나면서 배지들이 채팅 로그 위로 삐져나오던 문제) */
+    #hud{padding:calc(8px + var(--safe-t)) 12px 8px;gap:6px;flex-wrap:wrap}
+    .brand{gap:7px;min-width:0}
+    .brand h1{font-size:13.5px}
+    .brand-mark{font-size:18px}
+    .hud-right{width:100%;gap:6px;justify-content:flex-end;flex-wrap:nowrap}
+    .badge{height:34px;padding:0 10px;font-size:11px;border-radius:11px;gap:5px}
+    .icon-btn{width:34px;height:34px;font-size:16px;border-radius:11px}
+    #visitorBadge{display:none}            /* 접속 인원은 👥 패널 제목에 '1 / 10' 으로 그대로 보인다 */
+    #treeHud{height:34px;padding:0 9px;font-size:10.5px;gap:5px;border-radius:11px;flex:0 1 auto;overflow:hidden}
     #treeHud .th-ico{font-size:12px}
-    #treeHud .th-bar{width:30px;height:3px}
+    #treeHud .th-bar{display:none}
+    #treeHudText{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
     #treeBtn, #cocoaBtn, #wishBtn{padding:10px 13px;font-size:12.5px;border-radius:13px}
     #ornPicker, #wishPanel{bottom:calc(178px + var(--safe-b));padding:11px 12px 12px;gap:7px}
     #ornPicker .op-row button{padding:7px 2px 5px;font-size:9px}
     #ornPicker .op-row button b{font-size:17px}
     #ornPicker .mp-foot button, #wishPanel .mp-foot button{height:32px;font-size:11px}
-    #treeShowBanner{top:26%}
+    #treeShowBanner{top:34%}
     #treeShowBanner b{font-size:22px}
     #treeShowBanner span{font-size:11px}
+    /* 두 줄 HUD(8+34+6+34+8 = 90px) 바로 아래로 채팅 로그·안내를 내린다 */
+    #chatLog{top:calc(98px + var(--safe-t));max-height:20vh}
+    #guideToast{top:calc(100px + var(--safe-t))}
   }
 
   @media (max-width:820px), (pointer:coarse){
@@ -8550,19 +8565,23 @@ function renderNetStatus() {
   netStatusEl.classList.remove('live', 'demo', 'err');
   const txt = netStatusText;
   const others = Math.max(0, players.size - (players.has('me') ? 1 : 0));
+  /* 좁은 화면에서는 배지가 한 줄에 모이도록 짧은 문구를 쓴다 (전체 상태는 title 에 남는다) */
+  const narrow = isNarrowHud();
   if (s.state === 'live') {
     netStatusEl.classList.add('live');
-    txt.textContent = others > 0 ? `친구와 연결됨 (${others}명)` : '친구와 연결됨 (0명)';
+    txt.textContent = narrow
+      ? (others > 0 ? `연결 ${others}명` : '연결됨')
+      : (others > 0 ? `친구와 연결됨 (${others}명)` : '친구와 연결됨 (0명)');
     netStatusEl.title = `실시간 연결 · 방 ${s.room || state.room} · 나를 뺀 접속자 ${others}명`;
     panelNoteEl.textContent = '같은 방 코드로 들어온 사람과 실시간으로 함께 걸어요. 아래 버튼으로 초대 링크를 복사해 보내면 바로 만날 수 있습니다.';
   } else if (s.state === 'connecting' || s.state === 'retry') {
-    txt.textContent = '실시간 연결 중…';
+    txt.textContent = narrow ? '연결 중…' : '실시간 연결 중…';
   } else if (s.state === 'reconnecting') {
     netStatusEl.classList.add('err');
     txt.textContent = '재연결 중…';
   } else if (s.state === 'demo') {
     netStatusEl.classList.add('demo');
-    txt.textContent = '혼자 둘러보는 중';
+    txt.textContent = narrow ? '혼자 보기' : '혼자 둘러보는 중';
     netStatusEl.title = '지금은 혼자 둘러보기(데모) 모드 — 이름표에 NPC 배지가 붙은 엘프들은 실제 접속자가 아닙니다';
     panelNoteEl.textContent = '지금은 혼자 둘러보기(데모) 모드예요. [NPC] 배지가 붙은 엘프들은 실제 접속자가 아닙니다. 다른 사람과 함께 걷기: 실시간 서버에 접속되면 자동으로 전환됩니다.';
   } else if (s.state === 'failed') {
@@ -8571,6 +8590,14 @@ function renderNetStatus() {
   } else {
     txt.textContent = '연결 준비';
   }
+  /* 데모로 전환되면 상단 배지 문구가 바뀌므로 트리 HUD 옆 폭도 다시 잡아 준다 */
+  if (narrow) netStatusEl.classList.remove('wide');
+}
+
+/* 좁은 화면(모바일·좁은 창)인가 — HUD 문구·배지 크기를 이 값으로 고른다 */
+function isNarrowHud() {
+  try { return window.matchMedia('(max-width:820px), (pointer:coarse)').matches; }
+  catch (_) { return window.innerWidth <= 820; }
 }
 
 function refreshRoomUi() {
@@ -9951,10 +9978,15 @@ function updateTreeHud() {
   if (!treeHudEl) return;
   const n = Math.min(TREE_EVENT.decor, 8);
   const goal = TREE_EVENT.goal;
+  const narrow = isNarrowHud();
   treeHudEl.classList.toggle('lit', TREE_EVENT.lit);
-  treeHudTextEl.textContent = TREE_EVENT.lit
-    ? (TREE_EVENT.mine > 0 ? '트리 점등 완료 ✨ · 내 장식 ' + TREE_EVENT.mine : '트리 점등 완료 ✨')
-    : `점등 준비 ${n} / ${goal}`;
+  if (TREE_EVENT.lit) {
+    treeHudTextEl.textContent = narrow
+      ? '점등 완료'
+      : (TREE_EVENT.mine > 0 ? '트리 점등 완료 ✨ · 내 장식 ' + TREE_EVENT.mine : '트리 점등 완료 ✨');
+  } else {
+    treeHudTextEl.textContent = narrow ? `점등 ${n}/${goal}` : `점등 준비 ${n} / ${goal}`;
+  }
   treeHudBarEl.style.width = `${Math.round(Math.min(1, n / Math.max(1, goal)) * 100)}%`;
   treeHudEl.title = TREE_EVENT.lit
     ? '모두의 장식으로 트리에 불이 들어왔어요 · 장식대에서 점등식을 다시 볼 수 있어요'
