@@ -8715,6 +8715,18 @@ const photoCamBtn = document.getElementById('photoCam');
 const photoFrameBtn = document.getElementById('photoFrame');
 const photoTimerBtn = document.getElementById('photoTimerBtn');
 let photoRing = null;
+/* 포토 모드 '💗 하트' 자세 — 몸 기준 방향 값(앞 = fwd, 위 = up, 몸 안쪽 = in).
+   SD 비율 엘프는 팔이 짧아 팔을 머리 위로 올려 큰 하트를 만들면 손이 얼굴·모자를
+   가리고 팔꿈치가 꺾여 보인다. 대신 어깨는 편하게 내리고 팔꿈치만 앞으로 접어
+   두 손을 가슴 앞에 모으는 '작은 손하트'를 만들고, 하트 이펙트로 마무리한다. */
+const HEART_AIM = {
+  armOut: 0.24,    // 어깨를 옆으로 살짝 벌려 팔이 몸통에 파묻히지 않게
+  armFwd: 0.10,    // 어깨를 앞으로 조금
+  armDown: -0.98,  // 어깨는 아래로 (팔이 편하게 내려간다)
+  faIn: 0.56,      // 팔꿈치에서 손을 몸 안쪽으로 모은다
+  faFwd: 0.62,     // 두 손을 앞으로
+  faUp: 0.28,      // 가슴 높이까지만 올린다 (얼굴·턱에는 닿지 않게)
+};
 let photoTreeH = 11;
 let photoTreeR = 5.0;
 let photoPreviewTimer = 0;
@@ -8796,8 +8808,12 @@ function photoCameraTarget(outPos, outLook) {
   const limitH = halfH * 0.92;               // 좌우 여유 8% (세로 화면에서는 이쪽이 빡빡하다)
 
   const cands = [];
+  /* 거리 상한 — 트리를 통째로 담으려고 카메라가 13m 밖까지 물러나면 정작 주인공인
+     캐릭터가 손톱만해진다. 트리의 위아래 여유는 조금 줄이더라도 얼굴과 포즈가
+     읽히는 거리에서 구도를 잡는다. */
+  const dMax = narrow ? 8.2 : 9.6;
   for (const sgn of [1, -1, 0]) {
-    for (let D = 6.0; D <= 13.0; D += 0.35) {
+    for (let D = 5.2; D <= dMax; D += 0.3) {
       const px = cx + dx * D - dz * side * sgn;
       const pz = cz + dz * D + dx * side * sgn;
       if (!walkableAt(px, pz)) continue;     // 광장 밖(건물 사이)은 쓰지 않는다
@@ -8818,8 +8834,8 @@ function photoCameraTarget(outPos, outLook) {
   let pick = cands.find((c) => c.fits);
   if (!pick && cands.length) pick = cands[cands.length - 1];   // 가장 먼 후보(가장 많이 담기는)
   if (!pick) {
-    const px = cx + dx * 9, pz = cz + dz * 9;
-    pick = { D: 9, px, pz, distTree: Math.max(2, Math.hypot(px, pz)), aTopTree: halfV * 0.9, aFeet: -halfV * 0.5 };
+    const px = cx + dx * 7, pz = cz + dz * 7;
+    pick = { D: 7, px, pz, distTree: Math.max(2, Math.hypot(px, pz)), aTopTree: halfV * 0.9, aFeet: -halfV * 0.5 };
   }
   let axis = pick.aFeet + halfV * 0.62;         // 캐릭터 발이 화면 아래 1/6 위에 오게
   if (axis < pick.aTopTree - halfV * 0.98) axis = pick.aTopTree - halfV * 0.98;
@@ -8889,6 +8905,9 @@ function enterPhotoMode() {
   PHOTO.active = true;
   PHOTO.pose = 'stand';
   PHOTO.camMode = 'preset';
+  /* 들어오기 전의 몸 방향 — 나갈 때 이쪽으로 도로 돌려준다 */
+  PHOTO_FACE.yaw = playerYaw.v;
+  PHOTO_FACE.active = true;
   PHOTO.saved = {
     yaw: rig.yaw, pitch: rig.pitch, dist: rig.dist, targetDist: rig.targetDist,
     look: rig.lookAt.clone(), mode: rig.mode, fov: camera.fov,
@@ -8928,6 +8947,35 @@ function exitPhotoMode() {
   return true;
 }
 
+/* 포토 모드 — 프리셋 구도에서 캐릭터가 카메라를 바라보게 돌린다.
+   포토 구도는 트리를 등지고 서는 구도라, 그냥 두면 사진에 뒷모습만 담긴다.
+   손하트·손흔들기 같은 포즈가 정면으로 보이도록 몸을 카메라 쪽으로 부드럽게
+   돌리고, 포토 모드를 나가면 원래 보던 방향으로 되돌린다. */
+const PHOTO_FACE = { active: false, yaw: 0 };
+function photoFaceYaw() {
+  const dx = PHOTO_CAM.pos.x - playerPos.x;
+  const dz = PHOTO_CAM.pos.z - playerPos.z;
+  if (!Number.isFinite(dx) || !Number.isFinite(dz)) return null;
+  if (Math.hypot(dx, dz) < 0.4) return null;
+  return Math.atan2(dx, dz);       // 캐릭터가 보는 방향 = (sin yaw, cos yaw)
+}
+function updatePhotoFacing(dt) {
+  if (!PHOTO_FACE.active) return;
+  const p = players.get('me');
+  if (!p) return;
+  const preset = PHOTO.active && PHOTO.camMode === 'preset';
+  const goal = preset ? photoFaceYaw() : PHOTO_FACE.yaw;
+  if (goal === null) return;
+  const d = ((goal - playerYaw.v + Math.PI) % TAU + TAU) % TAU - Math.PI;
+  if (Math.abs(d) < 0.006 && !preset) {
+    playerYaw.v = goal;
+    PHOTO_FACE.active = false;      // 원래 방향으로 다 돌아왔다
+  } else {
+    playerYaw.v = angleLerp(playerYaw.v, goal, Math.min(1, dt * (preset ? 7 : 5)));
+  }
+  p.root.rotation.y = playerYaw.v;
+}
+
 /* --- 포즈 반영 (매 프레임 · 애니메이션 포즈 위에 덧씌움) --- */
 const _photoUp = new THREE.Vector3(0, 1, 0);
 const _photoDir = new THREE.Vector3();
@@ -8959,10 +9007,16 @@ function updatePhotoPose(dt) {
     aimBoneBlend(ud, 'R_Upperarm', dir(0.62, 0.74, 0.06), w);
   } else if (PHOTO.pose === 'heart') {
     settle();
-    aimBoneBlend(ud, 'L_Upperarm', dir(-0.5, 0.6, 0.34), w);
-    aimBoneBlend(ud, 'R_Upperarm', dir(0.5, 0.6, 0.34), w);
-    aimBoneBlend(ud, 'L_Forearm', dir(-0.18, 0.86, 0.44), w);
-    aimBoneBlend(ud, 'R_Forearm', dir(0.18, 0.86, 0.44), w);
+    const A = HEART_AIM;
+    const fy = playerYaw.v;
+    const bx = Math.sin(fy), bz = Math.cos(fy);        // 몸이 보는 앞
+    const ox = Math.cos(fy), oz = -Math.sin(fy);        // 몸의 왼쪽(+)
+    const aim = (f, u, o) => _photoDir.set(bx * f + ox * o, u, bz * f + oz * o);
+    /* 어깨는 아래로 내리고, 팔꿈치는 앞으로 접어 손을 가슴 앞에 모은다 */
+    aimBoneBlend(ud, 'L_Upperarm', aim(A.armFwd, A.armDown, A.armOut), w);
+    aimBoneBlend(ud, 'R_Upperarm', aim(A.armFwd, A.armDown, -A.armOut), w);
+    aimBoneBlend(ud, 'L_Forearm', aim(A.faFwd, A.faUp, -A.faIn), w);
+    aimBoneBlend(ud, 'R_Forearm', aim(A.faFwd, A.faUp, A.faIn), w);
     boneRotZ(ud, 'Head', -0.08 * w);
   }
   if (photoHeart) {
@@ -9820,6 +9874,7 @@ function tick(dt) {
   }
   updateFloaters(dt);
   updatePhotoZone(dt);
+  updatePhotoFacing(dt);
   updatePhotoPose(dt);
   updateLabels();
 
@@ -9972,6 +10027,8 @@ window.__plaza = {
   },
   photoMode(on) { return on === false ? exitPhotoMode() : enterPhotoMode(); },
   photoPose(p) { return setPhotoPose(p); },
+  setHeartAim(o) { Object.assign(HEART_AIM, o || {}); return { ...HEART_AIM }; },
+  get heartAim() { return { ...HEART_AIM }; },
   photoShot() { return shootPhoto(); },
   photoDataUrl() { return PHOTO.lastUrl; },
   photoSpot() { return { ...PHOTO_SPOT, walkable: walkableAt(PHOTO_SPOT.x, PHOTO_SPOT.z) }; },
