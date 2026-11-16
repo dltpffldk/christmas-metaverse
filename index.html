@@ -531,6 +531,181 @@
   }
   #btnCopyLink2:hover{background:rgba(255,212,121,.2)}
   #btnCopyLink2:active{transform:scale(.98)}
+
+  /* ==========================================================
+     ✨ 1차 업그레이드 — 품질 선택 · 로딩 진행률 · 안내 · 포토 모드
+     ========================================================== */
+
+  /* ---------- 로비: 그래픽 품질 선택 ---------- */
+  .quality-block{margin:0 0 16px}
+  .quality-row{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+  .q-btn{
+    display:flex;flex-direction:column;align-items:center;gap:3px;
+    padding:9px 4px 8px;border-radius:13px;cursor:pointer;font-family:inherit;
+    color:#c8d7ee;background:rgba(255,255,255,.05);border:1.5px solid rgba(255,255,255,.12);
+    transition:border-color .15s, background .15s, transform .12s;
+  }
+  .q-btn:hover{background:rgba(255,255,255,.1);transform:translateY(-1px)}
+  .q-btn b{font-size:12.5px;font-weight:800;color:#fff;letter-spacing:-.2px}
+  .q-btn span{font-size:9px;color:#93a6c4;letter-spacing:-.1px}
+  .q-btn.sel{
+    border-color:rgba(255,212,121,.92);
+    background:linear-gradient(180deg,rgba(120,92,38,.55),rgba(30,26,22,.72));
+    box-shadow:0 0 0 3px rgba(255,196,90,.14);
+  }
+  .q-btn.sel b{color:#ffe6b3}
+  .q-note{margin:7px 0 0;font-size:10px;line-height:1.5;color:#8496b3;text-align:center}
+
+  /* ---------- 로딩 진행률 · 재시도 ---------- */
+  #loader .lcard{display:flex;flex-direction:column;align-items:center;max-width:min(420px,92vw)}
+  #loader .ring{margin-bottom:14px}
+  #loader .ltitle{margin:0 0 10px;font-size:13.5px;font-weight:700;color:#dbe6f7;letter-spacing:.2px}
+  #loader .pct{margin:0 0 9px;font-size:20px;font-weight:900;color:#ffe6b3;letter-spacing:-.4px;font-variant-numeric:tabular-nums}
+  #loader .lbar{width:min(260px,72vw);height:5px;border-radius:99px;background:rgba(255,255,255,.13);overflow:hidden;margin:0 0 6px}
+  #loader .lbar i{display:block;width:0;height:100%;border-radius:99px;background:linear-gradient(90deg,#e0a63a,#ffd479 60%,#fff3d6);transition:width .18s ease}
+  #loader .lsub{margin:0;font-size:11px;color:#8496b3;letter-spacing:.1px}
+  #loader .lbtns{display:flex;gap:8px;margin-top:14px}
+  #loader .lbtns button{
+    height:40px;padding:0 18px;border-radius:12px;cursor:pointer;font-family:inherit;
+    font-size:12.5px;font-weight:800;color:#ffe6b3;
+    background:rgba(255,212,121,.14);border:1px solid rgba(255,212,121,.5);
+    transition:background .15s, transform .12s;
+  }
+  #loader .lbtns button:hover{background:rgba(255,212,121,.24)}
+  #loader .lbtns button:active{transform:scale(.97)}
+  #loader .lbtns #loadClose{color:#c3d2e8;background:rgba(255,255,255,.06);border-color:rgba(255,255,255,.16)}
+
+  /* ---------- 입장 안내 토스트 ---------- */
+  #guideToast{
+    position:fixed;left:50%;top:calc(92px + var(--safe-t));z-index:59;
+    transform:translate(-50%,-12px);padding:14px 40px 13px 18px;border-radius:16px;
+    background:rgba(13,19,38,.92);border:1px solid rgba(255,212,121,.42);
+    box-shadow:0 20px 54px rgba(0,0,0,.6), inset 0 1px 0 rgba(255,255,255,.08);
+    backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
+    opacity:0;pointer-events:none;transition:opacity .35s ease, transform .35s ease;
+    max-width:min(560px,calc(100vw - 28px));
+  }
+  #guideToast.show{opacity:1;transform:translate(-50%,0);pointer-events:auto}
+  #guideToast .gt-title{margin:0 0 9px;font-size:13px;font-weight:900;letter-spacing:-.2px;color:#ffe6b3}
+  #guideToast .gt-steps{display:flex;flex-wrap:wrap;gap:6px}
+  #guideToast .gt-steps span{
+    font-size:11px;font-weight:600;color:#d7e3f6;padding:4px 9px;border-radius:9px;
+    background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.11);white-space:nowrap;
+  }
+  #guideToast .gt-close{
+    position:absolute;right:7px;top:7px;width:24px;height:24px;border-radius:8px;cursor:pointer;
+    display:grid;place-items:center;font-size:11px;font-family:inherit;
+    color:#a8b8d4;background:transparent;border:1px solid transparent;
+  }
+  #guideToast .gt-close:hover{background:rgba(255,255,255,.1);color:#fff}
+
+  /* ---------- 포토 버튼 (우측 하단 독) ---------- */
+  #btnPhoto.near{
+    border-color:rgba(255,212,121,.9);background:rgba(120,88,20,.62);
+    box-shadow:0 0 0 3px rgba(255,196,90,.16), 0 0 22px rgba(255,196,90,.35);
+    animation:photoPulse 2.2s ease-in-out infinite;
+  }
+  /* 크기(transform)는 건드리지 않는다 — 버튼이 흔들리면 누르기 어렵고,
+     자동화·키보드 포커스에서 위치가 계속 변해 클릭이 밀린다. 빛만 숨쉬게. */
+  @keyframes photoPulse{
+    0%,100%{box-shadow:0 0 0 2px rgba(255,196,90,.12), 0 0 14px rgba(255,196,90,.22)}
+    50%{box-shadow:0 0 0 4px rgba(255,196,90,.26), 0 0 26px rgba(255,196,90,.5)}
+  }
+
+  /* ---------- 포토 모드: 모든 조작 UI 숨김 ---------- */
+  /* opacity 페이드가 아니라 display 로 즉시 끈다 — 느린 기기에서 반투명하게 남아
+     사진 화면에 UI 가 비치는 것을 막는다 (사진 캔버스에는 DOM 이 안 들어가지만 화면도 깨끗해야 한다). */
+  body.photomode #hud, body.photomode #chatLog, body.photomode #chatForm,
+  body.photomode #dock, body.photomode #joystick, body.photomode #hint,
+  body.photomode #playerPanel, body.photomode #helpPanel, body.photomode #toast,
+  body.photomode #guideToast, body.photomode #labels{
+    display:none !important;
+  }
+
+  #photoHud{position:fixed;inset:0;z-index:80;display:none;pointer-events:none}
+  body.photomode #photoHud{display:block}
+  #photoHud > *{pointer-events:auto}
+  #photoHud .ph-top{
+    position:fixed;left:50%;top:calc(14px + var(--safe-t));transform:translateX(-50%);
+    padding:7px 14px;border-radius:999px;font-size:11px;color:rgba(240,246,255,.82);
+    background:rgba(10,15,30,.55);border:1px solid rgba(255,255,255,.14);
+    backdrop-filter:blur(8px);white-space:nowrap;
+  }
+  #photoBar{
+    position:fixed;left:50%;bottom:calc(16px + var(--safe-b));transform:translateX(-50%);
+    display:flex;flex-direction:column;align-items:center;gap:7px;
+    padding:10px 12px;border-radius:18px;max-width:calc(100vw - 20px);
+    background:rgba(10,15,30,.74);border:1px solid rgba(255,255,255,.16);
+    backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
+    box-shadow:0 20px 52px rgba(0,0,0,.55);
+  }
+  #photoBar .pb-row{display:flex;gap:6px;flex-wrap:wrap;justify-content:center}
+  #photoBar button{
+    height:38px;padding:0 13px;border-radius:11px;cursor:pointer;font-family:inherit;
+    font-size:12px;font-weight:800;letter-spacing:-.2px;white-space:nowrap;
+    color:#eaf2ff;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.16);
+    transition:background .14s, border-color .14s, transform .12s;
+  }
+  #photoBar button:hover{background:rgba(255,255,255,.15)}
+  #photoBar button:active{transform:scale(.96)}
+  #photoBar button.on{border-color:rgba(255,212,121,.9);background:rgba(255,196,90,.24);color:#ffe9bd}
+  #photoBar #photoShutter{
+    color:#3a2109;border-color:rgba(255,244,214,.95);
+    background:linear-gradient(180deg,#fff0cc,#ffc46e);
+    box-shadow:0 8px 22px rgba(255,160,60,.38);
+  }
+  #photoBar #photoExit{color:#ffd9d2;border-color:rgba(255,160,140,.45);background:rgba(120,40,34,.35)}
+  #photoCount{
+    position:fixed;left:50%;top:42%;transform:translate(-50%,-50%) scale(.6);
+    font-size:132px;font-weight:900;color:#fff;opacity:0;pointer-events:none;
+    text-shadow:0 12px 46px rgba(0,0,0,.7), 0 0 32px rgba(255,208,120,.5);
+  }
+  #photoCount.show{animation:countPop 1s ease-out}
+  @keyframes countPop{
+    0%{opacity:0;transform:translate(-50%,-50%) scale(.45)}
+    18%{opacity:1;transform:translate(-50%,-50%) scale(1.05)}
+    100%{opacity:0;transform:translate(-50%,-50%) scale(1.3)}
+  }
+  #photoFlash{position:fixed;inset:0;background:#fff;opacity:0;pointer-events:none}
+  #photoFlash.fire{animation:photoFlash .5s ease-out}
+  @keyframes photoFlash{0%{opacity:.85}100%{opacity:0}}
+  #photoPreview{
+    position:fixed;right:14px;bottom:calc(104px + var(--safe-b));width:212px;padding:8px;
+    border-radius:16px;background:rgba(12,18,34,.94);border:1px solid rgba(255,212,121,.45);
+    box-shadow:0 20px 50px rgba(0,0,0,.6);opacity:0;transform:translateY(10px);
+    transition:opacity .3s ease, transform .3s ease;pointer-events:none;
+  }
+  #photoPreview.show{opacity:1;transform:none;pointer-events:auto}
+  #photoPreview img{display:block;width:100%;border-radius:10px;background:#0a0d1c}
+  #photoPreview p{margin:7px 2px 2px;font-size:10.5px;line-height:1.45;color:#cfe0f5;text-align:center}
+
+  /* 접속자 위치 · NPC 배지 */
+  #playerList .loc{font-size:9.5px;font-weight:700;color:#9fb2cf;background:rgba(255,255,255,.07);border-radius:5px;padding:1px 5px;flex:0 0 auto}
+  #playerList .npc{font-size:9px;font-weight:800;color:#8fd0ff;background:rgba(90,170,255,.16);border:1px solid rgba(120,190,255,.3);border-radius:5px;padding:0 4px;flex:0 0 auto}
+  #playerPanel{width:252px}
+  .avatar-label .tag .badge-npc{
+    display:inline-block;margin-right:5px;padding:1px 4px;border-radius:4px;
+    font-size:8.5px;font-weight:900;letter-spacing:.3px;color:#bfe4ff;
+    background:rgba(80,160,255,.28);border:1px solid rgba(140,200,255,.45);vertical-align:1px;
+  }
+
+  @media (max-width:820px), (pointer:coarse){
+    #photoHud .ph-top{font-size:10px;padding:5px 10px;top:calc(8px + var(--safe-t))}
+    #photoBar{
+      padding:7px 7px;border-radius:15px;gap:5px;bottom:calc(8px + var(--safe-b));
+      width:calc(100vw - 12px);max-width:none;
+    }
+    #photoBar .pb-row{gap:4px}
+    #photoBar button{height:30px;padding:0 8px;font-size:10px;border-radius:8px;letter-spacing:-.3px}
+    #photoBar #photoShutter{padding:0 12px}
+    #photoCount{font-size:96px}
+    #photoPreview{width:150px;right:10px;bottom:calc(92px + var(--safe-b))}
+    #guideToast{top:calc(78px + var(--safe-t));padding:12px 34px 11px 14px}
+    #guideToast .gt-title{font-size:12px}
+    #guideToast .gt-steps span{font-size:10px;padding:3px 7px}
+    .q-btn b{font-size:11.5px}
+    .q-btn span{font-size:8.5px}
+  }
 </style>
 </head>
 <body>
@@ -557,6 +732,7 @@
       <span class="dot"></span><span id="visitorCount">접속 중 1 / 10명</span>
     </div>
     <button class="icon-btn" id="btnPlayers" aria-label="접속자 목록" title="접속자 목록">👥</button>
+    <button class="icon-btn" id="btnCamReset" aria-label="시점 초기화" title="시점 초기화 (R)">🎯</button>
     <button class="icon-btn" id="btnBgm" aria-label="캐롤 BGM 켜기" title="캐롤 BGM">🔇</button>
     <button class="icon-btn" id="btnHelp" aria-label="조작 도움말" title="조작 도움말">❔</button>
   </div>
@@ -602,6 +778,7 @@
     <button class="emoji-btn" data-emoji="🔔" aria-label="종 리액션">🔔</button>
   </div>
   <div class="tool-row">
+    <button class="icon-btn" id="btnPhoto" aria-label="사진 찍기" title="포토 모드 📸">📸</button>
     <button class="icon-btn" id="btnChat" aria-label="채팅 열기" title="채팅">💬</button>
   </div>
 </div>
@@ -641,6 +818,16 @@
     <label class="lb">엘프 캐릭터 선택</label>
     <div id="charRow"></div>
 
+    <label class="lb">그래픽 품질 <span class="tip">기기에 맞게 골라 주세요</span></label>
+    <div class="quality-block">
+      <div class="quality-row" id="qualityRow">
+        <button type="button" class="q-btn" data-q="light" aria-label="가볍게"><b>가볍게</b><span>저사양 · 모바일</span></button>
+        <button type="button" class="q-btn" data-q="normal" aria-label="기본"><b>기본</b><span>권장</span></button>
+        <button type="button" class="q-btn" data-q="high" aria-label="고화질"><b>고화질</b><span>PC · 고사양</span></button>
+      </div>
+      <p class="q-note" id="qualityNote">선택한 품질로 입장합니다 · 나중에 바꿔도 됩니다</p>
+    </div>
+
     <div class="preview">
       <div class="fig" id="figIcon">🔔</div>
       <p><b id="figName">루카</b> <span id="figTag">· 갈색 숏컷 엘프</span>로 입장합니다<br><span style="color:#8496b3">캐릭터는 입장할 때마다 다시 고를 수 있어요</span></p>
@@ -653,10 +840,54 @@
 
 <!-- ================= 로딩 ================= -->
 <div id="loader">
-  <div>
+  <div class="lcard">
     <div class="ring"></div>
-    <p>광장을 준비하는 중…</p>
+    <p class="ltitle" id="loadTitle">광장을 준비하는 중…</p>
+    <p class="pct" id="loadPct">0%</p>
+    <div class="lbar"><i id="loadBar"></i></div>
+    <p class="lsub" id="loadSub">잠시만 기다려 주세요</p>
     <div class="err" id="loadErr"></div>
+    <div class="lbtns hidden" id="loadBtns">
+      <button type="button" id="loadRetry">🔄 다시 시도</button>
+      <button type="button" id="loadClose">닫기</button>
+    </div>
+  </div>
+</div>
+
+<!-- ================= 입장 안내 ================= -->
+<div id="guideToast" role="status">
+  <button type="button" class="gt-close" id="guideClose" aria-label="안내 닫기">✕</button>
+  <p class="gt-title">🎄 크리스마스 광장에 오신 걸 환영해요!</p>
+  <div class="gt-steps">
+    <span>① 조이스틱 · WASD 로 이동</span>
+    <span>② 트리 · 모닥불 · 오두막 둘러보기</span>
+    <span>③ 의자 앞에서 🪑 앉기</span>
+  </div>
+</div>
+
+<!-- ================= 포토 모드 ================= -->
+<div id="photoHud" aria-hidden="true">
+  <div class="ph-top">📸 포토 모드 · 화면을 드래그하면 시점을 움직일 수 있어요</div>
+  <div id="photoBar">
+    <div class="pb-row" id="poseRow">
+      <button type="button" data-pose="stand" class="on">🧍 서기</button>
+      <button type="button" data-pose="wave">👋 손흔들기</button>
+      <button type="button" data-pose="jump">🙌 점프</button>
+      <button type="button" data-pose="heart">💗 하트</button>
+    </div>
+    <div class="pb-row">
+      <button type="button" id="photoCam">↩ 원래 시점</button>
+      <button type="button" id="photoFrame" class="on">🖼 프레임</button>
+      <button type="button" id="photoTimerBtn">⚡ 즉시 촬영</button>
+      <button type="button" id="photoShutter">📸 촬영</button>
+      <button type="button" id="photoExit">나가기</button>
+    </div>
+  </div>
+  <div id="photoCount"></div>
+  <div id="photoFlash"></div>
+  <div id="photoPreview">
+    <img id="photoPreviewImg" alt="방금 찍은 사진" />
+    <p id="photoPreviewText">사진이 저장되었습니다</p>
   </div>
 </div>
 
@@ -1522,7 +1753,7 @@ const sceneRoot = document.getElementById('scene-root');
 const scene = new THREE.Scene();
 scene.fog = new THREE.FogExp2(0x7f8ab6, 0.0021);
 
-const renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: 'high-performance' });
+const renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: 'high-performance', preserveDrawingBuffer: true });
 /* 픽셀비율 상한 — 모바일(터치)은 1.5 로 묶는다. 2배 해상도 × 블룸 버퍼가
    GPU 메모리를 크게 잡아 컨텍스트 유실의 주된 원인이었다. */
 const DPR_CAP = IS_TOUCH ? 1.5 : 1.7;
@@ -1623,6 +1854,26 @@ let composerBroken = false;
    주된 방아쇠였다. 직접 render() + ACES 톤매핑으로도 충분히 화사하다. */
 const USE_POST = !IS_TOUCH;
 
+/* ---- 사용자 그래픽 품질 (로비에서 선택) ----
+   가볍게 / 기본 / 고화질 — 기기별 픽셀비율 상한과 블룸·눈 입자 밀도를 묶는다.
+   · 모바일은 어떤 단계에서도 포스트프로세싱을 쓰지 않는다(USE_POST=false).
+   · 품질을 바꾸면 렌더 버퍼를 다시 만들어야 하므로, 유실된 컨텍스트에서는
+     아예 건드리지 않고(ctxLost 가드) 적용 중 예외도 삼켜 검은 화면을 막는다. */
+const QUALITY_PRESETS = {
+  light:  { ko: '가볍게', tier: 0, dprPC: 1.0, dprTouch: 1.0,  snow: 0.5, hint: '저사양·모바일' },
+  normal: { ko: '기본',   tier: 2, dprPC: 1.7, dprTouch: 1.25, snow: 1.0, hint: '권장' },
+  high:   { ko: '고화질', tier: 2, dprPC: 2.0, dprTouch: 1.5,  snow: 1.0, hint: 'PC·고사양' },
+};
+const TIER_DPR = [1.0, 1.7, 2.0];          // 자동 하향 단계별 최대 픽셀비율
+let qualityPreset = (() => {
+  try {
+    const v = localStorage.getItem('xmas-plaza-quality-v1');
+    return QUALITY_PRESETS[v] ? v : 'normal';
+  } catch (_) { return 'normal'; }
+})();
+quality = QUALITY_PRESETS[qualityPreset].tier;
+let qualityGuardUntil = 0;                 // 품질 변경 직후 구간은 FPS 자동 판정에서 제외
+
 let composer = null;
 let bloomPass = null;
 let gradePass = null;
@@ -1680,31 +1931,57 @@ if (USE_POST) {
   composer.addPass(new OutputPass());
 }
 
+/** 눈 입자 밀도 — 가볍게 단계에서 절반만 그린다(Points drawRange). */
+function applySnowDensity(scale) {
+  try {
+    if (!snowPoints || !snowPoints.geometry) return;
+    const n = snowPoints.geometry.attributes.position.count;
+    snowPoints.geometry.setDrawRange(0, Math.max(200, Math.round(n * (scale || 1))));
+  } catch (_) { /* 아직 눈이 만들어지기 전(부팅 첫 호출) — 무시 */ }
+}
+
 /** 품질 단계 적용 (2: 풀 / 1: 블룸 약화·픽셀비율 하향 / 0: 컴포저 끔) */
 function applyQuality() {
+  const preset = QUALITY_PRESETS[qualityPreset] || QUALITY_PRESETS.normal;
+  const tier = Math.min(quality, preset.tier);          // 자동 하향을 반영한 실제 단계
   const dpr = window.devicePixelRatio || 1;
-  /* 픽셀비율은 어떤 단계에서도 DPR_CAP(모바일 1.5) 을 넘지 않는다 */
-  const cap = IS_TOUCH ? DPR_CAP : (quality >= 2 ? DPR_CAP : (quality === 1 ? Math.min(DPR_CAP, 1.25) : 1.0));
+  const cap = Math.min(IS_TOUCH ? preset.dprTouch : preset.dprPC, TIER_DPR[tier]);
   const nextDpr = Math.min(dpr, cap);
+
+  /* 컨텍스트가 유실된 상태에서 버퍼를 다시 만들면 복구가 영영 안 된다 */
+  const gl = renderer.getContext();
+  if (ctxLost || (gl && typeof gl.isContextLost === 'function' && gl.isContextLost())) return;
+  qualityGuardUntil = performance.now() + 1200;
+
   /* 같은 값이면 setPixelRatio 를 부르지 않는다(불필요한 버퍼 재할당 방지) */
-  if (Math.abs(renderer.getPixelRatio() - nextDpr) > 1e-3) renderer.setPixelRatio(nextDpr);
+  try {
+    if (Math.abs(renderer.getPixelRatio() - nextDpr) > 1e-3) renderer.setPixelRatio(nextDpr);
+  } catch (e) {
+    console.warn('pixelRatio 변경 건너뜀:', e && e.message);
+  }
+  applySnowDensity(preset.snow);
+
   if (!USE_POST || !composer) return;
-  if (quality >= 2) {
+  if (tier >= 2) {
     bloomPass.enabled = true;
     bloomPass.strength = 0.5;
     bloomPass.radius = 0.55;
     bloomPass.threshold = 0.8;
     gradePass.uniforms.uVignette.value = 0.44;
-  } else if (quality === 1) {
+  } else if (tier === 1) {
     bloomPass.enabled = true;
-    bloomPass.strength = 0.24;
-    bloomPass.threshold = 0.88;
-    gradePass.uniforms.uVignette.value = 0.34;
+    bloomPass.strength = 0.3;
+    bloomPass.threshold = 0.85;
+    gradePass.uniforms.uVignette.value = 0.4;
   } else {
     bloomPass.enabled = false;
   }
-  composer.setPixelRatio(renderer.getPixelRatio());
-  composer.setSize(window.innerWidth, window.innerHeight);
+  try {
+    composer.setPixelRatio(renderer.getPixelRatio());
+    composer.setSize(window.innerWidth, window.innerHeight);
+  } catch (e) {
+    console.warn('composer 버퍼 재설정 건너뜀:', e && e.message);
+  }
 }
 applyQuality();
 
@@ -6318,12 +6595,40 @@ function exitInterior() {
   if (me) { me.root.position.copy(playerPos); me.root.rotation.y = playerYaw.v; me.pose = 'stand'; }
   applyCamLimits();
   const narrow = window.innerWidth / window.innerHeight < 0.85;
-  rig.yaw = playerYaw.v - Math.PI;
+  /* 나올 때 캐릭터 뒤는 오두막 벽이다 — 카메라가 설 자리가 트인 방향을 골라 잡는다 */
+  const camD = narrow ? 7.4 : 6.6;
+  let bestYaw = playerYaw.v - Math.PI;
+  for (const off of [0, 0.9, -0.9, 1.7, -1.7, Math.PI]) {
+    const yaw = playerYaw.v - Math.PI + off;
+    const cx2 = playerPos.x + Math.sin(yaw) * camD;
+    const cz2 = playerPos.z + Math.cos(yaw) * camD;
+    if (!walkableAt(cx2, cz2)) continue;
+    let inside = false;
+    for (const c of colliders) {
+      if (Math.hypot(cx2 - c.x, cz2 - c.z) < c.r + 0.45) { inside = true; break; }
+    }
+    if (inside) continue;
+    bestYaw = yaw;
+    break;
+  }
+  rig.yaw = bestYaw;
   rig.pitch = narrow ? 0.21 : 0.19;
-  rig.dist = 6.6;
-  rig.targetDist = narrow ? 7.4 : 6.6;
+  rig.targetDist = camD;
+  rig.dist = rig.targetDist;
   rig.lookAt.set(playerPos.x, playerPos.y + 1.45, playerPos.z);
   rig.snap = true;
+  /* 실내 좌표(z≈260)에 남아 있던 카메라가 한 프레임이라도 보이지 않게
+     광장 좌표로 바로 옮겨 놓는다 — 문을 나설 때 카메라가 갇히는 현상 방지 */
+  {
+    const cosP = Math.cos(rig.pitch);
+    camera.position.set(
+      rig.lookAt.x + Math.sin(rig.yaw) * cosP * rig.dist,
+      rig.lookAt.y + Math.sin(rig.pitch) * rig.dist,
+      rig.lookAt.z + Math.cos(rig.yaw) * cosP * rig.dist
+    );
+    limitCamera(camera.position);
+    camera.lookAt(rig.lookAt);
+  }
   setWorldLayer(false);
   syncZoneVisibility();
   addChatLine('', '❄️ <b>광장</b>으로 나왔습니다', false, true);
@@ -6418,6 +6723,13 @@ window.addEventListener('keydown', (e) => {
   const tag = (e.target && e.target.tagName) || '';
   if (tag === 'INPUT' || tag === 'TEXTAREA') return;
   if (e.code !== 'KeyF' && e.code !== 'KeyE') return;
+  /* 키 역할을 겹치지 않게 나눈다.
+     · E — 앉을 자리 앞에서 앉기/일어서기 (그 외에는 문)
+     · F — 문 (단, 앉아 있으면 일어서기)
+     예전에는 자리 앞에서 E 를 눌러도 문으로 나가 버렸다. */
+  if (e.code === 'KeyE' && (SIT.near || SIT.active)) return;
+  if (e.code === 'KeyF' && SIT.active) return;
+  if (e.code === 'KeyE' && SIT.near) return;
   if (ZONE.mode === 'interior') { e.preventDefault(); doorTravel('out'); }
   else if (nearDoorIdx >= 0) { e.preventDefault(); doorTravel('in'); }
 });
@@ -6598,11 +6910,14 @@ buildDoorMarkers();
 
 /* ---------- .glb 로더 ---------- */
 const gltfLoader = new GLTFLoader();
-const CHAR_PROTO = new Map();       // 파일명 → { scene, animations }
+const CHAR_PROTO = new Map();       // 파일명 → { scene, animations, naturalHeight, naturalMinY }
+const CHAR_LOADS = new Map();       // 파일명 → 진행 중인 로드 Promise (중복 요청 방지)
+const CHAR_PROGRESS = new Map();    // 파일명 → { loaded, total }  (로딩 % 표시용)
 let assetsReady = false;
-function loadGLB(file) {
+
+function loadGLB(file, onProgress) {
   return new Promise((resolve, reject) => {
-    gltfLoader.load('./assets/' + file, resolve, undefined,
+    gltfLoader.load('./assets/' + file, resolve, onProgress,
       (e) => reject(new Error(file + ' 로드 실패' + (e && e.message ? ': ' + e.message : ''))));
   });
 }
@@ -6640,61 +6955,98 @@ function skinnedWorldBox(root) {
   return box;
 }
 
-async function loadAssets() {
-  /* 배경 .glb 는 더 이상 읽지 않는다 — 광장은 buildGround() 가 코드로 지었고,
-     그만큼 내려받는 용량(-4.8MB)과 삼각형 수가 크게 줄어 모바일이 가볍다. */
-  const [santaGltf, ...chars] = await Promise.all([
-    /* 이연 님이 보내준 산타·루돌프 장면 (없으면 절차적 배경 인형으로 폴백) */
-    loadGLB('santa_rudolph.glb').catch(() => null),
-    ...CHARACTERS.map((c) => loadGLB(c.glb)),
-  ]);
-
-  if (santaGltf) placeSantaRudolphGLB(santaGltf);
-
-  CHARACTERS.forEach((c, i) => {
-    const g = chars[i];
-    g.scene.traverse((o) => {
-      if (!o.isMesh) return;
-      o.castShadow = true;
-      o.receiveShadow = true;
-      o.frustumCulled = false;             // 스킨드 메쉬 컬링로 사라지는 것 방지
-      /* 캐릭터 PBR 보정 + 림 — .glb 원본은 금속도가 높아 어둡게 죽어 있고
-         환경 반사를 거의 안 받아 납작해 보인다. */
-      const mats = Array.isArray(o.material) ? o.material : [o.material];
-      mats.forEach((m) => {
-        if (!m || m.userData.charTuned) return;
-        m.userData.charTuned = true;
-        if (m.isMeshStandardMaterial) {
-          if (m.metalness !== undefined && m.metalness > 0.6) m.metalness = 0.35;
-          if (m.roughness !== undefined) m.roughness = clamp(m.roughness, 0.45, 1);
-          m.envMapIntensity = 0.75;
-        }
-        addRim(m, IS_TOUCH ? 0.42 : 0.62, 2.9);
-      });
-    });
-    /* .glb 원본을 idle 포즈로 한 번 세워 보고 "실제 렌더 키"를 잰다.
-       그 값으로 아바타 생성 시 목표 키로 정확히 정규화한다
-       (Tripo 생성물마다 원본 스케일·리그가 달라 그대로 곱하면 키 차이가 벌어진다) */
-    const probe = cloneSkinned(g.scene);
-    const idleClip = g.animations.find((a) => /idle|relax/i.test(a.name)) || g.animations[0];
-    const probeMixer = idleClip ? new THREE.AnimationMixer(probe) : null;
-    if (probeMixer) {
-      probeMixer.clipAction(idleClip).play();
-      probeMixer.update(0);                    // idle 첫 프레임 포즈
-    }
-    const bbox = skinnedWorldBox(probe);
-    if (probeMixer) probeMixer.stopAllAction();
-    const natH = Math.max(0.001, bbox.max.y - bbox.min.y);
-    CHAR_PROTO.set(c.glb, {
-      scene: g.scene, animations: g.animations,
-      naturalHeight: natH, naturalMinY: bbox.min.y,
+/* ---------------------------------------------------------------
+   캐릭터 .glb — 선택한 한 명만 먼저, 나머지는 입장 후 백그라운드
+   ---------------------------------------------------------------
+   예전에는 입장 전에 3종(약 16MB)을 모두 받아 로비가 늦게 떴다.
+   지금은 · 로비는 썸네일(base64)만으로 바로 뜨고
+          · 입장 버튼을 누른 캐릭터 하나만 진행률과 함께 받으며
+          · 나머지 둘은 입장 뒤 조용히, 다른 사람이 그 캐릭터로 들어오면
+            그때 온디맨드로 받는다.
+     --------------------------------------------------------------- */
+function tuneCharacterProto(c, g) {
+  g.scene.traverse((o) => {
+    if (!o.isMesh) return;
+    o.castShadow = true;
+    o.receiveShadow = true;
+    o.frustumCulled = false;             // 스킨드 메쉬 컬링로 사라지는 것 방지
+    /* 캐릭터 PBR 보정 + 림 — .glb 원본은 금속도가 높아 어둡게 죽어 있고
+       환경 반사를 거의 안 받아 납작해 보인다. */
+    const mats = Array.isArray(o.material) ? o.material : [o.material];
+    mats.forEach((m) => {
+      if (!m || m.userData.charTuned) return;
+      m.userData.charTuned = true;
+      if (m.isMeshStandardMaterial) {
+        if (m.metalness !== undefined && m.metalness > 0.6) m.metalness = 0.35;
+        if (m.roughness !== undefined) m.roughness = clamp(m.roughness, 0.45, 1);
+        m.envMapIntensity = 0.75;
+      }
+      addRim(m, IS_TOUCH ? 0.42 : 0.62, 2.9);
     });
   });
-
-  assetsReady = true;
-  /* 산타·루돌프 .glb 가 있으면 그것을 쓰고, 없을 때만 절차적 인형을 세운다 */
-  if (!santaRudolph) placeBackgroundProps();
+  /* .glb 원본을 idle 포즈로 한 번 세워 보고 "실제 렌더 키"를 잰다.
+     그 값으로 아바타 생성 시 목표 키로 정확히 정규화한다
+     (Tripo 생성물마다 원본 스케일·리그가 달라 그대로 곱하면 키 차이가 벌어진다) */
+  const probe = cloneSkinned(g.scene);
+  const idleClip = g.animations.find((a) => /idle|relax/i.test(a.name)) || g.animations[0];
+  const probeMixer = idleClip ? new THREE.AnimationMixer(probe) : null;
+  if (probeMixer) {
+    probeMixer.clipAction(idleClip).play();
+    probeMixer.update(0);                    // idle 첫 프레임 포즈
+  }
+  const bbox = skinnedWorldBox(probe);
+  if (probeMixer) probeMixer.stopAllAction();
+  const natH = Math.max(0.001, bbox.max.y - bbox.min.y);
+  CHAR_PROTO.set(c.glb, {
+    scene: g.scene, animations: g.animations,
+    naturalHeight: natH, naturalMinY: bbox.min.y,
+  });
 }
+
+/** 캐릭터 한 명을 받아 CHAR_PROTO 에 등록한다(이미 있으면 즉시 resolve). */
+function loadCharacterGLB(c, onProgress) {
+  if (!c) return Promise.reject(new Error('unknown character'));
+  if (CHAR_PROTO.has(c.glb)) return Promise.resolve(true);
+  if (CHAR_LOADS.has(c.glb)) return CHAR_LOADS.get(c.glb);
+  CHAR_PROGRESS.set(c.glb, { loaded: 0, total: 0 });
+  const p = loadGLB(c.glb, (ev) => {
+    const rec = CHAR_PROGRESS.get(c.glb) || { loaded: 0, total: 0 };
+    if (ev && ev.loaded) rec.loaded = ev.loaded;
+    if (ev && ev.total) rec.total = ev.total;
+    CHAR_PROGRESS.set(c.glb, rec);
+    if (onProgress) { try { onProgress(rec); } catch (_) {} }
+  }).then((g) => {
+    tuneCharacterProto(c, g);
+    return true;
+  });
+  CHAR_LOADS.set(c.glb, p);
+  /* 실패해도 다음 시도(재시도 버튼·온디맨드)가 새로 받을 수 있게 캐시를 비운다 */
+  p.then(() => CHAR_LOADS.delete(c.glb), () => CHAR_LOADS.delete(c.glb));
+  return p;
+}
+
+/* 입장 후 나머지 캐릭터를 조용히 미리 받아 둔다 — 첫 프레임이 끝난 뒤부터 */
+let charWarmStarted = false;
+function warmOtherCharacters(exceptId) {
+  if (charWarmStarted) return;
+  charWarmStarted = true;
+  const rest = CHARACTERS.filter((c) => c.id !== exceptId);
+  let i = 0;
+  const next = () => {
+    if (i >= rest.length) return;
+    const c = rest[i++];
+    loadCharacterGLB(c).catch(() => {}).then(() => setTimeout(next, 300));
+  };
+  setTimeout(next, 4000);      // 입장 직후 조작·안내가 끝난 뒤에 조용히 받는다
+}
+
+/* 배경 장식(산타·루돌프)은 로비를 막지 않고 뒤에서 받는다 */
+function loadSantaBackground() {
+  loadGLB('santa_rudolph.glb')
+    .then((g) => { if (g) placeSantaRudolphGLB(g); })
+    .catch(() => { if (!santaRudolph) placeBackgroundProps(); });
+}
+
 
 /* ---------------------------------------------------------------
    3-C. 배경용 산타 · 루돌프 (상호작용 없는 장식)
@@ -7579,15 +7931,24 @@ if (IS_TOUCH) joystickEl.classList.add('active');
 --------------------------------------------------------------- */
 const labelsRoot = document.getElementById('labels');
 const players = new Map();
+/* 데모 모드의 NPC 봇 — id 규칙('bot-xxxxx')으로 실제 접속자와 구분한다 */
+const isNpcId = (id) => /^bot-/.test(String(id || ''));
 
-function makeLabel(nickname, isMe) {
+function makeLabel(nickname, isMe, isNpc) {
   const el = document.createElement('div');
   el.className = 'avatar-label' + (isMe ? ' me' : '');
   const bubble = document.createElement('div');
   bubble.className = 'bubble';
   const tag = document.createElement('div');
   tag.className = 'tag';
-  tag.textContent = (isMe ? '★ ' : '') + nickname;
+  /* 실제 접속자와 NPC 를 이름표에서 바로 구별할 수 있게 [NPC] 배지 */
+  if (isNpc) {
+    const badge = document.createElement('span');
+    badge.className = 'badge-npc';
+    badge.textContent = 'NPC';
+    tag.appendChild(badge);
+  }
+  tag.appendChild(document.createTextNode((isMe ? '★ ' : '') + nickname));
   el.appendChild(bubble);
   el.appendChild(tag);
   labelsRoot.appendChild(el);
@@ -7603,11 +7964,12 @@ function addPlayer(p) {
   root.visible = p.id !== 'me' && (p.zone || 'p') === (ZONE.mode === 'interior' ? 'i' : 'p');
   scene.add(root);
 
-  const lab = makeLabel(p.nickname, p.id === 'me');
+  const npc = isNpcId(p.id);
+  const lab = makeLabel(p.nickname, p.id === 'me', npc);
   players.set(p.id, {
     id: p.id, nickname: p.nickname, character: p.character,
     root, label: lab, tx: p.x, tz: p.z, tyaw: p.yaw, moving: false, pose: p.pose || 'stand', seat: -1,
-    bubbleTimer: 0, isMe: p.id === 'me', accent: charById(p.character).accent, zone: p.zone || 'p',
+    bubbleTimer: 0, isMe: p.id === 'me', isNpc: npc, accent: charById(p.character).accent, zone: p.zone || 'p',
   });
   renderPlayerList();
 }
@@ -7676,6 +8038,18 @@ function renderPlayerList() {
     nm.className = 'nm';
     nm.textContent = p.nickname;
     li.appendChild(sw); li.appendChild(st); li.appendChild(nm);
+    if (p.isNpc) {
+      const npc = document.createElement('span');
+      npc.className = 'npc';
+      npc.textContent = 'NPC';
+      li.appendChild(npc);
+    }
+    /* 지금 광장에 있는지 오두막(집 안)에 있는지 */
+    const zone = p.isMe ? (ZONE.mode === 'interior' ? 'i' : 'p') : p.zone;
+    const loc = document.createElement('span');
+    loc.className = 'loc';
+    loc.textContent = zone === 'i' ? '🏠 오두막' : '🎄 광장';
+    li.appendChild(loc);
     if (p.isMe) {
       const em = document.createElement('em');
       em.textContent = '나';
@@ -7683,6 +8057,7 @@ function renderPlayerList() {
     }
     playerListEl.appendChild(li);
   });
+  renderNetStatus();
 }
 
 /* --- 토스트 --- */
@@ -7734,22 +8109,33 @@ async function copyText(t) {
 }
 
 function setNetStatus(s) {
+  if (s) lastNetState = s;
+  renderNetStatus();
+}
+
+let lastNetState = { state: 'idle' };
+
+/** 연결 배지 — 실제 접속자 수(N) · 재연결 · 혼자 둘러보기를 명확히 나눠 보여준다 */
+function renderNetStatus() {
+  const s = lastNetState || { state: 'idle' };
   netStatusEl.classList.remove('live', 'demo', 'err');
   const txt = netStatusText;
+  const others = Math.max(0, players.size - (players.has('me') ? 1 : 0));
   if (s.state === 'live') {
     netStatusEl.classList.add('live');
-    txt.textContent = `실시간 · ${s.room}`;
+    txt.textContent = others > 0 ? `친구와 연결됨 (${others}명)` : '친구와 연결됨 (0명)';
+    netStatusEl.title = `실시간 연결 · 방 ${s.room || state.room} · 나를 뺀 접속자 ${others}명`;
     panelNoteEl.textContent = '같은 방 코드로 들어온 사람과 실시간으로 함께 걸어요. 아래 버튼으로 초대 링크를 복사해 보내면 바로 만날 수 있습니다.';
   } else if (s.state === 'connecting' || s.state === 'retry') {
     txt.textContent = '실시간 연결 중…';
   } else if (s.state === 'reconnecting') {
     netStatusEl.classList.add('err');
     txt.textContent = '재연결 중…';
-    if ((s.attempt || 1) >= 2) toast('🛰 연결이 끊겨 다시 연결하는 중이에요', 2600);
   } else if (s.state === 'demo') {
     netStatusEl.classList.add('demo');
-    txt.textContent = '혼자 둘러보기';
-    panelNoteEl.textContent = '지금은 혼자 둘러보기(데모) 모드예요. 엘프 NPC들이 광장을 거닐며 인사를 건넵니다. 다른 사람과 함께 걷기: 실시간 서버에 접속되면 자동으로 전환됩니다.';
+    txt.textContent = '혼자 둘러보는 중';
+    netStatusEl.title = '지금은 혼자 둘러보기(데모) 모드 — 이름표에 NPC 배지가 붙은 엘프들은 실제 접속자가 아닙니다';
+    panelNoteEl.textContent = '지금은 혼자 둘러보기(데모) 모드예요. [NPC] 배지가 붙은 엘프들은 실제 접속자가 아닙니다. 다른 사람과 함께 걷기: 실시간 서버에 접속되면 자동으로 전환됩니다.';
   } else if (s.state === 'failed') {
     netStatusEl.classList.add('err');
     txt.textContent = '오프라인';
@@ -7991,15 +8377,138 @@ updatePreview();
 const joinModal = document.getElementById('joinModal');
 const joinForm = document.getElementById('joinForm');
 const loader = document.getElementById('loader');
+const loadTitleEl = document.getElementById('loadTitle');
+const loadPctEl = document.getElementById('loadPct');
+const loadBarEl = document.getElementById('loadBar');
+const loadSubEl = document.getElementById('loadSub');
+const loadErrEl = document.getElementById('loadErr');
+const loadBtnsEl = document.getElementById('loadBtns');
+const loadRetryEl = document.getElementById('loadRetry');
+const loadCloseEl = document.getElementById('loadClose');
 
-joinForm.addEventListener('submit', (e) => {
-  e.preventDefault();
-  if (state.joined) return;
-  document.body.classList.remove('pre');
+/* ---------- 그래픽 품질 선택 (가볍게 / 기본 / 고화질) ---------- */
+const qualityRow = document.getElementById('qualityRow');
+const qualityNote = document.getElementById('qualityNote');
+function syncQualityUi() {
+  const preset = QUALITY_PRESETS[qualityPreset] || QUALITY_PRESETS.normal;
+  if (qualityRow) {
+    [...qualityRow.children].forEach((b) => b.classList.toggle('sel', b.dataset.q === qualityPreset));
+  }
+  if (qualityNote) qualityNote.textContent = `${preset.ko} · ${preset.hint} — 선택한 품질로 입장합니다`;
+}
+function setQualityPreset(key) {
+  if (!QUALITY_PRESETS[key]) return;
+  qualityPreset = key;
+  quality = QUALITY_PRESETS[key].tier;
+  try { localStorage.setItem('xmas-plaza-quality-v1', key); } catch (_) {}
+  syncQualityUi();
+  /* 짧은 디바운스 — 연타로 GPU 버퍼를 반복 재할당하지 않게 한다.
+     실제 적용은 applyQuality() 안의 컨텍스트 유실 가드를 통과할 때만 일어난다. */
+  clearTimeout(setQualityPreset.timer);
+  setQualityPreset.timer = setTimeout(() => { try { applyQuality(); } catch (_) {} }, 180);
+  return qualityPreset;
+}
+if (qualityRow) {
+  qualityRow.addEventListener('click', (e) => {
+    const b = e.target.closest('.q-btn');
+    if (!b) return;
+    setQualityPreset(b.dataset.q);
+    if (state.joined) toast(`🖥 그래픽 품질 · ${QUALITY_PRESETS[qualityPreset].ko}`, 2000);
+  });
+}
+syncQualityUi();
+
+/* ---------- 선택한 캐릭터만 로딩 (진행률 % · 실패 시 재시도) ---------- */
+let charLoadTick = 0;
+function showCharLoader(c) {
+  loader.classList.remove('hidden', 'out');
+  loadTitleEl.textContent = `${c.name} 엘프를 불러오는 중…`;
+  loadPctEl.textContent = '0%';
+  loadBarEl.style.width = '0%';
+  loadSubEl.textContent = '캐릭터 파일을 내려받고 있어요';
+  loadErrEl.textContent = '';
+  loadBtnsEl.classList.add('hidden');
+  clearInterval(charLoadTick);
+  const mb = (n) => (n / 1048576).toFixed(1);
+  charLoadTick = setInterval(() => {
+    const r = CHAR_PROGRESS.get(c.glb) || { loaded: 0, total: 0 };
+    let pct;
+    if (r.total > 0) pct = Math.min(99, Math.round((r.loaded / r.total) * 100));
+    else pct = Math.min(95, Math.round((r.loaded / 4200000) * 100));
+    loadPctEl.textContent = pct + '%';
+    loadBarEl.style.width = pct + '%';
+    if (r.total > 0) loadSubEl.textContent = `${mb(r.loaded)} / ${mb(r.total)}MB`;
+    else if (r.loaded > 0) loadSubEl.textContent = `${mb(r.loaded)}MB 내려받는 중`;
+  }, 110);
+}
+function hideCharLoader() {
+  clearInterval(charLoadTick);
+  loader.classList.add('hidden');
+  loader.classList.remove('out');
+}
+function loadChosenCharacter(c) {
+  showCharLoader(c);
+  return loadCharacterGLB(c).then(() => {
+    clearInterval(charLoadTick);
+    loadPctEl.textContent = '100%';
+    loadBarEl.style.width = '100%';
+    loadSubEl.textContent = '준비 완료';
+    return true;
+  }).catch((err) => {
+    clearInterval(charLoadTick);
+    console.error(err);
+    loadErrEl.textContent = `${c.name} 캐릭터 파일을 불러오지 못했어요. 네트워크 연결을 확인하고 다시 시도해 주세요.`;
+    loadBtnsEl.classList.remove('hidden');
+    throw err;
+  });
+}
+
+/* ---------- 입장 안내 토스트 (세션당 1회) ---------- */
+const guideToastEl = document.getElementById('guideToast');
+let guideTimer = 0;
+function showGuide() {
+  window.__guideLog = (window.__guideLog || []);
+  window.__guideLog.push({ at: Math.round(performance.now()), session: (() => { try { return sessionStorage.getItem('xmas-guide-v1'); } catch (_) { return 'err'; } })() });
+  try {
+    if (sessionStorage.getItem('xmas-guide-v1') === '1') return;
+    sessionStorage.setItem('xmas-guide-v1', '1');
+  } catch (_) {}
+  guideToastEl.classList.add('show');
+  window.__guideLog.push({ shown: Math.round(performance.now()) });
+  clearTimeout(guideTimer);
+  guideTimer = setTimeout(() => guideToastEl.classList.remove('show'), 7600);
+}
+document.getElementById('guideClose').addEventListener('click', () => {
+  clearTimeout(guideTimer);
+  guideToastEl.classList.remove('show');
+});
+
+let entryBusy = false;
+
+/** 입장 — 선택한 캐릭터 .glb 를 받은 뒤에만 광장으로 넘어간다 */
+async function attemptEntry() {
+  if (state.joined || entryBusy) return;
   let nick = (nickInput.value || '').trim().replace(/\s+/g, ' ');
   if (nick.length === 0) nick = '이연';
   if (nick.length > 10) nick = nick.slice(0, 10);
   state.profile.nickname = nick;
+
+  entryBusy = true;
+  const c = charById(state.profile.character);
+  try {
+    await loadChosenCharacter(c);
+  } catch (_) {
+    entryBusy = false;      // 오버레이의 [다시 시도] 로 재시도
+    return;
+  }
+  entryBusy = false;
+  hideCharLoader();
+  finishEntry(nick);
+}
+
+function finishEntry(nick) {
+  if (state.joined) return;
+  document.body.classList.remove('pre');
   state.joined = true;
   refreshRoomUi();
   state.room = sanitizeRoom(roomInput.value);
@@ -8025,14 +8534,32 @@ joinForm.addEventListener('submit', (e) => {
   rig.yaw = 0.48;      // 광장을 비스듬히 내려다보는 3/4 시점
   const narrow = window.innerWidth / window.innerHeight < 0.85;
   rig.pitch = narrow ? 0.21 : 0.19;   // 광장이 넓어진 만큼 조금 낮춰 나무·마을이 함께 보이게
-  rig.dist = 15;
-  rig.targetDist = narrow ? 10.4 : 8.6;
+  rig.dist = narrow ? 10.4 : 8.6;
+  rig.targetDist = rig.dist;
   rig.lookAt.set(SPAWN.x, 2.2, SPAWN.z);
+  /* 로비 카메라(높이 40m) → 플레이어 시점으로 부드럽게 날아오면
+     중간에 오두막 지붕을 통과해 화면이 가린다. 입장 순간에 바로 잡는다. */
+  rig.snap = true;
 
   addChatLine('', '🎄 <b>' + nick + '</b> 님이 <b>#' + state.room + '</b> 광장에 입장했습니다', false, true);
-  toast(`🎄 ${charById(state.profile.character).name} 엘프로 입장했습니다!`, 3200);
-  setTimeout(() => toast('🔗 같은 방 코드를 공유하면 친구와 함께 걸을 수 있어요', 3200), 4200);
+  toast(`🎄 ${charById(state.profile.character).name} 엘프로 입장했습니다!`, 2600);
+  setTimeout(showGuide, 1200);            // 캐릭터 로딩 직후 몰리는 프레임을 피해서 띄운다
   setTimeout(() => document.getElementById('hint').classList.add('fade'), 7000);
+
+  warmOtherCharacters(state.profile.character);   // 나머지 엘프는 뒤에서 조용히
+}
+
+joinForm.addEventListener('submit', (e) => {
+  e.preventDefault();
+  attemptEntry();
+});
+loadRetryEl.addEventListener('click', () => {
+  loadBtnsEl.classList.add('hidden');
+  loadErrEl.textContent = '';
+  attemptEntry();
+});
+loadCloseEl.addEventListener('click', () => {
+  hideCharLoader();
 });
 
 /* 네트워크 이벤트 */
@@ -8042,13 +8569,28 @@ net.on('notice', (n) => {
   addChatLine('', `정원(${MAX_PLAYERS}명)이 가득 차 <b>혼자 둘러보기</b> 모드로 전환했습니다. 다른 방 코드로 입장해 보세요`, false, true);
   toast(`😥 방 ${n.room} 이 가득 찼어요 — 혼자 둘러보기로 전환`, 4200);
 });
+/* 다른 사람이 아직 받지 않은 캐릭터로 들어오면 그때 온디맨드로 받는다 */
+const pendingPeerJoins = new Map();
+
 net.on('join', (p) => {
-  addPlayer({ ...p, x: p.x ?? 0, z: p.z ?? 0, yaw: p.yaw ?? 0 });
-  addChatLine('', `<b>${p.nickname}</b> 님이 입장했습니다`, false, true);
-  toast(`${charById(p.character).icon} ${p.nickname} 님이 입장했습니다`);
-  spawnFloater(p.id, '👋');
+  const c = charById(p.character);
+  const arrive = () => {
+    pendingPeerJoins.delete(p.id);
+    if (!state.joined || players.has(p.id)) return;
+    addPlayer({ ...p, x: p.x ?? 0, z: p.z ?? 0, yaw: p.yaw ?? 0 });
+    addChatLine('', `<b>${p.nickname}</b> 님이 입장했습니다`, false, true);
+    toast(`${charById(p.character).icon} ${p.nickname} 님이 입장했습니다`);
+    spawnFloater(p.id, '👋');
+  };
+  if (CHAR_PROTO.has(c.glb)) { arrive(); return; }
+  pendingPeerJoins.set(p.id, true);
+  loadCharacterGLB(c).then(arrive).catch(() => {
+    pendingPeerJoins.delete(p.id);
+    console.warn('캐릭터 준비 실패:', c.glb);
+  });
 });
 net.on('leave', (p) => {
+  pendingPeerJoins.delete(p.id);
   addChatLine('', `<b>${p.nickname}</b> 님이 퇴장했습니다`, false, true);
   removePlayer(p.id);
 });
@@ -8144,6 +8686,509 @@ btnBgm.addEventListener('click', () => {
   }
 });
 
+/* =================================================================
+   8-B. ✨ 중앙 트리 포토존 · 단체 사진(포토 모드)
+   -----------------------------------------------------------------
+   · 트리 앞 바닥에 은은한 눈꽃·별 링 마커
+   · 📸 버튼(항상 보임) 또는 포토존 근처에서 진입
+   · 진입 시 조작 UI 전부 숨김 + 트리와 캐릭터가 함께 담기는 구도
+   · 포즈(손흔들기·점프·하트) / 즉시·3초 타이머 / 기념 프레임 / 나가기
+   · 촬영은 렌더 직후 WebGL 캔버스를 2D 캔버스로 옮겨 프레임을 합성한 뒤
+     고화질 PNG 로 저장한다(검은 화면이면 한 번 더 렌더해 재시도).
+   ================================================================= */
+const PHOTO_SPOT = { x: 0.9, z: 8.6 };
+const PHOTO_CAM = { pos: new THREE.Vector3(), look: new THREE.Vector3() };
+const PHOTO = {
+  active: false, pose: 'stand', frame: true, timer: 3, camMode: 'preset',
+  saved: null, busy: false, shots: 0, near: false, lastStats: null, lastUrl: '',
+};
+const btnPhotoEl = document.getElementById('btnPhoto');
+const btnCamResetEl = document.getElementById('btnCamReset');
+const photoHudEl = document.getElementById('photoHud');
+const poseRowEl = document.getElementById('poseRow');
+const photoCountEl = document.getElementById('photoCount');
+const photoFlashEl = document.getElementById('photoFlash');
+const photoPreviewEl = document.getElementById('photoPreview');
+const photoPreviewImg = document.getElementById('photoPreviewImg');
+const photoPreviewText = document.getElementById('photoPreviewText');
+const photoCamBtn = document.getElementById('photoCam');
+const photoFrameBtn = document.getElementById('photoFrame');
+const photoTimerBtn = document.getElementById('photoTimerBtn');
+let photoRing = null;
+let photoTreeH = 11;
+let photoTreeR = 5.0;
+let photoPreviewTimer = 0;
+let photoHeart = null;
+
+/* --- 바닥 마커 텍스처: 금빛 링 + 눈꽃 12개 --- */
+function photoRingTexture() {
+  return canvasTexture(512, 512, (c, w, h) => {
+    const cx = w / 2, cy = h / 2;
+    c.clearRect(0, 0, w, h);
+    const ring = (r, lw, col, dash, gap) => {
+      c.beginPath();
+      c.strokeStyle = col;
+      c.lineWidth = lw;
+      c.setLineDash([dash, gap]);
+      c.arc(cx, cy, r, 0, Math.PI * 2);
+      c.stroke();
+    };
+    ring(232, 5, 'rgba(255,236,190,0.92)', 26, 16);
+    ring(204, 2, 'rgba(255,255,255,0.5)', 4, 11);
+    ring(150, 1.6, 'rgba(255,244,214,0.32)', 3, 13);
+    const flake = (x, y, s, col) => {
+      c.save(); c.translate(x, y); c.strokeStyle = col; c.lineWidth = 3 * s; c.setLineDash([]);
+      for (let i = 0; i < 3; i++) {
+        c.rotate(Math.PI / 3);
+        c.beginPath(); c.moveTo(-12 * s, 0); c.lineTo(12 * s, 0); c.stroke();
+      }
+      c.restore();
+    };
+    for (let i = 0; i < 12; i++) {
+      const a = (i / 12) * Math.PI * 2;
+      flake(cx + Math.cos(a) * 232, cy + Math.sin(a) * 232, 1.1, 'rgba(255,248,226,0.95)');
+      if (i % 2 === 0) flake(cx + Math.cos(a + 0.26) * 168, cy + Math.sin(a + 0.26) * 168, 0.7, 'rgba(255,226,168,0.7)');
+    }
+    flake(cx, cy, 1.5, 'rgba(255,240,200,0.5)');
+  });
+}
+
+function buildPhotoZone() {
+  const treeObj = scene.getObjectByName('plaza-tree');
+  if (treeObj) {
+    const bb = new THREE.Box3().setFromObject(treeObj);
+    const hh = bb.max.y - bb.min.y;
+    const rr = Math.max(bb.max.x - bb.min.x, bb.max.z - bb.min.z) * 0.5;
+    if (Number.isFinite(hh) && hh > 3) photoTreeH = hh;
+    if (Number.isFinite(rr) && rr > 1) photoTreeR = rr;
+  }
+  const tex = photoRingTexture();
+  tex.anisotropy = 4;
+  const mat = new THREE.MeshBasicMaterial({
+    map: tex, transparent: true, opacity: 0.55, depthWrite: false,
+    blending: THREE.AdditiveBlending, side: THREE.DoubleSide, fog: false,
+  });
+  photoRing = new THREE.Mesh(new THREE.PlaneGeometry(5.4, 5.4), mat);
+  photoRing.rotation.x = -Math.PI / 2;
+  photoRing.position.set(PHOTO_SPOT.x, groundY(PHOTO_SPOT.x, PHOTO_SPOT.z) + 0.035, PHOTO_SPOT.z);
+  photoRing.renderOrder = 3;
+  photoRing.name = 'photo-zone';
+  scene.add(photoRing);
+}
+
+/* --- 포토 모드 구도 — 트리와 캐릭터가 함께 담기고, 벽에 가리지 않는 시점을 고른다 ---
+   · 후보: 캐릭터 뒤·옆(좌/우/정면) 여러 거리
+   · 조건: 광장 안(walkableAt) · 건물 콜라이더 밖 · 트리 전체가 화면에 들어오는가
+   · 화각을 조금 넓혀(PHOTO_FOV) 친구 여러 명이 서도 함께 들어온다. */
+const PHOTO_FOV = 68;
+function photoCameraTarget(outPos, outLook) {
+  const cx = playerPos.x, cz = playerPos.z;
+  let dx = cx, dz = cz;                      // 트리(0,0) → 캐릭터 방향
+  const d0 = Math.hypot(dx, dz);
+  if (d0 < 0.6) { dx = 0; dz = 1; } else { dx /= d0; dz /= d0; }
+  const narrow = window.innerWidth / window.innerHeight < 0.85;
+  const side = narrow ? 1.0 : 1.8;
+  const camY = groundY(cx, cz) + 2.0;
+  const halfV = THREE.MathUtils.degToRad(camera.fov * 0.5);
+  const halfH = Math.atan(Math.tan(halfV) * Math.max(0.2, camera.aspect));
+  const treeTop = Math.max(6, photoTreeH);
+  const limitV = halfV * 0.9;                // 위아래 여유 10%
+  const limitH = halfH * 0.92;               // 좌우 여유 8% (세로 화면에서는 이쪽이 빡빡하다)
+
+  const cands = [];
+  for (const sgn of [1, -1, 0]) {
+    for (let D = 6.0; D <= 13.0; D += 0.35) {
+      const px = cx + dx * D - dz * side * sgn;
+      const pz = cz + dz * D + dx * side * sgn;
+      if (!walkableAt(px, pz)) continue;     // 광장 밖(건물 사이)은 쓰지 않는다
+      let blocked = false;
+      for (let ci = 0; ci < colliders.length; ci++) {
+        const c = colliders[ci];
+        if (Math.hypot(px - c.x, pz - c.z) < c.r + 0.55) { blocked = true; break; }
+      }
+      if (blocked) continue;
+      const distTree = Math.max(2.0, Math.hypot(px, pz));
+      const aTopTree = Math.atan2(treeTop - camY, distTree);
+      const aFeet = Math.atan2(-camY, D);
+      const aHalfWidth = Math.atan2(photoTreeR + 0.6, distTree);
+      const fits = (aTopTree - aFeet) <= limitV * 2 && aHalfWidth <= limitH;
+      cands.push({ D, px, pz, distTree, aTopTree, aFeet, fits });
+    }
+  }
+  let pick = cands.find((c) => c.fits);
+  if (!pick && cands.length) pick = cands[cands.length - 1];   // 가장 먼 후보(가장 많이 담기는)
+  if (!pick) {
+    const px = cx + dx * 9, pz = cz + dz * 9;
+    pick = { D: 9, px, pz, distTree: Math.max(2, Math.hypot(px, pz)), aTopTree: halfV * 0.9, aFeet: -halfV * 0.5 };
+  }
+  let axis = pick.aFeet + halfV * 0.62;         // 캐릭터 발이 화면 아래 1/6 위에 오게
+  if (axis < pick.aTopTree - halfV * 0.98) axis = pick.aTopTree - halfV * 0.98;
+  outPos.set(pick.px, camY, pick.pz);
+  outPos.y = Math.max(outPos.y, groundY(outPos.x, outPos.z) + 1.2);
+  outLook.set(0, camY + Math.tan(clamp(axis, -0.5, 1.1)) * pick.distTree, 0);
+}
+
+function syncPhotoUi() {
+  if (poseRowEl) [...poseRowEl.children].forEach((b) => b.classList.toggle('on', b.dataset.pose === PHOTO.pose));
+  if (photoCamBtn) {
+    photoCamBtn.textContent = PHOTO.camMode === 'preset' ? '↩ 원래 시점' : '🎬 포토 구도';
+    photoCamBtn.classList.toggle('on', PHOTO.camMode === 'free');
+  }
+  if (photoFrameBtn) photoFrameBtn.classList.toggle('on', PHOTO.frame);
+  if (photoTimerBtn) {
+    photoTimerBtn.textContent = PHOTO.timer === 3 ? '⏱ 3초 타이머' : '⚡ 즉시 촬영';
+    photoTimerBtn.classList.toggle('on', PHOTO.timer === 3);
+  }
+}
+
+function showPhotoHeart(p) {
+  hidePhotoHeart();
+  const mat = new THREE.SpriteMaterial({ map: emojiTexture('💗'), transparent: true, depthWrite: false });
+  const sp = new THREE.Sprite(mat);
+  sp.scale.set(0.55, 0.55, 1);
+  sp.position.set(0, 2.02, 0);
+  sp.renderOrder = 6;
+  p.root.add(sp);
+  photoHeart = sp;
+}
+function hidePhotoHeart() {
+  if (!photoHeart) return;
+  if (photoHeart.parent) photoHeart.parent.remove(photoHeart);
+  if (photoHeart.material) photoHeart.material.dispose();
+  photoHeart = null;
+}
+
+function setPhotoPose(pose) {
+  PHOTO.pose = pose || 'stand';
+  const p = players.get('me');
+  if (PHOTO.pose === 'heart' && p) showPhotoHeart(p); else hidePhotoHeart();
+  syncPhotoUi();
+  return PHOTO.pose;
+}
+
+function setPhotoCamMode(mode) {
+  if (!PHOTO.active) return null;
+  PHOTO.camMode = mode === 'free' ? 'free' : 'preset';
+  if (PHOTO.camMode === 'free' && PHOTO.saved) {
+    /* '원래 시점' — 포토 모드에 들어오기 전 시점으로 돌아가 직접 구도를 잡는다 */
+    rig.yaw = PHOTO.saved.yaw;
+    rig.pitch = PHOTO.saved.pitch;
+    rig.dist = PHOTO.saved.dist;
+    rig.targetDist = PHOTO.saved.targetDist;
+    rig.lookAt.copy(PHOTO.saved.look);
+    rig.mode = 'player';
+  }
+  syncPhotoUi();
+  return PHOTO.camMode;
+}
+
+function enterPhotoMode() {
+  if (!state.joined || PHOTO.active) return false;
+  if (ZONE.mode === 'interior') { toast('📸 포토존은 광장 중앙 트리 앞에 있어요', 2600); return false; }
+  if (TRANS.busy) return false;
+  PHOTO.active = true;
+  PHOTO.pose = 'stand';
+  PHOTO.camMode = 'preset';
+  PHOTO.saved = {
+    yaw: rig.yaw, pitch: rig.pitch, dist: rig.dist, targetDist: rig.targetDist,
+    look: rig.lookAt.clone(), mode: rig.mode, fov: camera.fov,
+  };
+  camera.fov = PHOTO_FOV;
+  camera.updateProjectionMatrix();
+  if (SIT.active) standUp();
+  input.keys.clear();
+  input.joy.active = false; input.joy.x = input.joy.y = 0;
+  document.body.classList.add('photomode');
+  photoHudEl.setAttribute('aria-hidden', 'false');
+  photoPreviewEl.classList.remove('show');
+  syncPhotoUi();
+  toast('📸 포토 모드 — 포즈를 고르고 촬영해 보세요', 2600);
+  return true;
+}
+
+function exitPhotoMode() {
+  if (!PHOTO.active) return false;
+  PHOTO.active = false;
+  setPhotoPose('stand');
+  document.body.classList.remove('photomode');
+  photoHudEl.setAttribute('aria-hidden', 'true');
+  photoPreviewEl.classList.remove('show');
+  photoCountEl.classList.remove('show');
+  if (PHOTO.saved) {
+    rig.yaw = PHOTO.saved.yaw;
+    rig.pitch = PHOTO.saved.pitch;
+    rig.dist = PHOTO.saved.dist;
+    rig.targetDist = PHOTO.saved.targetDist;
+    rig.lookAt.copy(PHOTO.saved.look);
+    rig.mode = PHOTO.saved.mode;
+    if (PHOTO.saved.fov) { camera.fov = PHOTO.saved.fov; camera.updateProjectionMatrix(); }
+    PHOTO.saved = null;
+  }
+  toast('📸 포토 모드 종료', 1600);
+  return true;
+}
+
+/* --- 포즈 반영 (매 프레임 · 애니메이션 포즈 위에 덧씌움) --- */
+const _photoUp = new THREE.Vector3(0, 1, 0);
+const _photoDir = new THREE.Vector3();
+function updatePhotoPose(dt) {
+  const p = players.get('me');
+  if (!p || !p.root.userData || !p.root.userData.bones) return;
+  const ud = p.root.userData;
+  const want = PHOTO.active && PHOTO.pose !== 'stand' ? 1 : 0;
+  ud.photoW = lerp(ud.photoW === undefined ? 0 : ud.photoW, want, Math.min(1, dt * 7));
+  const w = ud.photoW;
+  const settle = () => {
+    if (ud.tilt && Math.abs(ud.tilt.position.y) > 0.001) {
+      ud.tilt.position.y = lerp(ud.tilt.position.y, 0, Math.min(1, dt * 10));
+    }
+  };
+  if (w < 0.004) { settle(); return; }
+  const t = elapsed;
+  const dir = (x, y, z) => _photoDir.set(x, y, z).applyAxisAngle(_photoUp, playerYaw.v);
+  if (PHOTO.pose === 'wave') {
+    settle();
+    aimBoneBlend(ud, 'R_Upperarm', dir(-0.52, 0.84, 0.14), w);
+    aimBoneBlend(ud, 'R_Forearm', dir(-0.3 + Math.sin(t * 7) * 0.22, 0.9, 0.1), w);
+    boneRotZ(ud, 'Head', Math.sin(t * 2.4) * 0.05 * w);
+  } else if (PHOTO.pose === 'jump') {
+    const cyc = (t % 1.5) / 1.5;
+    const hop = Math.sin(cyc * Math.PI) * 0.5;
+    if (ud.tilt) ud.tilt.position.y = hop * w;
+    aimBoneBlend(ud, 'L_Upperarm', dir(-0.62, 0.74, 0.06), w);
+    aimBoneBlend(ud, 'R_Upperarm', dir(0.62, 0.74, 0.06), w);
+  } else if (PHOTO.pose === 'heart') {
+    settle();
+    aimBoneBlend(ud, 'L_Upperarm', dir(-0.5, 0.6, 0.34), w);
+    aimBoneBlend(ud, 'R_Upperarm', dir(0.5, 0.6, 0.34), w);
+    aimBoneBlend(ud, 'L_Forearm', dir(-0.18, 0.86, 0.44), w);
+    aimBoneBlend(ud, 'R_Forearm', dir(0.18, 0.86, 0.44), w);
+    boneRotZ(ud, 'Head', -0.08 * w);
+  }
+  if (photoHeart) {
+    const s = 0.52 + Math.sin(t * 5.4) * 0.05;
+    photoHeart.scale.set(s, s, 1);
+    photoHeart.position.y = 2.02 + Math.sin(t * 3.1) * 0.05;
+  }
+}
+
+/* --- 포토존 링 애니메이션 + 근접 안내 --- */
+function updatePhotoZone(dt) {
+  if (!photoRing) return;
+  photoRing.rotation.z += dt * 0.14;
+  photoRing.material.opacity = 0.42 + Math.sin(elapsed * 1.3) * 0.14;
+  const near = state.joined && !PHOTO.active && ZONE.mode === 'plaza'
+    && Math.hypot(playerPos.x - PHOTO_SPOT.x, playerPos.z - PHOTO_SPOT.z) < 3.4;
+  if (near === PHOTO.near) return;
+  PHOTO.near = near;
+  if (btnPhotoEl) btnPhotoEl.classList.toggle('near', near);
+  if (near) toast('📸 포토존 — 여기서 사진을 찍어 보세요', 2200);
+}
+
+/* --- 기념 프레임(날짜 + 마을 로고) --- */
+function drawPhotoFrame(ctx, W, H) {
+  const s = Math.min(W, H) / 1000;
+  const m = 26 * s;
+  ctx.save();
+  const grd = ctx.createLinearGradient(0, H, 0, H - 210 * s);
+  grd.addColorStop(0, 'rgba(6,10,22,.78)');
+  grd.addColorStop(1, 'rgba(6,10,22,0)');
+  ctx.fillStyle = grd;
+  ctx.fillRect(0, H - 210 * s, W, 210 * s);
+  ctx.lineJoin = 'round';
+  ctx.strokeStyle = 'rgba(255,214,140,.88)';
+  ctx.lineWidth = 6 * s;
+  ctx.strokeRect(m, m, W - m * 2, H - m * 2);
+  ctx.strokeStyle = 'rgba(255,255,255,.34)';
+  ctx.lineWidth = 2 * s;
+  ctx.strokeRect(m + 10 * s, m + 10 * s, W - (m + 10 * s) * 2, H - (m + 10 * s) * 2);
+  const flake = (x, y, r, lw, col) => {
+    ctx.save();
+    ctx.translate(x, y);
+    ctx.strokeStyle = col;
+    ctx.lineWidth = lw;
+    ctx.lineCap = 'round';
+    for (let i = 0; i < 6; i++) {
+      const a = (i / 6) * Math.PI * 2;
+      ctx.beginPath();
+      ctx.moveTo(0, 0);
+      ctx.lineTo(Math.cos(a) * r, Math.sin(a) * r);
+      ctx.moveTo(Math.cos(a) * r * 0.62, Math.sin(a) * r * 0.62);
+      ctx.lineTo(Math.cos(a + 0.5) * r * 0.86, Math.sin(a + 0.5) * r * 0.86);
+      ctx.moveTo(Math.cos(a) * r * 0.62, Math.sin(a) * r * 0.62);
+      ctx.lineTo(Math.cos(a - 0.5) * r * 0.86, Math.sin(a - 0.5) * r * 0.86);
+      ctx.stroke();
+    }
+    ctx.restore();
+  };
+  flake(m + 44 * s, m + 44 * s, 17 * s, 3.2 * s, 'rgba(255,246,224,.9)');
+  flake(W - m - 44 * s, m + 44 * s, 17 * s, 3.2 * s, 'rgba(255,246,224,.9)');
+  flake(m + 44 * s, H - m - 44 * s, 13 * s, 2.6 * s, 'rgba(255,246,224,.55)');
+  flake(W - m - 44 * s, H - m - 44 * s, 13 * s, 2.6 * s, 'rgba(255,246,224,.55)');
+  ctx.textBaseline = 'alphabetic';
+  ctx.textAlign = 'left';
+  ctx.shadowColor = 'rgba(0,0,0,.55)';
+  ctx.shadowBlur = 14 * s;
+  ctx.font = `900 ${42 * s}px "Apple SD Gothic Neo","Noto Sans KR","Malgun Gothic",system-ui,sans-serif`;
+  ctx.fillStyle = '#fff3d6';
+  ctx.fillText('크리스마스 광장', m + 34 * s, H - 64 * s);
+  ctx.shadowBlur = 0;
+  ctx.font = `700 ${18 * s}px system-ui,sans-serif`;
+  ctx.fillStyle = 'rgba(255,226,176,.82)';
+  ctx.fillText('ELF WINTER VILLAGE', m + 36 * s, H - 36 * s);
+  const d = new Date();
+  const days = ['SUNDAY', 'MONDAY', 'TUESDAY', 'WEDNESDAY', 'THURSDAY', 'FRIDAY', 'SATURDAY'];
+  const dt2 = `${d.getFullYear()}.${String(d.getMonth() + 1).padStart(2, '0')}.${String(d.getDate()).padStart(2, '0')}`;
+  ctx.textAlign = 'right';
+  ctx.font = `800 ${30 * s}px system-ui,sans-serif`;
+  ctx.fillStyle = 'rgba(255,248,232,.94)';
+  ctx.fillText(dt2, W - m - 34 * s, H - 60 * s);
+  ctx.font = `700 ${16 * s}px system-ui,sans-serif`;
+  ctx.fillStyle = 'rgba(255,226,176,.8)';
+  ctx.fillText(days[d.getDay()], W - m - 34 * s, H - 34 * s);
+  ctx.restore();
+}
+
+/* --- 촬영: 렌더 직후 캔버스를 2D 로 옮겨(검은 화면 방지) 프레임 합성 ---
+   WebGL 드로잉 버퍼는 합성 직후 비워질 수 있어, 그리자마자 drawImage 로 복사한다.
+   (renderer 는 preserveDrawingBuffer:true 로 만들었고, 그래도 비어 있으면 다시 그린다) */
+function grabPhotoFrame() {
+  renderFrame();
+  const gl = renderer.getContext();
+  try { if (gl && gl.finish) gl.finish(); } catch (_) {}
+  const src = renderer.domElement;
+  const W = Math.max(1, src.width), H = Math.max(1, src.height);
+  const out = document.createElement('canvas');
+  out.width = W; out.height = H;
+  const ctx = out.getContext('2d');
+  ctx.drawImage(src, 0, 0, W, H);
+  if (PHOTO.frame) drawPhotoFrame(ctx, W, H);
+  return { canvas: out, W, H };
+}
+function photoFrameStats(canvas) {
+  const s = document.createElement('canvas');
+  s.width = 48; s.height = 32;
+  const c = s.getContext('2d');
+  c.drawImage(canvas, 0, 0, 48, 32);
+  const d = c.getImageData(0, 0, 48, 32).data;
+  let sum = 0, mn = 255, mx = 0;
+  for (let i = 0; i < d.length; i += 4) {
+    const v = (d[i] + d[i + 1] + d[i + 2]) / 3;
+    sum += v;
+    if (v < mn) mn = v;
+    if (v > mx) mx = v;
+  }
+  return { mean: +(sum / (48 * 32)).toFixed(1), min: mn, max: mx };
+}
+
+/** 한 번 그려서 캔버스와 밝기 통계를 얻는다 — 검게 잡히면 두 번까지 다시 그린다 */
+function grabBestFrame() {
+  let shot = grabPhotoFrame();
+  let st = photoFrameStats(shot.canvas);
+  for (let i = 0; i < 2 && st.mean < 6; i++) {
+    shot = grabPhotoFrame();
+    st = photoFrameStats(shot.canvas);
+  }
+  return { shot, st };
+}
+
+/** 촬영 결과를 PNG 로 저장하고 미리보기를 띄운다 */
+function publishPhoto(shot, st) {
+  PHOTO.lastStats = st;
+  let url = '';
+  try { url = shot.canvas.toDataURL('image/png'); } catch (e) { console.warn('PNG 생성 실패:', e && e.message); }
+  PHOTO.lastUrl = url;
+  if (url) {
+    const d = new Date();
+    const p = (n) => String(n).padStart(2, '0');
+    const stamp = `${d.getFullYear()}${p(d.getMonth() + 1)}${p(d.getDate())}-${p(d.getHours())}${p(d.getMinutes())}${p(d.getSeconds())}`;
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `xmas-plaza-${stamp}.png`;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    photoPreviewImg.src = url;
+    photoPreviewText.textContent = `📸 저장 완료 · ${shot.W}×${shot.H} PNG`;
+    photoPreviewEl.classList.add('show');
+    clearTimeout(photoPreviewTimer);
+    photoPreviewTimer = setTimeout(() => photoPreviewEl.classList.remove('show'), 7000);
+  }
+  PHOTO.shots++;
+  return { w: shot.W, h: shot.H, bytes: url ? url.length : 0, stats: st };
+}
+
+/** 동기 촬영(진단·테스트용) */
+function shootPhoto() {
+  const r = grabBestFrame();
+  return publishPhoto(r.shot, r.st);
+}
+
+function showPhotoCount(n) {
+  photoCountEl.textContent = String(n);
+  photoCountEl.classList.remove('show');
+  void photoCountEl.offsetWidth;
+  photoCountEl.classList.add('show');
+}
+function firePhotoFlash() {
+  photoFlashEl.classList.remove('fire');
+  void photoFlashEl.offsetWidth;
+  photoFlashEl.classList.add('fire');
+}
+async function shutterPress() {
+  if (!PHOTO.active || PHOTO.busy) return null;
+  PHOTO.busy = true;
+  try {
+    if (PHOTO.timer === 3) {
+      for (let n = 3; n >= 1; n--) {
+        showPhotoCount(n);
+        await new Promise((r) => setTimeout(r, 1000));
+      }
+    }
+    firePhotoFlash();
+    let r = grabBestFrame();
+    /* 일부 GPU·백그라운드 탭에서는 방금 그린 버퍼가 비어 검게 잡힌다 —
+       한 프레임 뒤 다시 그려 재시도한다 (사진이 검게 저장되는 것 방지) */
+    for (let i = 0; i < 3 && r.st.mean < 6; i++) {
+      await new Promise((res) => requestAnimationFrame(() => requestAnimationFrame(res)));
+      r = grabBestFrame();
+    }
+    return publishPhoto(r.shot, r.st);
+  } finally {
+    PHOTO.busy = false;
+  }
+}
+
+/* --- 버튼 · 키 --- */
+if (btnPhotoEl) btnPhotoEl.addEventListener('click', () => { enterPhotoMode(); });
+if (btnCamResetEl) btnCamResetEl.addEventListener('click', () => { resetCamera(); });
+if (poseRowEl) {
+  poseRowEl.addEventListener('click', (e) => {
+    const b = e.target.closest('button[data-pose]');
+    if (b) setPhotoPose(b.dataset.pose);
+  });
+}
+if (photoCamBtn) photoCamBtn.addEventListener('click', () => setPhotoCamMode(PHOTO.camMode === 'preset' ? 'free' : 'preset'));
+if (photoFrameBtn) photoFrameBtn.addEventListener('click', () => { PHOTO.frame = !PHOTO.frame; syncPhotoUi(); });
+if (photoTimerBtn) photoTimerBtn.addEventListener('click', () => { PHOTO.timer = PHOTO.timer === 3 ? 0 : 3; syncPhotoUi(); });
+const photoShutterBtn = document.getElementById('photoShutter');
+if (photoShutterBtn) photoShutterBtn.addEventListener('click', () => { shutterPress(); });
+const photoExitBtn = document.getElementById('photoExit');
+if (photoExitBtn) photoExitBtn.addEventListener('click', () => { exitPhotoMode(); });
+
+window.addEventListener('keydown', (e) => {
+  if (!state.joined) return;
+  const t = e.target;
+  if (t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA')) return;
+  if (e.code === 'KeyR') { resetCamera(); return; }
+  if (!PHOTO.active) return;
+  if (e.code === 'Escape') { exitPhotoMode(); return; }
+  if (e.code === 'Space' || e.code === 'Enter') { e.preventDefault(); shutterPress(); }
+});
+
+buildPhotoZone();
+syncPhotoUi();
+
 /* ---------------------------------------------------------------
    9. 메인 루프
 --------------------------------------------------------------- */
@@ -8179,6 +9224,18 @@ function cameraFinite() {
 
 function updateCamera(dt) {
   sanitizeRig();
+  /* 포토 모드 — 트리와 캐릭터가 함께 담기는 구도로 부드럽게 이동 */
+  if (PHOTO.active && PHOTO.camMode === 'preset') {
+    photoCameraTarget(PHOTO_CAM.pos, PHOTO_CAM.look);
+    const k = Math.min(1, dt * 3.2);
+    camera.position.lerp(PHOTO_CAM.pos, k);
+    rig.lookAt.lerp(PHOTO_CAM.look, k);
+    if (!Number.isFinite(camera.position.x) || !Number.isFinite(camera.position.y) || !Number.isFinite(camera.position.z)) {
+      camera.position.copy(PHOTO_CAM.pos);
+    }
+    camera.lookAt(rig.lookAt);
+    return;
+  }
   if (rig.mode === 'lobby') {
     rig.lobbyT += dt;
     rig.yaw = 0.10 + Math.sin(rig.lobbyT * 0.11) * 0.34;
@@ -8202,6 +9259,7 @@ function updateCamera(dt) {
   const oy = Math.sin(pitch) * rig.dist;
   const desired = new THREE.Vector3(rig.lookAt.x + ox, rig.lookAt.y + oy, rig.lookAt.z + oz);
   if (rig.mode === 'player') limitCamera(desired);
+  if (rig.mode === 'player') clampCameraByBuildings(desired);
   desired.y = Math.max(desired.y, groundY(desired.x, desired.z) + 0.9);
   /* 카메라가 지면 아래로 파고들지 않게 */
   if (desired.y < 0.55) desired.y = 0.55;
@@ -8220,6 +9278,50 @@ function updateCamera(dt) {
     camera.position.set(playerPos.x, playerPos.y + 4.0, playerPos.z + 8.6);
     camera.lookAt(playerPos.x, playerPos.y + 1.6, playerPos.z);
   }
+}
+
+/* 카메라가 코티지 벽 속으로 파고들지 않게 — 건물 콜라이더(원) 기준 간단한 충돌 처리.
+   · 시선 선분이 건물 원을 지나면 건물 앞으로 당긴다(벽 가림 방지)
+   · 카메라가 건물 원 안에 들어가면 밖으로 밀어낸다
+   지붕보다 높은 시점(멀리 보기)은 가리지 않으므로 건드리지 않는다. */
+function clampCameraByBuildings(desired) {
+  if (ZONE.mode === 'interior' || !colliders.length) return;
+  const ax = rig.lookAt.x, az = rig.lookAt.z;
+  const dx = desired.x - ax, dz = desired.z - az;
+  const len2 = dx * dx + dz * dz;
+  const lowEnough = desired.y < 7.4;
+  if (lowEnough && len2 > 0.04) {
+    let tHit = 1;
+    for (let i = 0; i < colliders.length; i++) {
+      const c = colliders[i];
+      const R = c.r + 0.4;
+      const t = ((c.x - ax) * dx + (c.z - az) * dz) / len2;
+      if (t <= 0.1 || t >= tHit) continue;
+      const px = ax + dx * t, pz = az + dz * t;
+      if (Math.hypot(px - c.x, pz - c.z) < R) tHit = Math.max(0.1, t - 0.05);
+    }
+    if (tHit < 1) {
+      desired.x = ax + dx * tHit;
+      desired.z = az + dz * tHit;
+    }
+  }
+  /* 너무 가까이 붙어 얼굴만 가득 차지 않게 — 모자란 거리만큼 카메라를 살짝 올린다 */
+  const dHor = Math.hypot(desired.x - ax, desired.z - az);
+  if (dHor < 3.2) desired.y += (3.2 - dHor) * 0.55;
+  /* 원 안에 들어간 경우 밖으로 밀어낸다 (위에서 당긴 뒤에도 확인) */
+  if (desired.y < 7.4) {
+    for (let i = 0; i < colliders.length; i++) {
+      const c = colliders[i];
+      const R = c.r + 0.45;
+      const ex = desired.x - c.x, ez = desired.z - c.z;
+      const d = Math.hypot(ex, ez);
+      if (d >= R) continue;
+      if (d < 1e-3) { desired.x = c.x + R; continue; }
+      desired.x = c.x + (ex / d) * R;
+      desired.z = c.z + (ez / d) * R;
+    }
+  }
+  desired.y = Math.max(desired.y, groundY(desired.x, desired.z) + 0.9);
 }
 
 /* 카메라가 광장 밖(담장·건물)으로 나가지 않도록 시선 방향으로 당겨 온다 */
@@ -8244,8 +9346,32 @@ function limitCamera(desired) {
   desired.y = Math.max(desired.y, obstacleTopY(desired.x, desired.z) + floorY + 0.9);
 }
 
+/* 시점 초기화 — 캐릭터 뒤 3/4 기본 시점으로 되돌린다 (버튼·R 키) */
+function resetCamera() {
+  if (!state.joined) return false;
+  if (PHOTO.active) { setPhotoCamMode('preset'); return true; }
+  const narrow = window.innerWidth / window.innerHeight < 0.85;
+  rig.mode = 'player';
+  if (ZONE.mode === 'interior') {
+    rig.yaw = playerYaw.v + Math.PI;
+    rig.pitch = 0.2;
+    rig.targetDist = clamp(6.4, CAM_LO, CAM_HI);
+    rig.lookAt.set(playerPos.x, playerPos.y + 1.15, playerPos.z);
+  } else {
+    rig.yaw = playerYaw.v + Math.PI + 0.26;
+    rig.pitch = narrow ? 0.21 : 0.19;
+    rig.targetDist = narrow ? 10.4 : 8.6;
+    rig.lookAt.set(playerPos.x, playerPos.y + 1.45, playerPos.z);
+  }
+  rig.dist = rig.targetDist;      // 목표 거리로 즉시 — 중간 거리에서 지붕 위로 뜨는 것 방지
+  rig.snap = true;
+  toast('🎯 시점을 초기화했습니다', 1600);
+  return true;
+}
+
 function updatePlayer(dt) {
   if (!state.joined) return;
+  if (PHOTO.active) return;                 // 포토 모드에서는 이동을 잠근다
   if (TRANS.busy) return;                  // 문을 여닫는 동안은 움직이지 않는다
 
   /* --- 모닥불 앉기: 이동 입력이 들어오면 먼저 일어난다 --- */
@@ -8386,7 +9512,7 @@ function updateSeatButton() {
   let near = false;
   if (state.joined) {
     if (SIT.active || SIT.enter > 0) near = true;
-    else if (ZONE.mode === 'interior') near = nearestSeatInZone('i').d < 2.3;
+    else if (ZONE.mode === 'interior') near = nearestSeatInZone('i').d < 2.6;
     else near = Math.hypot(playerPos.x - CAMPFIRE.x, playerPos.z - CAMPFIRE.z) < 4.8;
   }
   SIT.near = near;
@@ -8497,6 +9623,8 @@ window.addEventListener('keydown', (e) => {
   const t = e.target;
   if (t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA')) return;
   if (!SIT.near && !SIT.active) return;
+  /* 서 있을 때 F 는 문 키에 맡긴다 — 자리 앞에서 F 로 앉는 동작은 E 로 옮겼다 */
+  if (e.code === 'KeyF' && !SIT.active) return;
   e.preventDefault();
   if (SIT.active) standUp(); else sitDown();
 });
@@ -8691,8 +9819,20 @@ function tick(dt) {
     updateAmbient(dt);
   }
   updateFloaters(dt);
+  updatePhotoZone(dt);
+  updatePhotoPose(dt);
   updateLabels();
+
+  /* 접속자 패널의 위치 표시(광장/오두막) — 0.4초마다 달라졌는지 확인해 다시 그린다 */
+  rosterAcc += dt;
+  if (rosterAcc > 0.4) {
+    rosterAcc = 0;
+    let sig = ZONE.mode;
+    for (const p of players.values()) sig += '|' + p.id + (p.isNpc ? 'n' : '') + (p.zone || 'p');
+    if (sig !== rosterSig) { rosterSig = sig; renderPlayerList(); }
+  }
 }
+let rosterAcc = 0, rosterSig = '';
 
 /* 애니메이션 루프 */
 function loop() {
@@ -8721,6 +9861,7 @@ function watchQuality(fps) {
   if (IS_TOUCH) return;
   if (quality <= 0) return;
   if (performance.now() - pageStartedAt < QUALITY_WARMUP_MS) return;
+  if (performance.now() < qualityGuardUntil) return;
   if (fps > 0 && fps < 28) slowStreak++; else slowStreak = 0;
   if (slowStreak >= 5) {
     quality -= 1;
@@ -8751,21 +9892,27 @@ const autoJoin = (() => {
   catch (_) { return false; }
 })();
 
-/* .glb 에셋(배경 · 엘프 3종)을 모두 읽은 뒤에 입장 화면을 연다 */
-loadAssets()
-  .then(() => {
-    loader.classList.add('out');
-    setTimeout(() => loader.classList.add('hidden'), 700);
-    if (autoJoin && state.profile.nickname) setTimeout(() => { try { joinForm.requestSubmit(); } catch (_) {} }, 120);
-  })
-  .catch((err) => {
-    console.error(err);
-    const el = document.getElementById('loadErr');
-    if (el) {
-      el.textContent = '배경·캐릭터(.glb)를 불러오지 못했어요. '
-        + '폴더를 통째로 로컬 서버(예: python3 -m http.server)나 GitHub Pages 로 열어 주세요.';
-    }
-  });
+/* ---- 부팅: 로비(캐릭터 선택)를 먼저 열고, .glb 는 입장할 때 받는다 ---- */
+function revealLobby() {
+  if (revealLobby.done) return;
+  revealLobby.done = true;
+  assetsReady = true;                 // 썸네일 로비 준비 완료 (기존 진단 플래그 호환)
+  window.__plazaBooted = true;
+  applySnowDensity(QUALITY_PRESETS[qualityPreset].snow);
+  applyQuality();
+  loader.classList.add('out');
+  setTimeout(() => loader.classList.add('hidden'), 700);
+  loadSantaBackground();              // 배경 장식은 뒤에서
+  if (autoJoin && state.profile.nickname) setTimeout(() => { try { joinForm.requestSubmit(); } catch (_) {} }, 340);
+}
+setTimeout(revealLobby, 240);
+
+/* 6초가 지나도 모듈이 시작되지 않았다면(CDN 실패) 로딩 화면에 안내를 남긴다 */
+setTimeout(() => {
+  if (window.__plazaBooted) return;
+  const el = document.getElementById('loadErr');
+  if (el) el.textContent = '3D 라이브러리를 불러오지 못했어요. 인터넷 연결을 확인한 뒤 새로고침해 주세요.';
+}, 9000);
 
 /* 진단용 */
 window.__plaza = {
@@ -8786,6 +9933,82 @@ window.__plaza = {
   get chat() { return [...chatLog.querySelectorAll('.msg, .sys')].slice(-12).map((d) => d.textContent); },
   get joined() { return state.joined; },
   get assets() { return assetsReady; },
+  /* --- 1차 업그레이드 진단: 품질 · 로딩 · 포토 모드 --- */
+  get qualityPreset() { return qualityPreset; },
+  get qualityState() {
+    return {
+      preset: qualityPreset, tier: quality, dpr: +renderer.getPixelRatio().toFixed(2),
+      bloom: !!(bloomPass && bloomPass.enabled), post: USE_POST,
+      snow: snowPoints && snowPoints.geometry && snowPoints.geometry.drawRange
+        ? snowPoints.geometry.drawRange.count : null,
+    };
+  },
+  setQualityPreset(k) { setQualityPreset(k); applyQuality(); return this.qualityState; },
+  get loading() {
+    return {
+      shown: !loader.classList.contains('hidden') && !loader.classList.contains('out'),
+      title: loadTitleEl.textContent, pct: parseInt(loadPctEl.textContent, 10) || 0,
+      bar: loadBarEl.style.width, retry: !loadBtnsEl.classList.contains('hidden'),
+      err: loadErrEl.textContent,
+    };
+  },
+  get charCache() { return [...CHAR_PROTO.keys()]; },
+  get photo() {
+    const vis = (id) => {
+      const el = document.getElementById(id);
+      if (!el) return false;
+      const cs = getComputedStyle(el);
+      if (cs.display === 'none' || cs.visibility === 'hidden' || cs.opacity === '0') return false;
+      return el.getClientRects().length > 0;      // 부모가 숨겨졌는지까지 반영
+    };
+    return {
+      active: PHOTO.active, pose: PHOTO.pose, frame: PHOTO.frame, timer: PHOTO.timer,
+      camMode: PHOTO.camMode, shots: PHOTO.shots, near: PHOTO.near,
+      hudVisible: vis('hud'), dockVisible: vis('dock'), joystickVisible: vis('joystick'),
+      chatVisible: vis('chatLog'), barVisible: vis('photoBar'),
+      previewVisible: photoPreviewEl.classList.contains('show'),
+      last: PHOTO.lastStats, lastUrlLen: PHOTO.lastUrl ? PHOTO.lastUrl.length : 0,
+    };
+  },
+  photoMode(on) { return on === false ? exitPhotoMode() : enterPhotoMode(); },
+  photoPose(p) { return setPhotoPose(p); },
+  photoShot() { return shootPhoto(); },
+  photoDataUrl() { return PHOTO.lastUrl; },
+  photoSpot() { return { ...PHOTO_SPOT, walkable: walkableAt(PHOTO_SPOT.x, PHOTO_SPOT.z) }; },
+  gotoPhotoSpot() {
+    playerPos.set(PHOTO_SPOT.x, groundY(PHOTO_SPOT.x, PHOTO_SPOT.z), PHOTO_SPOT.z);
+    playerYaw.v = Math.PI;
+    const p = players.get('me');
+    if (p) p.root.position.copy(playerPos);
+    return [+playerPos.x.toFixed(2), +playerPos.z.toFixed(2)];
+  },
+  get photoTree() { return { h: +photoTreeH.toFixed(2), pos: photoRing ? photoRing.position.toArray().map((n) => +n.toFixed(2)) : null }; },
+  get roster() {
+    return [...players.values()].map((p) => ({
+      id: p.id, nickname: p.nickname, npc: !!p.isNpc,
+      zone: p.isMe ? (ZONE.mode === 'interior' ? 'i' : 'p') : p.zone,
+      tag: p.label.tag.textContent,
+    }));
+  },
+  get rosterDom() {
+    return [...document.querySelectorAll('#playerList li')].map((li) => li.textContent.replace(/\s+/g, ' ').trim());
+  },
+  get netText() { return netStatusText.textContent; },
+  get guide() {
+    return {
+      shown: document.getElementById('guideToast').classList.contains('show'),
+      log: window.__guideLog || [],
+      text: document.getElementById('guideToast').textContent.replace(/\s+/g, ' ').trim(),
+    };
+  },
+  /* 검증용: 안내 토스트를 다시 띄운다 (자동 표시는 입장 후 1회) */
+  showGuide() {
+    guideToastEl.classList.add('show');
+    clearTimeout(guideTimer);
+    guideTimer = setTimeout(() => guideToastEl.classList.remove('show'), 7600);
+    return true;
+  },
+  resetCamera() { return resetCamera(); },
   /* --- 집 안 출입 진단 --- */
   get zone() {
     return {
