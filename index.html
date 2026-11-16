@@ -106,7 +106,7 @@
   #chatLog{
     position:fixed;left:16px;bottom:calc(84px + var(--safe-b));z-index:22;
     width:330px;max-height:min(232px,34vh);
-    padding:12px 12px 8px;overflow-y:auto;overscroll-behavior:contain;
+    padding:18px 13px 10px;overflow-y:auto;overscroll-behavior:contain;
     display:flex;flex-direction:column;gap:6px;
     font-size:12.5px;line-height:1.5;
     background:var(--glass);border:1px solid var(--line);border-radius:16px;
@@ -123,7 +123,7 @@
   #chatLog .msg span{color:#e6eeff;word-break:break-word}
   #chatLog .sys{color:var(--txt-dim);font-size:11.5px;font-style:normal}
   #chatLog .sys b{color:var(--gold)}
-  #chatLog .head{font-size:10.5px;color:rgba(168,184,212,.75);letter-spacing:.4px;margin-bottom:2px}
+  #chatLog .head{font-size:10.5px;color:rgba(168,184,212,.75);letter-spacing:.4px;margin-bottom:5px;flex:0 0 auto}
 
   #chatForm{
     position:fixed;left:50%;transform:translateX(-50%);
@@ -218,6 +218,79 @@
     color:#22304a;background:linear-gradient(180deg,#eef4fb,#c0cfe4);
     border-color:rgba(226,240,255,.95);
     box-shadow:0 10px 26px rgba(120,150,200,.3), inset 0 1px 0 rgba(255,255,255,.8);
+  }
+
+  /* ---------- ⛸️ 스케이트 · 📮 편지 · ❄️ 눈 굴리기 버튼 (3차) ---------- */
+  #skateBtn, #mailBtn, #rollBtn{
+    display:none;align-items:center;justify-content:center;gap:7px;
+    padding:11px 17px;border-radius:15px;cursor:pointer;font-family:inherit;
+    font-size:14px;font-weight:800;letter-spacing:-.3px;white-space:nowrap;
+    transition:transform .12s ease, box-shadow .18s, background .18s, color .18s;
+  }
+  #skateBtn.show, #mailBtn.show, #rollBtn.show{display:flex}
+  #skateBtn:hover, #mailBtn:hover, #rollBtn:hover{transform:translateY(-2px)}
+  #skateBtn:active, #mailBtn:active, #rollBtn:active{transform:scale(.94)}
+  #skateBtn{
+    color:#123049;background:linear-gradient(180deg,#eefbff,#a8dcf2);
+    border:1px solid rgba(228,248,255,.95);
+    box-shadow:0 10px 26px rgba(90,180,225,.34), inset 0 1px 0 rgba(255,255,255,.8);
+  }
+  #skateBtn.on{
+    color:#0d2b45;background:linear-gradient(180deg,#d9f4ff,#7cc6e8);
+    box-shadow:0 10px 26px rgba(80,170,225,.5), inset 0 1px 0 rgba(255,255,255,.85);
+  }
+  #mailBtn{
+    color:#3a0d12;background:linear-gradient(180deg,#ffdfe0,#ef6b74);
+    border:1px solid rgba(255,235,235,.95);
+    box-shadow:0 10px 26px rgba(210,60,70,.34), inset 0 1px 0 rgba(255,255,255,.6);
+  }
+  #rollBtn{
+    color:#1b2c44;background:linear-gradient(180deg,#f8fdff,#cfe4f4);
+    border:1px solid rgba(235,248,255,.95);
+    box-shadow:0 10px 26px rgba(120,175,220,.3), inset 0 1px 0 rgba(255,255,255,.85);
+  }
+  #rollBtn.on{
+    color:#20334c;background:linear-gradient(180deg,#eaf6ff,#b3d3ea);
+    box-shadow:0 10px 26px rgba(110,165,215,.44), inset 0 1px 0 rgba(255,255,255,.85);
+  }
+
+  /* ---------- 📮 산타 우체국 편지 쓰기 ---------- */
+  #mailPanel{
+    position:fixed;left:50%;top:50%;transform:translate(-50%,-46%);
+    width:min(400px,calc(100vw - 32px));padding:20px 20px 16px;
+    border-radius:20px;background:linear-gradient(180deg,rgba(46,32,30,.97),rgba(28,20,22,.98));
+    border:1px solid rgba(255,180,170,.34);box-shadow:0 26px 70px rgba(0,0,0,.6);
+    z-index:60;display:none;color:#ffe9e0;font-family:inherit;
+  }
+  #mailPanel.show{display:block;animation:mpIn .22s ease-out}
+  @keyframes mpIn{from{opacity:0;transform:translate(-50%,-42%) scale(.96)}to{opacity:1;transform:translate(-50%,-46%) scale(1)}}
+  #mailPanel .mp-title{margin:0 0 4px;font-size:15px;font-weight:900;color:#ffd9cf;letter-spacing:-.3px}
+  #mailPanel .mp-title small{font-size:10.5px;font-weight:700;color:#c9a49b;margin-left:6px}
+  #mailPanel .mp-row{margin:12px 0 0}
+  #mailPanel label{display:block;font-size:10.5px;font-weight:800;color:#e2b3a8;letter-spacing:.4px;margin:0 0 6px}
+  #mailTo{
+    width:100%;height:38px;padding:0 12px;border-radius:11px;font-family:inherit;font-size:13px;
+    color:#ffece4;background:rgba(255,255,255,.07);border:1px solid rgba(255,190,180,.28);outline:none;
+  }
+  #mailTo:focus{border-color:rgba(255,190,180,.7)}
+  #mailTo option{background:#2b1e20;color:#ffece4}
+  #mailInput, #mailName{
+    width:100%;height:44px;padding:0 13px;border-radius:11px;font-family:inherit;font-size:13px;
+    color:#fff3ee;background:rgba(255,255,255,.07);border:1px solid rgba(255,190,180,.28);outline:none;
+  }
+  #mailInput::placeholder{color:#b08c85}
+  #mailInput:focus{border-color:rgba(255,190,180,.7)}
+  #mailPanel .mp-note{margin:9px 0 0;font-size:10.5px;line-height:1.5;color:#bb958d}
+  #mailPanel .mp-foot{display:flex;gap:8px;margin:14px 0 0}
+  #mailPanel .mp-foot button{
+    flex:1;height:42px;border-radius:12px;cursor:pointer;font-family:inherit;font-size:13px;font-weight:800;
+    border:1px solid rgba(255,255,255,.16);color:#ffe9e0;background:rgba(255,255,255,.08);
+    transition:transform .12s, background .15s;
+  }
+  #mailPanel .mp-foot button:hover{transform:translateY(-1px)}
+  #mailPanel #mailSubmit{
+    color:#3d0f13;background:linear-gradient(180deg,#ffd9d4,#f08a8a);
+    border-color:rgba(255,235,230,.9);box-shadow:0 8px 20px rgba(220,90,90,.32);
   }
 
   /* ---------- 집 안 출입 버튼 ---------- */
@@ -966,6 +1039,9 @@
   <button id="seatBtn" type="button" aria-label="모닥불에 앉기">🪑 앉기</button>
   <button id="roastBtn" type="button" aria-label="마시멜로 굽기">🍡 마시멜로 굽기</button>
   <button id="snowBtn" type="button" aria-label="눈사람으로 변신">⛄ 눈사람으로 변신</button>
+  <button id="skateBtn" type="button" aria-label="스케이트 타기">⛸️ 스케이트 타기</button>
+  <button id="mailBtn" type="button" aria-label="편지 보내기">📮 편지 보내기</button>
+  <button id="rollBtn" type="button" aria-label="눈 굴리기">❄️ 눈 굴리기</button>
   <button id="treeBtn" type="button" aria-label="트리에 장식 달기">🎄 트리 장식 달기</button>
   <button id="cocoaBtn" type="button" aria-label="코코아 마시기">☕ 코코아 마시기</button>
   <button id="wishBtn" type="button" aria-label="소원 쪽지 남기기">📝 소원 쪽지 남기기</button>
@@ -1010,6 +1086,25 @@
   <div class="mp-foot">
     <button type="button" id="wishSubmit">쪽지 걸기</button>
     <button type="button" id="wishCancel">닫기</button>
+  </div>
+</div>
+
+<!-- ================= 📮 산타 우체국 편지 ================= -->
+<div id="mailPanel" role="dialog" aria-label="산타 우체국 편지 보내기">
+  <p class="mp-title">📮 산타 우체국 <small>따뜻한 한 줄 편지를 보내요</small></p>
+  <div class="mp-row">
+    <label for="mailTo">받는 사람</label>
+    <select id="mailTo"></select>
+    <input id="mailName" maxlength="10" placeholder="받는 사람 이름 (최대 10자)" autocomplete="off" style="display:none;margin-top:8px" />
+  </div>
+  <div class="mp-row">
+    <label for="mailInput">편지 한 줄</label>
+    <input id="mailInput" maxlength="40" placeholder="마음을 담아 한 줄 적어 주세요 (40자)" autocomplete="off" />
+  </div>
+  <p class="mp-note">보낸 편지는 산타 우체통을 거쳐 코코아 라운지 소원 게시판에도 함께 걸려요</p>
+  <div class="mp-foot">
+    <button type="button" id="mailSubmit">📮 편지 넣기</button>
+    <button type="button" id="mailCancel">닫기</button>
   </div>
 </div>
 
@@ -1197,6 +1292,34 @@ let CAM_LO = CAM_MIN, CAM_HI = CAM_MAX;
 /* 지금 서 있는 공간 — 'plaza'(광장) / 'interior'(집 안).
    이동·충돌·카메라·네트워크가 모두 이 값을 보고 갈라진다. */
 const ZONE = { mode: 'plaza', door: -1, returnX: 0, returnZ: 0, returnYaw: Math.PI };
+/* ---------------------------------------------------------------
+   ⛸️ 3차 — 사탕·쿠키 동화 길 & 얼음 연못 스케이트장
+   광장 북서쪽(코티지가 없는 152°~278° 사이 빈 외곽)을 열어
+   사탕 지팡이 가로등 · 진저브레드 디딤돌로 이어진 길을 내고,
+   그 끝에 얼음 연못 스케이트장과 눈사람 만들기 눈밭을 둔다.
+   (아래 값들은 지면 높이·걸을 수 있는 범위 계산에 쓰이므로
+    마을을 짓기 전에 여기서 먼저 정해 둔다.)
+--------------------------------------------------------------- */
+const POND = {
+  x: -9.75, z: -26.78,        // a = 200°, r = 28.5 — 코티지가 없는 북서쪽 빈 외곽
+  r: 4.6,                     // 얼음 반지름
+  rim: 5.75,                  // 눈둑 · 나무 펜스 반지름
+  y: -0.02,                   // 얼음면 높이 (눈밭 -0.04 보다 살짝 높다)
+  door: Math.atan2(-9.75, -26.78),   // 광장 쪽 입구 방향 (a = 200°)
+};
+/* 동화 길 — 광장 가장자리에서 연못 입구까지 완만하게 휘는 사탕·쿠키 길 */
+const FAIRY_PATH = [
+  { x: -1.60, z: -18.33 },
+  { x: -4.37, z: -20.54 },
+  { x: -8.18, z: -22.50 },
+];
+const FAIRY_HALF = 1.75;      // 길 반폭 (걸을 수 있는 폭)
+/* 눈사람 만들기 눈밭 — 연못 동쪽 옆 */
+const SNOW_PATCH = { x: -3.10, z: -26.00, r: 3.0 };
+/* 산타 우체통 · 우체국 팻말 — 광장 산타(7.7, -5.0) 옆 */
+const MAILBOX = { x: 6.55, z: -7.60 };
+/* 선물상자 탑 — 입구 쪽 광장 한쪽 */
+const GIFT_TOWER = { x: -8.40, z: 9.20 };
 const clamp = (v, a, b) => Math.min(b, Math.max(a, v));
 const finiteOr = (v, alt) => (Number.isFinite(v) ? v : alt);
 const lerp = (a, b, t) => a + (b - a) * t;
@@ -1788,6 +1911,19 @@ class LiveNetwork extends NetworkAdapter {
       return;
     }
 
+    if (m.t === 'mail') {
+      const from = String(m.n || '엘프').slice(0, 10);
+      const to = String(m.to || '산타 할아버지').slice(0, 10);
+      const text = String(m.m || '').slice(0, 40);
+      if (text) this.emit('mail', { from, to, text, mine: to === this.profile.nickname });
+      return;
+    }
+
+    if (m.t === 'roll') {
+      this.emit('roll', { x: +m.x || 0, z: +m.z || 0, scale: +m.sc || 0.72, seed: +m.k || 0 });
+      return;
+    }
+
     if (m.t === 'chat') {
       const peer = this._touchPeer(m.id, m.n, m.c, now);
       if (!peer) return;
@@ -1816,7 +1952,7 @@ class LiveNetwork extends NetworkAdapter {
         peer.seat = m.si === undefined ? -1 : (+m.si || -1);
         peer.zone = m.zn === 'i' ? 'i' : 'p';
         /* 3차 — 눈사람 변신(tf) · 마시멜로 굽기 진행률(rs) */
-        peer.tf = m.tf === 'sn' ? 'sn' : '';
+        peer.tf = m.tf === 'sn' ? 'sn' : (m.tf === 'sk' ? 'sk' : '');
         peer.roast = clamp(Math.round(+m.rs || 0), 0, 100);
         this.emit('state', { players: [{ id: m.id, x: peer.x, z: peer.z, yaw: peer.yaw, moving: peer.moving, pose: peer.pose, seat: peer.seat, zone: peer.zone, tf: peer.tf, roast: peer.roast }] });
       }
@@ -1876,7 +2012,7 @@ class LiveNetwork extends NetworkAdapter {
       x: +s.x.toFixed(2), z: +s.z.toFixed(2), y: +s.yaw.toFixed(2),
       mv: s.moving ? 1 : 0, p: s.pose || 'stand', si: s.seat === undefined ? -1 : s.seat,
       zn: s.zone === 'i' ? 'i' : 'p', q: this.seq,
-      tf: s.tf === 'sn' ? 'sn' : '', rs: clamp(Math.round(+s.rs || 0), 0, 100),
+      tf: s.tf === 'sn' ? 'sn' : (s.tf === 'sk' ? 'sk' : ''), rs: clamp(Math.round(+s.rs || 0), 0, 100),
     }));
   }
 
@@ -1888,7 +2024,7 @@ class LiveNetwork extends NetworkAdapter {
     const moved = (!!s.moving !== !!L.moving)
       || (s.pose || 'stand') !== (L.pose || 'stand')
       || (s.zone || 'p') !== (L.zone || 'p')
-      || (s.tf === 'sn' ? 'sn' : '') !== (L.tf || '')
+      || (s.tf === 'sn' ? 'sn' : (s.tf === 'sk' ? 'sk' : '')) !== (L.tf || '')
       || clamp(Math.round(+s.rs || 0), 0, 100) !== (L.rs || 0)
       || Math.abs(s.x - L.x) > 0.02 || Math.abs(s.z - L.z) > 0.02
       || Math.abs(s.yaw - L.yaw) > 0.04;
@@ -1936,6 +2072,27 @@ class LiveNetwork extends NetworkAdapter {
         t: 'wish', id: this.cid, n: this.profile.nickname, c: this.profile.character, w: t,
       }));
     }
+  }
+
+  /* 📮 산타 우체국 — 받는 사람에게 편지를 보낸다 */
+  sendMail(to, text) {
+    const t = String(text || '').slice(0, 40);
+    const who = String(to || '').slice(0, 10);
+    if (!t || !who) return;
+    if (this.connected && this.mqtt) {
+      this.mqtt.publish(`${this.base}/e/${this.cid}`, JSON.stringify({
+        t: 'mail', id: this.cid, n: this.profile.nickname, c: this.profile.character, to: who, m: t,
+      }));
+    }
+  }
+
+  /* ⛄ 눈사람 완성 — 같은 방 친구 화면에도 세운다 */
+  sendRollSnowman(s) {
+    if (!this.connected || !this.mqtt || !s) return;
+    this.mqtt.publish(`${this.base}/e/${this.cid}`, JSON.stringify({
+      t: 'roll', id: this.cid, n: this.profile.nickname,
+      x: +(+s.x).toFixed(2), z: +(+s.z).toFixed(2), sc: +(+s.scale || 0.72).toFixed(2), k: (+s.seed || 0) | 0,
+    }));
   }
 
   disconnect() {
@@ -2564,7 +2721,7 @@ function buildSky() {
       const gr = x.createLinearGradient(0, 0, 0, h);
       const hue = pick(['rgba(120,255,230,', 'rgba(150,225,255,', 'rgba(185,165,255,']);
       gr.addColorStop(0, hue + '0)');
-      gr.addColorStop(0.42, hue + rand(0.12, 0.34).toFixed(2) + ')');
+      gr.addColorStop(0.42, hue + rand(0.46, 0.78).toFixed(2) + ')');
       gr.addColorStop(1, hue + '0)');
       x.fillStyle = gr;
       x.beginPath();
@@ -2573,16 +2730,24 @@ function buildSky() {
     }
   });
   const aurora = new THREE.Group();
-  for (let i = 0; i < 3; i++) {
+  /* 하늘을 감싸는 5겹 커튼 — 청록·하늘·보라가 천천히 흔들린다 */
+  const AUR_TINT = [0xffffff, 0xd6fff4, 0xdcebff, 0xecd9ff, 0xdcfff6];
+  for (let i = 0; i < 5; i++) {
     const m = new THREE.Mesh(
-      new THREE.PlaneGeometry(520, 170),
+      new THREE.PlaneGeometry(470 + i * 34, 150 + (i % 3) * 26),
       new THREE.MeshBasicMaterial({
-        map: auroraTex, transparent: true, opacity: i === 0 ? 0.30 : 0.16,
+        map: auroraTex, color: AUR_TINT[i], transparent: true, opacity: 0.40,
         blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide, fog: false,
       })
     );
-    m.position.set(-70 + i * 95, 92 + i * 11, -320 - i * 15);
-    m.rotation.z = 0.04 * (i - 1);
+    const ang = -1.05 + i * 0.52;                 // 하늘 둘레로 고르게 펼친다
+    const R = 250 + (i % 2) * 26;
+    /* 설산 능선보다 높이 — 산에 가리지 않고 하늘에 걸리게 */
+    m.position.set(Math.sin(ang) * R, 118 + (i % 3) * 24, -Math.cos(ang) * R);
+    m.rotation.y = ang;
+    m.rotation.z = 0.05 * (i - 2);
+    m.userData.base = 0.36 + (i % 3) * 0.08;
+    m.userData.ph = i * 1.7;
     aurora.add(m);
   }
   scene.add(aurora);
@@ -4141,27 +4306,35 @@ function buildPlazaTree() {
   const RT = 260;
   const RY0 = PED_TOP + 0.8, RY1 = topY - 1.45;
   const TURNS = 2.35;
-  let prevL = null, prevR = null;
+  /* 폭 방향을 세 조각으로 나눠 가운데가 살짝 부푼 띠를 만든다 —
+     평면 한 장이던 리본이 빛을 받아 접힌 비단처럼 보인다. */
+  const WF = [-1, -0.36, 0.36, 1];
+  let prevPts = null;
   for (let i = 0; i <= RT; i++) {
     const t = i / RT;
     const y = RY0 + (RY1 - RY0) * t;
     const u = clamp((y - FOL_Y) / H, 0, 1);
     const r = radiusAt(u) * 0.99 + 0.1;
     const a = t * TAU * TURNS + 0.55 + Math.sin(t * 7.5) * 0.06;
-    const c = new THREE.Vector3(Math.cos(a) * r, y + Math.sin(t * 26) * 0.035, Math.sin(a) * r);
+    const c = new THREE.Vector3(Math.cos(a) * r, y + Math.sin(t * 26) * 0.03, Math.sin(a) * r);
     const radial = new THREE.Vector3(Math.cos(a), 0, Math.sin(a));
     const tangent = new THREE.Vector3(-Math.sin(a), 0.02, Math.cos(a)).normalize();
     const wide = new THREE.Vector3().crossVectors(radial, tangent).normalize();
-    const tw = 0.3 + 0.04 * Math.sin(t * 9.5);
+    const tw = 0.215 + 0.026 * Math.sin(t * 9.5);        // 조금 슬림하게
     const twistA = 0.5 * Math.sin(t * 13.0);
     const w2 = wide.clone().applyAxisAngle(tangent, twistA).multiplyScalar(tw / 2);
-    const L = c.clone().addScaledVector(w2, -1).addScaledVector(radial, 0.02);
-    const Rr = c.clone().addScaledVector(w2, 1).addScaledVector(radial, 0.02);
-    if (prevL) {
-      const tone = _C.velvet.clone().lerp(_C.velvetHi, 0.25 + 0.3 * Math.sin(t * 20));
-      ribbonSink.quad(prevL, prevR, Rr, L, tone);
+    const pts = WF.map((o) => c.clone()
+      .addScaledVector(w2, o)
+      .addScaledVector(radial, 0.02 + 0.038 * (1 - o * o)));
+    if (prevPts) {
+      for (let k = 0; k < 3; k++) {
+        const edge = 1 - Math.abs((WF[k] + WF[k + 1]) * 0.5);   // 가장자리는 어둡게
+        const tone = _C.velvet.clone()
+          .lerp(_C.velvetHi, 0.22 + 0.26 * Math.sin(t * 20) + 0.16 * edge);
+        ribbonSink.quad(prevPts[k], prevPts[k + 1], pts[k + 1], pts[k], tone);
+      }
     }
-    prevL = L; prevR = Rr;
+    prevPts = pts;
   }
   /* 리본 위 큰 보우 */
   const bowTs = [0.1, 0.26, 0.42, 0.58, 0.72, 0.86];
@@ -4663,16 +4836,45 @@ buildSnowBokeh();   // 카메라 앞 보케 눈(깊이 레이어)
 /** 땅 높이 — 광장은 0, 바깥은 terrainHeight 가 이어받는다 (집 안 바닥도 0) */
 function groundY(x, z) {
   if (ZONE.mode === 'interior') return 0;
+  /* ⛸️ 동화 길은 눈둑 위를 따라 걷고, 연못은 얼음면을 따른다 */
+  if (inFairyGround(x, z)) return fairyGroundY(x, z);
   const r = Math.hypot(x, z);
   if (r <= R_PLAZA) return 0;
   if (r <= R_FLAT) return -GROUND_DROP;
   return terrainHeight(x, z);
 }
 
-/** 걸을 수 있는가 — 석조 광장 안쪽 + 각 코티지 문 앞 현관길 (건물·소품은 콜라이더가 막는다) */
+/* ---------- ⛸️ 동화 길 · 얼음 연못 · 눈사람 눈밭 ---------- */
+/** 연못 둘레(눈둑 포함) 안인가 — 걸어 들어갈 수 있는 범위 */
+function inPond(x, z) { return Math.hypot(x - POND.x, z - POND.z) <= POND.r + 0.9; }
+/** 얼음면 위인가 — 스케이트가 유지되는 범위 */
+function onPondIce(x, z) { return Math.hypot(x - POND.x, z - POND.z) <= POND.r + 0.25; }
+/** 사탕·쿠키 동화 길 위인가 */
+function onFairyPath(x, z) {
+  for (let i = 0; i < FAIRY_PATH.length - 1; i++) {
+    const a = FAIRY_PATH[i], b = FAIRY_PATH[i + 1];
+    if (segDist(x, z, a.x, a.z, b.x, b.z) <= FAIRY_HALF) return true;
+  }
+  return false;
+}
+function inSnowPatch(x, z) { return Math.hypot(x - SNOW_PATCH.x, z - SNOW_PATCH.z) <= SNOW_PATCH.r; }
+function inFairyGround(x, z) {
+  /* 광장 근처가 아니면 비싼 계산을 건너뛴다 */
+  if (x > 6 || z > -14) return false;
+  return onPondIce(x, z) || onFairyPath(x, z) || inSnowPatch(x, z);
+}
+function fairyGroundY(x, z) {
+  if (onPondIce(x, z)) return POND.y;
+  const r = Math.hypot(x, z);
+  if (onFairyPath(x, z) && r <= COLLAR_OUT) return collarHeight(r, Math.atan2(x, z));
+  return -GROUND_DROP;
+}
+
+/** 걸을 수 있는가 — 석조 광장 안쪽 + 각 코티지 문 앞 현관길 + 동화 길·얼음 연못 (건물·소품은 콜라이더가 막는다) */
 function walkableAt(x, z) {
   if (ZONE.mode === 'interior') return interiorWalkableAt(x, z);
   if (Math.hypot(x, z) <= R_WALK) return true;
+  if (inFairyGround(x, z)) return true;
   return inDoorApproach(x, z);
 }
 
@@ -4706,6 +4908,8 @@ function randomWalkablePoint(minR = 0, maxR = 99) {
    · 모든 배치는 groundY()/terrainHeight() 기준이라 바닥에서 뜨지 않는다.
    =============================================================== */
 const villageLights = [];        // 가로등 PointLight (은은한 흔들림용)
+/* 🕯 창문 불빛 숨쉬기 — 코티지마다 창문 몇 곳을 골라 다른 박자로 밝아졌다 어두워진다 */
+const WINDOW_GLOWS = [];
 const SEATS = [];                // 모닥불 통나무 좌석 { x, z, y, yaw, rot, top }
 /* 코티지 문 — 광장에서 집 안으로 들어가는 입구. buildVillage() 가 채운다.
    { i, hx, hz, ry, door:{x,z}, face:{x,z}(집→광장), stand:{x,z}(문 앞에 설 자리), w, d } */
@@ -5053,6 +5257,17 @@ function addCottage(c) {
   [-1, 1].forEach((s) => {
     vWindow(base, 0, winTop, 0.92, 1.1, s * Math.PI / 2, { z: uw / 2, shutters: false });
   });
+  /* 🕯 창문 불빛 숨쉬기 — 앞쪽 창문 3곳의 월드 위치를 기억해 둔다 */
+  {
+    const note = (px, py, pz) => {
+      if (WINDOW_GLOWS.length >= 66) return;
+      const w = new THREE.Vector3(px, py, pz).applyMatrix4(base);
+      WINDOW_GLOWS.push({ x: w.x, y: w.y, z: w.z, ph: Math.random() * TAU, sp: 0.22 + Math.random() * 0.2 });
+    };
+    if (upX.length) note(upX[0], winTop, ud / 2 + 0.24);
+    if (upX.length > 1) note(upX[upX.length - 1], winTop, ud / 2 + 0.24);
+    if (lowX.length) note(lowX[0], winBot, d / 2 + 0.24);
+  }
 
   /* --- 문 (아치) + 계단 + 문 옆 랜턴 --- */
   if (hasDoor) {
@@ -5223,15 +5438,15 @@ function addCottage(c) {
 /** 굴뚝 연기 — 기존 updateSmoke() 가 돌리는 houses 목록에 넣는다 */
 function addChimneySmoke(x, y, z) {
   if (IS_TOUCH && houses.length > 2) return;      // 모바일은 연기 개수를 줄인다
-  const SN = 14;
+  const SN = 18;
   const pos = new Float32Array(SN * 3);
   const sdata = [];
-  for (let i = 0; i < SN; i++) sdata.push({ t: i / SN, x: 0, z: 0 });
+  for (let i = 0; i < SN; i++) sdata.push({ t: i / SN, x: 0, z: 0, s: rand(0.8, 1.25) });
   const g = new THREE.BufferGeometry();
   g.setAttribute('position', new THREE.BufferAttribute(pos, 3));
   const smoke = new THREE.Points(g, new THREE.PointsMaterial({
-    size: 1.5, map: TEX_SOFT, color: 0xd8dcee, transparent: true, opacity: 0.13,
-    depthWrite: false, sizeAttenuation: true,
+    size: 2.1, map: TEX_SOFT, color: 0xe4e8f6, transparent: true, opacity: 0.11,
+    depthWrite: false, sizeAttenuation: true, blending: THREE.NormalBlending,
   }));
   smoke.position.set(x, y, z);
   smoke.frustumCulled = false;
@@ -5779,6 +5994,7 @@ function buildVillage() {
     const a = (i / 40) * TAU + rand(-0.03, 0.03);
     const R = R_PLAZA + 1.0 + rand(0, 2.9);          // 눈둑 바깥 사면 ~ 눈밭 이음매
     const x = Math.sin(a) * R, z = Math.cos(a) * R;
+    if (inFairyGround(x, z)) continue;              // 동화 길·연못 자리는 비워 둔다
     const s = rand(0.9, 2.0);
     const y = collarHeight(R, Math.atan2(z, x)) - 0.12 * s;    // 눈 표면에 살짝 묻히게
     vPush(VG.ico2, VMAT.drift, vMtx(null, x, y, z, 0, a, 0, s * 1.6, s * 0.42, s * 1.2));
@@ -5790,6 +6006,9 @@ function buildVillage() {
     const R = rand(30, 50);
     const x = Math.sin(a) * R, z = Math.cos(a) * R;
     if (z < -30) continue;                       // 폭포 · 호수 조망은 비워 둔다
+    /* ⛸️ 얼음 연못 · 눈사람 눈밭 자리에는 나무를 세우지 않는다 */
+    if (Math.hypot(x - POND.x, z - POND.z) < POND.rim + 5.6) continue;
+    if (Math.hypot(x - SNOW_PATCH.x, z - SNOW_PATCH.z) < SNOW_PATCH.r + 2.2) continue;
     addFir(x, z, rand(3.2, 7.2), { tiers: 4, noCollide: true });
   }
 
@@ -5801,6 +6020,604 @@ function buildVillage() {
 
 /* 마을을 세운다 — 지면(groundY) · 콜라이더가 모두 준비된 지점 */
 const villageInfo = buildVillage();
+
+/* =================================================================
+   ⛸️ 3차 — 사탕·쿠키 동화 길 · 얼음 연못 스케이트장 · 산타 우체국
+   -----------------------------------------------------------------
+   · 코티지가 없는 북서쪽 외곽을 열어 사탕 지팡이 가로등과 진저브레드
+     디딤돌이 이어지는 '동화 길'을 내고, 그 끝에 얼음 연못을 둔다.
+   · 얼음 위에서 ⛸️ 스케이트를 타고, 연못 옆 눈밭에서 눈사람을 만든다.
+   · 광장 산타 옆에 📮 산타 우체통과 우체국 팻말을 둔다.
+   ================================================================= */
+const FAIRY_ROOT = new THREE.Group();
+FAIRY_ROOT.name = 'fairy';
+scene.add(FAIRY_ROOT);
+
+/* ---------- 재질 ---------- */
+const FAIRY_M = {
+  cane:    new THREE.MeshStandardMaterial({ color: 0xf7f2e9, roughness: 0.42, metalness: 0.04, envMapIntensity: 0.6 }),
+  caneRed: new THREE.MeshStandardMaterial({ color: 0xd22338, roughness: 0.38, metalness: 0.05, envMapIntensity: 0.7 }),
+  cookie:  new THREE.MeshStandardMaterial({ color: 0x9c5f2c, roughness: 0.84, metalness: 0.0, envMapIntensity: 0.28 }),
+  cookieDk:new THREE.MeshStandardMaterial({ color: 0x74451e, roughness: 0.88, envMapIntensity: 0.24 }),
+  icing:   new THREE.MeshStandardMaterial({ color: 0xf2e4cd, roughness: 0.62, metalness: 0.0, envMapIntensity: 0.35 }),
+  gumdrop: new THREE.MeshStandardMaterial({ color: 0xe8556e, roughness: 0.3, metalness: 0.06, envMapIntensity: 0.8 }),
+  mint:    new THREE.MeshStandardMaterial({ color: 0x7fd6a8, roughness: 0.32, metalness: 0.06, envMapIntensity: 0.8 }),
+  trample: new THREE.MeshStandardMaterial({ color: 0xb8c9dd, roughness: 0.94, flatShading: true, envMapIntensity: 0.3 }),
+  iceEdge: new THREE.MeshStandardMaterial({ color: 0xeaf4ff, roughness: 0.55, metalness: 0.05, envMapIntensity: 0.9 }),
+  postRed: new THREE.MeshStandardMaterial({ color: 0xb51f2b, roughness: 0.4, metalness: 0.18, envMapIntensity: 0.9 }),
+  brass:   new THREE.MeshStandardMaterial({ color: 0xd8a64a, roughness: 0.32, metalness: 0.72, envMapIntensity: 1.1 }),
+  glassWarm: new THREE.MeshBasicMaterial({ color: 0xffcf8a, toneMapped: false }),
+};
+const GEO_HOOK = new THREE.TorusGeometry(0.5, 0.075, 6, 16, Math.PI * 1.15);
+const GEO_RING = new THREE.TorusGeometry(0.5, 0.075, 5, 18);
+/** 두 점을 잇는 막대 조각 — 사탕 아치·갈고리를 매끄럽게 이을 때 쓴다 */
+function vSeg(mat, p0, p1, r, geo) {
+  const dx = p1.x - p0.x, dy = p1.y - p0.y, dz = p1.z - p0.z;
+  const len = Math.hypot(dx, dy, dz);
+  if (len < 1e-5) return;
+  const q = new THREE.Quaternion().setFromUnitVectors(
+    new THREE.Vector3(0, 1, 0), new THREE.Vector3(dx / len, dy / len, dz / len));
+  const m = new THREE.Matrix4().compose(
+    new THREE.Vector3((p0.x + p1.x) / 2, (p0.y + p1.y) / 2, (p0.z + p1.z) / 2),
+    q, new THREE.Vector3(r * 2, len * 1.04, r * 2));
+  vPush(geo || VG.cyl8, mat, m);
+}
+
+/* ---------- 작은 팻말 (천으로 만든 글씨) ---------- */
+function signTexture(title, sub, w, h, opt) {
+  opt = opt || {};
+  return canvasTexture(w, h, (c, W, H) => {
+    /* 나무 판 */
+    const g = c.createLinearGradient(0, 0, 0, H);
+    g.addColorStop(0, opt.wood0 || '#8a5a34');
+    g.addColorStop(1, opt.wood1 || '#6b4226');
+    c.fillStyle = g;
+    c.fillRect(0, 0, W, H);
+    for (let i = 0; i < 9; i++) {
+      c.strokeStyle = `rgba(60,38,20,${0.1 + (i % 3) * 0.05})`;
+      c.lineWidth = 1 + (i % 2);
+      const y = (i / 9) * H + 4;
+      c.beginPath(); c.moveTo(0, y); c.bezierCurveTo(W * 0.3, y + 4, W * 0.6, y - 4, W, y + 2); c.stroke();
+    }
+    c.strokeStyle = 'rgba(255,240,210,.55)';
+    c.lineWidth = 5;
+    c.strokeRect(6, 6, W - 12, H - 12);
+    c.textAlign = 'center';
+    c.textBaseline = 'middle';
+    c.fillStyle = '#fff4dc';
+    c.font = `900 ${Math.round(H * 0.34)}px "Apple SD Gothic Neo","Noto Sans KR",system-ui,sans-serif`;
+    c.fillText(title, W / 2, H * (sub ? 0.40 : 0.5), W - 26);
+    if (sub) {
+      c.font = `700 ${Math.round(H * 0.16)}px "Apple SD Gothic Neo","Noto Sans KR",system-ui,sans-serif`;
+      c.fillStyle = 'rgba(255,240,214,.86)';
+      c.fillText(sub, W / 2, H * 0.72, W - 24);
+    }
+  });
+}
+function signBoard(x, z, ry, w, h, y0, title, sub) {
+  const tex = signTexture(title, sub, 512, Math.round(512 * h / w));
+  tex.anisotropy = 4;
+  const mat = new THREE.MeshStandardMaterial({ map: tex, roughness: 0.78, metalness: 0.02, envMapIntensity: 0.4 });
+  vBox(null, VMAT.wood, w * 1.06, h * 1.08, 0.07, x, y0 + h / 2, z, 0, ry, 0);
+  const m = new THREE.Mesh(new THREE.PlaneGeometry(w, h), mat);
+  m.position.set(x + Math.sin(ry) * 0.045, y0 + h / 2, z + Math.cos(ry) * 0.045);
+  m.rotation.y = ry;
+  m.castShadow = false;
+  m.receiveShadow = true;
+  FAIRY_ROOT.add(m);
+  return m;
+}
+
+/* ---------- 사탕 지팡이 가로등 ---------- */
+const FAIRY_LIGHTS = [];
+function addCandyCane(x, z, h, faceYaw, opt) {
+  opt = opt || {};
+  const y = opt.y === undefined ? groundY(x, z) : opt.y;
+  const dir = new THREE.Vector3(Math.sin(faceYaw), 0, Math.cos(faceYaw));
+  const PR = 0.075;                       // 지팡이 굵기
+  /* 줄기 — 빨강/흰색이 번갈아 이어지는 사탕 지팡이 */
+  const SEG = 12, sh = h / SEG;
+  for (let i = 0; i < SEG; i++) {
+    const mat = i % 2 ? FAIRY_M.caneRed : FAIRY_M.cane;
+    vPush(VG.cyl8, mat, vMtx(null, x, y + sh * (i + 0.5), z, 0, 0, 0, PR * 2, sh * 1.02, PR * 2));
+  }
+  /* 갈고리 — 위에서 둥글게 말려 내려오는 부분을 짧은 막대로 이어 부드럽게 */
+  const R = 0.30;
+  const cx = x + dir.x * R, cz = z + dir.z * R, cy = y + h - R;
+  const N = 16;
+  const pt = (k) => {
+    const th = Math.PI - (k / N) * Math.PI * 0.98;
+    return new THREE.Vector3(
+      cx + Math.cos(th) * R * dir.x, cy + Math.sin(th) * R, cz + Math.cos(th) * R * dir.z);
+  };
+  for (let k = 0; k < N; k++) {
+    vSeg(k % 2 ? FAIRY_M.cane : FAIRY_M.caneRed, pt(k), pt(k + 1), PR * 0.96);
+  }
+  /* 등불 — 갈고리 끝에 매달린 따뜻한 빛 */
+  const tip = pt(N);
+  const lx = tip.x, lz = tip.z, lyC = tip.y - 0.16;
+  vPost(null, VMAT.iron, 0.012, 0.10, lx, tip.y - 0.10, lz, VG.cyl8);
+  vPush(VG.cyl8, VMAT.iron, vMtx(null, lx, lyC + 0.10, lz, 0, 0, 0, 0.19, 0.045, 0.19));
+  vBall(null, FAIRY_M.glassWarm, 0.085, lx, lyC, lz, 1, 1.2, 1, VG.ball8);
+  vPush(VG.cyl8, VMAT.iron, vMtx(null, lx, lyC - 0.10, lz, 0, 0, 0, 0.14, 0.045, 0.14));
+  const glow = glowSprite(0xffbe72, 0.55, 0.34);
+  glow.position.set(lx, lyC, lz);
+  FAIRY_ROOT.add(glow);
+  FAIRY_LIGHTS.push({ x: lx, z: lz, y: lyC, sprite: glow, ph: Math.random() * TAU });
+  if (opt.light) {
+    const pl = new THREE.PointLight(0xffb066, 8, 8.5, 2);
+    pl.position.set(lx, lyC, lz);
+    scene.add(pl);
+    FAIRY_LIGHTS[FAIRY_LIGHTS.length - 1].pl = pl;
+  }
+  return { x, z };
+}
+
+/* ---------- 진저브레드 디딤돌 ---------- */
+function addGingerStone(x, z, r, ry) {
+  const y = groundY(x, z);
+  const B = vMtx(null, x, y, z, 0, ry, 0);
+  vPush(VG.cyl, FAIRY_M.cookieDk, vMtx(B, 0, 0.02, 0, 0, 0, 0, r * 2.12, 0.05, r * 2.12));
+  vPush(VG.cyl, FAIRY_M.cookie, vMtx(B, 0, 0.055, 0, 0, 0, 0, r * 1.94, 0.06, r * 1.94));
+  /* 아이싱 테두리 + 설탕 점 */
+  vPush(GEO_RING, FAIRY_M.icing, vMtx(B, 0, 0.088, 0, Math.PI / 2, 0, 0, r * 1.66, r * 1.66, r * 1.66));
+  const N = 5;
+  for (let i = 0; i < N; i++) {
+    const a = (i / N) * TAU + ry;
+    vBall(B, i % 2 ? FAIRY_M.gumdrop : FAIRY_M.icing, 0.038, Math.cos(a) * r * 0.5, 0.092, Math.sin(a) * r * 0.5, 1, 0.8, 1, VG.ball8);
+  }
+}
+
+/* ---------- 눈을 밟아 다진 길 자국 ---------- */
+function addTrampled(x, z, ry, s) {
+  const y = groundY(x, z);
+  vPush(VG.ico2, FAIRY_M.trample, vMtx(null, x, y + 0.01, z, 0, ry, 0, s * 1.5, 0.14, s * 1.15));
+}
+
+/* ---------- 얼음 연못 ---------- */
+const POND_OBJ = { ice: null, sheen: null, sparks: [] };
+function buildPond() {
+  /* 얼음 텍스처 — 결·금 간 자국·박힌 눈 */
+  const tex = canvasTexture(1024, 1024, (c, W, H) => {
+    const g = c.createRadialGradient(W * 0.44, H * 0.42, W * 0.05, W * 0.5, H * 0.5, W * 0.62);
+    g.addColorStop(0, '#c7e4f8');
+    g.addColorStop(0.42, '#a5cdea');
+    g.addColorStop(0.78, '#7fb2d8');
+    g.addColorStop(1, '#6a9cc4');
+    c.fillStyle = g;
+    c.fillRect(0, 0, W, H);
+    /* 얼음 결 — 길고 부드러운 호 */
+    for (let i = 0; i < 130; i++) {
+      const y0 = rand(0, H), x0 = rand(-W * 0.2, W);
+      c.strokeStyle = `rgba(255,255,255,${rand(0.05, 0.22).toFixed(3)})`;
+      c.lineWidth = rand(1, 4);
+      c.beginPath();
+      c.moveTo(x0, y0);
+      c.bezierCurveTo(x0 + W * 0.2, y0 + rand(-40, 40), x0 + W * 0.4, y0 + rand(-70, 70), x0 + W * 0.7, y0 + rand(-50, 50));
+      c.stroke();
+    }
+    /* 금 간 자국 */
+    for (let i = 0; i < 9; i++) {
+      let x = rand(W * 0.1, W * 0.9), y = rand(H * 0.1, H * 0.9);
+      c.strokeStyle = 'rgba(255,255,255,.5)';
+      c.lineWidth = 1.6;
+      c.beginPath(); c.moveTo(x, y);
+      for (let k = 0; k < 5; k++) { x += rand(-90, 90); y += rand(-90, 90); c.lineTo(x, y); }
+      c.stroke();
+    }
+    /* 얼음에 박힌 눈 — 가장자리 쪽 */
+    for (let i = 0; i < 60; i++) {
+      const a = rand(0, TAU), r = rand(0.72, 1) * W * 0.5;
+      const x = W / 2 + Math.cos(a) * r, y = H / 2 + Math.sin(a) * r;
+      const rr = rand(8, 34);
+      const gg = c.createRadialGradient(x, y, 0, x, y, rr);
+      gg.addColorStop(0, 'rgba(255,255,255,.85)');
+      gg.addColorStop(1, 'rgba(255,255,255,0)');
+      c.fillStyle = gg;
+      c.beginPath(); c.arc(x, y, rr, 0, TAU); c.fill();
+    }
+  });
+  tex.anisotropy = 4;
+  const iceMat = new THREE.MeshPhysicalMaterial({
+    map: tex, color: 0x8fb8da, roughness: 0.23, metalness: 0.0,
+    clearcoat: 0.55, clearcoatRoughness: 0.12, envMapIntensity: 0.38,
+  });
+  const ice = new THREE.Mesh(new THREE.CircleGeometry(POND.r, 64), iceMat);
+  ice.name = 'pond-ice';
+  ice.rotation.x = -Math.PI / 2;
+  ice.position.set(POND.x, POND.y, POND.z);
+  ice.receiveShadow = true;
+  FAIRY_ROOT.add(ice);
+  POND_OBJ.ice = ice;
+
+  /* 얼음 둘레의 하얀 결빙 띠 */
+  const ring = new THREE.Mesh(new THREE.RingGeometry(POND.r * 0.99, POND.r * 1.06, 64), FAIRY_M.iceEdge);
+  ring.rotation.x = -Math.PI / 2;
+  ring.position.set(POND.x, POND.y + 0.004, POND.z);
+  FAIRY_ROOT.add(ring);
+
+  /* 얼음 위 은은한 반짝임 */
+  const sheen = glowSprite(0xcfe6ff, POND.r * 1.4, 0.05);
+  sheen.position.set(POND.x, POND.y + 0.04, POND.z);
+  sheen.scale.set(POND.r * 1.8, POND.r * 1.3, 1);
+  FAIRY_ROOT.add(sheen);
+  POND_OBJ.sheen = sheen;
+
+  /* 눈둑 — 입구 쪽만 비워 둔다 */
+  const N = 34;
+  for (let i = 0; i < N; i++) {
+    const a = (i / N) * TAU + rand(-0.02, 0.02);
+    const da = Math.abs(((a - POND.door + Math.PI) % TAU + TAU) % TAU - Math.PI);
+    if (da < 0.30) continue;                        // 입구
+    const rr = POND.rim - 0.35 + rand(-0.12, 0.2);
+    const x = POND.x + Math.sin(a) * rr, z = POND.z + Math.cos(a) * rr;
+    const s = rand(0.30, 0.60);
+    vPush(VG.ico2, VMAT.drift, vMtx(null, x, groundY(x, z) + rand(0.0, 0.06), z, 0, a, 0, s * 1.8, s * 0.42, s * 1.3));
+  }
+
+  /* 작은 나무 펜스 — 입구는 열어 둔다 */
+  const FP = 14;
+  for (let i = 0; i < FP; i++) {
+    const a0 = (i / FP) * TAU, a1 = ((i + 1) / FP) * TAU;
+    const da = Math.abs(((a0 - POND.door + Math.PI) % TAU + TAU) % TAU - Math.PI);
+    if (da < 0.42) continue;
+    const p0 = { x: POND.x + Math.sin(a0) * POND.rim, z: POND.z + Math.cos(a0) * POND.rim };
+    const p1 = { x: POND.x + Math.sin(a1) * POND.rim, z: POND.z + Math.cos(a1) * POND.rim };
+    const y0 = groundY(p0.x, p0.z), y1 = groundY(p1.x, p1.z);
+    const hh = 0.62;
+    vPost(null, VMAT.wood, 0.055, hh, p0.x, y0 - 0.02, p0.z, VG.cyl6);
+    vBall(null, VMAT.snow, 0.075, p0.x, y0 + hh - 0.02, p0.z, 1, 0.7, 1, VG.ball8);
+    /* 가로대 두 줄 */
+    const mx = (p0.x + p1.x) / 2, mz = (p0.z + p1.z) / 2, my = (y0 + y1) / 2;
+    const len = Math.hypot(p1.x - p0.x, p1.z - p0.z);
+    const ry = Math.atan2(p1.x - p0.x, p1.z - p0.z);
+    [0.30, 0.50].forEach((hy) => vBox(null, VMAT.wood, 0.05, 0.06, len, mx, my + hy, mz, 0, ry, 0));
+  }
+
+  /* 따뜻한 가로등 두 개 · 벤치 두 개 */
+  const lampA = POND.door + 0.95, lampB = POND.door - 1.05;
+  [[lampA, true], [lampB, false]].forEach(([a, lit]) => {
+    const x = POND.x + Math.sin(a) * (POND.rim + 0.5), z = POND.z + Math.cos(a) * (POND.rim + 0.5);
+    addLanternPost(x, z, 3.1, { light: lit, ry: Math.atan2(POND.x - x, POND.z - z) });
+  });
+  [[POND.door + 1.85], [POND.door - 1.95]].forEach(([a]) => {
+    const x = POND.x + Math.sin(a) * (POND.rim + 0.65), z = POND.z + Math.cos(a) * (POND.rim + 0.65);
+    addBench(x, z, Math.atan2(POND.x - x, POND.z - z), {});
+  });
+
+  /* 스케이트장 팻말 — 입구 옆 */
+  const sx = POND.x + Math.sin(POND.door - 0.42) * (POND.rim + 1.35);
+  const sz = POND.z + Math.cos(POND.door - 0.42) * (POND.rim + 1.35);
+  const sy = groundY(sx, sz);
+  vPost(null, VMAT.woodDk, 0.07, 1.05, sx - 0.42, sy, sz, VG.cyl6);
+  vPost(null, VMAT.woodDk, 0.07, 1.05, sx + 0.42, sy, sz, VG.cyl6);
+  signBoard(sx, sz - 0.06, Math.atan2(POND.x - sx, POND.z - sz), 1.15, 0.62, sy + 0.78, '⛸️ 얼음 연못', '스케이트 타기');
+  addCollider(sx, sz, 0.5);
+}
+
+/* ---------- 동화 길 ---------- */
+function buildFairyPath() {
+  /* 길을 따라 바닥을 밟아 다진 자국 — 눈둑 위를 자연스럽게 잇는다 */
+  for (let i = 0; i < FAIRY_PATH.length - 1; i++) {
+    const a = FAIRY_PATH[i], b = FAIRY_PATH[i + 1];
+    const len = Math.hypot(b.x - a.x, b.z - a.z);
+    const n = Math.max(2, Math.round(len / 0.75));
+    for (let k = 0; k < n; k++) {
+      const t = k / n;
+      const x = a.x + (b.x - a.x) * t + rand(-0.16, 0.16);
+      const z = a.z + (b.z - a.z) * t + rand(-0.16, 0.16);
+      addTrampled(x, z, rand(0, TAU), rand(0.75, 1.05));
+    }
+  }
+  /* 진저브레드 디딤돌 — 길을 따라 한 걸음씩 */
+  let acc = 0, side = 1;
+  for (let i = 0; i < FAIRY_PATH.length - 1; i++) {
+    const a = FAIRY_PATH[i], b = FAIRY_PATH[i + 1];
+    const len = Math.hypot(b.x - a.x, b.z - a.z);
+    const ux = (b.x - a.x) / len, uz = (b.z - a.z) / len;
+    const nx = uz, nz = -ux;
+    for (let d = 0.6; d < len - 0.2; d += 1.05) {
+      const x = a.x + ux * d + nx * 0.34 * side;
+      const z = a.z + uz * d + nz * 0.34 * side;
+      addGingerStone(x, z, 0.44 + (side > 0 ? 0.05 : 0), rand(-0.4, 0.4) + Math.atan2(ux, uz));
+      side = -side;
+      acc += 1;
+    }
+  }
+  /* 사탕 지팡이 가로등 — 길 양옆에 서로 마주 보게 */
+  for (let i = 0; i < FAIRY_PATH.length - 1; i++) {
+    const a = FAIRY_PATH[i], b = FAIRY_PATH[i + 1];
+    const len = Math.hypot(b.x - a.x, b.z - a.z);
+    const ux = (b.x - a.x) / len, uz = (b.z - a.z) / len;
+    const nx = uz, nz = -ux;
+    const n = Math.max(2, Math.round(len / 2.1));
+    for (let k = 0; k < n; k++) {
+      const t = (k + 0.5) / n;
+      const sgn = k % 2 ? 1 : -1;
+      const x = a.x + ux * len * t + nx * (FAIRY_HALF + 0.45) * sgn;
+      const z = a.z + uz * len * t + nz * (FAIRY_HALF + 0.45) * sgn;
+      const lit = (i === 0 && k === 0) || (i === 1 && k === n - 1);
+      addCandyCane(x, z, 2.45 + (k % 2) * 0.15, Math.atan2(-nx * sgn, -nz * sgn), { light: lit });
+      addCollider(x, z, 0.24);
+    }
+  }
+  /* 길 어귀 — 사탕 아치 (두 기둥 + 반원 아치) */
+  const e0 = FAIRY_PATH[0], e1 = FAIRY_PATH[1];
+  const dl = Math.hypot(e1.x - e0.x, e1.z - e0.z);
+  const ux = (e1.x - e0.x) / dl, uz = (e1.z - e0.z) / dl;
+  const nx = uz, nz = -ux;
+  const ax = e0.x + ux * 1.0, az = e0.z + uz * 1.0;
+  const gw = FAIRY_HALF + 0.5;               // 아치 반폭
+  const AH = 2.30;                            // 기둥 높이
+  [-1, 1].forEach((s) => {
+    const px = ax + nx * gw * s, pz = az + nz * gw * s;
+    const SEG = 8, sh = AH / SEG;
+    for (let i = 0; i < SEG; i++) {
+      const mat = i % 2 ? FAIRY_M.cane : FAIRY_M.caneRed;
+      vPush(VG.cyl8, mat, vMtx(null, px, groundY(px, pz) + sh * (i + 0.5), pz, 0, 0, 0, 0.15, sh * 1.02, 0.15));
+    }
+    addCollider(px, pz, 0.24);
+  });
+  /* 아치 — 반원을 짧은 막대로 이어 빨강·흰색 교대 */
+  const arcPt = (t) => {
+    const th = Math.PI * t;
+    const off = -gw + 2 * gw * t;
+    const px = ax + nx * off, pz = az + nz * off;
+    return new THREE.Vector3(px, groundY(ax, az) + AH + Math.sin(th) * 0.55, pz);
+  };
+  const ARC_N = 16;
+  for (let i = 0; i < ARC_N; i++) {
+    vSeg(i % 2 ? FAIRY_M.cane : FAIRY_M.caneRed, arcPt(i / ARC_N), arcPt((i + 1) / ARC_N), 0.085);
+  }
+  /* 아치 꼭대기에 매달린 작은 사탕방울 · 별 */
+  const topPt = arcPt(0.5);
+  vBall(null, FAIRY_M.gumdrop, 0.10, topPt.x, topPt.y - 0.16, topPt.z, 1, 1.2, 1, VG.ball8);
+  vBall(null, FAIRY_M.mint, 0.075, topPt.x + nx * 0.5, topPt.y - 0.10, topPt.z + nz * 0.5, 1, 1.2, 1, VG.ball8);
+  vBall(null, FAIRY_M.gumdrop, 0.07, topPt.x - nx * 0.5, topPt.y - 0.10, topPt.z - nz * 0.5, 1, 1.2, 1, VG.ball8);
+  /* 입구 팻말 */
+  const sx = ax + nx * -(gw + 0.85), sz = az + nz * -(gw + 0.85);
+  const sy = groundY(sx, sz);
+  vPost(null, VMAT.woodDk, 0.065, 0.95, sx, sy, sz, VG.cyl6);
+  signBoard(sx, sz, Math.atan2(nx, nz) + Math.PI, 1.02, 0.5, sy + 0.72, '🍬 사탕길', '얼음 연못으로');
+  addCollider(sx, sz, 0.4);
+  /* 길가 군데군데 사탕 나무 */
+  for (let i = 0; i < 7; i++) {
+    const t = (i + 0.5) / 7;
+    const seg = t * (FAIRY_PATH.length - 1);
+    const si = Math.min(FAIRY_PATH.length - 2, Math.floor(seg));
+    const lt = seg - si;
+    const a = FAIRY_PATH[si], b = FAIRY_PATH[si + 1];
+    const sgn = i % 2 ? 1 : -1;
+    const x = a.x + (b.x - a.x) * lt + nx * (FAIRY_HALF + 1.05 + rand(0, 0.5)) * sgn;
+    const z = a.z + (b.z - a.z) * lt + nz * (FAIRY_HALF + 1.05 + rand(0, 0.5)) * sgn;
+    if (inFairyGround(x, z)) continue;
+    if (Math.hypot(x - POND.x, z - POND.z) < POND.rim + 2.4) continue;
+    if (Math.hypot(x - SNOW_PATCH.x, z - SNOW_PATCH.z) < SNOW_PATCH.r + 1.2) continue;
+    addFir(x, z, rand(1.6, 2.6), { tiers: 3, bulbs: true, noCollide: true, y: groundY(x, z) });
+  }
+}
+
+/* ---------- 눈사람 만들기 눈밭 ---------- */
+function buildSnowPatch() {
+  const y = groundY(SNOW_PATCH.x, SNOW_PATCH.z);
+  /* 밟아 다져 조금 눅눅한 눈밭 — 얇고 넓게 깔아 '다져진 자리'로 보이게 */
+  for (let i = 0; i < 30; i++) {
+    const a = rand(0, TAU), r = Math.sqrt(Math.random()) * SNOW_PATCH.r * 0.96;
+    const x = SNOW_PATCH.x + Math.sin(a) * r, z = SNOW_PATCH.z + Math.cos(a) * r;
+    vPush(VG.ico2, FAIRY_M.trample, vMtx(null, x, groundY(x, z) - 0.01, z, 0, a, 0, rand(0.7, 1.4), 0.07, rand(0.6, 1.15)));
+  }
+  /* 눈덩이를 굴리다 만 흔적 — 작은 눈더미 두엇 */
+  for (let i = 0; i < 4; i++) {
+    const a = rand(0, TAU), r = rand(1.4, SNOW_PATCH.r * 0.85);
+    const x = SNOW_PATCH.x + Math.sin(a) * r, z = SNOW_PATCH.z + Math.cos(a) * r;
+    const s = rand(0.16, 0.24);
+    vBall(null, VMAT.snow, s, x, groundY(x, z) + s * 0.45, z, 1, 0.7, 1, VG.ico2);
+  }
+  /* 당근 바구니 · 숯 · 나뭇가지 소품 */
+  const bx = SNOW_PATCH.x + 2.05, bz = SNOW_PATCH.z - 0.35;
+  const by = groundY(bx, bz);
+  vPush(VG.cyl, VMAT.woodDk, vMtx(null, bx, by + 0.22, bz, 0, 0, 0, 0.52, 0.44, 0.52));
+  vPush(VG.torus, VMAT.wallB, vMtx(null, bx, by + 0.42, bz, Math.PI / 2, 0, 0, 0.58, 0.58, 0.22));
+  for (let i = 0; i < 4; i++) {
+    vPush(VG.cone6, FAIRY_M.cookieDk, vMtx(null, bx + rand(-0.14, 0.14), by + 0.44, bz + rand(-0.14, 0.14), rand(0, 0.4), rand(0, TAU), rand(0, 0.3), 0.09, 0.34, 0.09));
+  }
+  addCollider(bx, bz, 0.42);
+  /* 팻말 */
+  const sx = SNOW_PATCH.x - 2.15, sz = SNOW_PATCH.z + 0.55;
+  const sy = groundY(sx, sz);
+  vPost(null, VMAT.woodDk, 0.065, 1.0, sx, sy, sz, VG.cyl6);
+  signBoard(sx, sz, Math.atan2(SNOW_PATCH.x - sx, SNOW_PATCH.z - sz), 1.05, 0.52, sy + 0.74, '❄️ 눈사람', '눈을 굴려 만들어요');
+  addCollider(sx, sz, 0.4);
+}
+
+/* ---------- 📮 산타 우체국 ---------- */
+const POST_OBJ = { box: null, flag: null, fx: [] };
+function buildPostOffice() {
+  const x = MAILBOX.x, z = MAILBOX.z;
+  const y = groundY(x, z);
+  const B = vMtx(null, x, y, z, 0, Math.atan2(-x, -z), 0);   // 광장 중앙 쪽을 바라본다
+  /* 받침 기둥 */
+  vBoxB(B, VMAT.woodDk, 0.17, 0.84, 0.17, 0, 0.02, 0);
+  vBoxB(B, VMAT.stoneDk, 0.36, 0.10, 0.36, 0, 0.0, 0);
+  /* 우체통 몸통 — 빨간 함 + 둥근 지붕 */
+  vBoxB(B, FAIRY_M.postRed, 0.74, 0.40, 0.52, 0, 0.82, 0);
+  vPush(VG.cyl, FAIRY_M.postRed, vMtx(B, 0, 1.22, 0, Math.PI / 2, 0, 0, 0.74, 0.52, 0.74));
+  /* 둥근 지붕 위 눈 */
+  vPush(VG.ico2, VMAT.snow, vMtx(B, 0, 1.26, 0, 0, 0, 0, 0.74, 0.22, 0.54));
+  vPush(VG.ico2, VMAT.snow, vMtx(B, 0, 1.12, 0.18, 0, 0, 0, 0.46, 0.12, 0.24));
+  /* 편지 넣는 틈 (앞면) */
+  vBox(B, VMAT.iron, 0.40, 0.055, 0.02, 0, 1.04, 0.268);
+  /* 손잡이 · 장식 띠 */
+  vBall(B, FAIRY_M.brass, 0.038, 0, 0.90, 0.275, 1, 1, 0.7, VG.ball8);
+  vBox(B, FAIRY_M.brass, 0.75, 0.038, 0.53, 0, 0.845, 0);
+  /* 깃발 (편지가 있다는 표시) */
+  vBoxB(B, FAIRY_M.postRed, 0.045, 0.34, 0.15, 0.41, 0.94, 0);
+  vBoxB(B, FAIRY_M.caneRed, 0.045, 0.15, 0.19, 0.41, 1.10, 0.02);
+  /* 지붕 위 작은 별 */
+  vBall(B, FAIRY_M.brass, 0.05, 0, 1.40, 0.22, 1, 1, 0.6, VG.ball8);
+  /* 우체국 팻말 — 우체통 옆, 광장 쪽을 바라본다 */
+  const sx = x - 1.62, sz = z + 0.35;
+  const sy = groundY(sx, sz);
+  vPost(null, VMAT.woodDk, 0.065, 1.32, sx - 0.58, sy, sz, VG.cyl6);
+  vPost(null, VMAT.woodDk, 0.065, 1.32, sx + 0.58, sy, sz, VG.cyl6);
+  /* 팻말 지붕 */
+  vBox(null, VMAT.roofA, 1.66, 0.09, 0.52, sx, sy + 1.46, sz, 0.10, 0, 0);
+  vBox(null, VMAT.snow, 1.70, 0.06, 0.56, sx, sy + 1.52, sz, 0.10, 0, 0);
+  /* 광장 중앙과 입구 쪽을 함께 향하도록 살짝 돌려 세운다 */
+  signBoard(sx, sz + 0.29, Math.atan2(-x, -z) + 0.5, 1.28, 0.62, sy + 0.84, '📮 산타 우체국', '따뜻한 편지를 보내요');
+  addCollider(sx, sz, 0.62);
+  addCollider(x, z, 0.62);
+  POND_OBJ.postSign = { x: sx, z: sz };
+}
+
+/* ---------- 🎁 선물상자 탑 ---------- */
+function buildGiftTower() {
+  const gx = GIFT_TOWER.x, gz = GIFT_TOWER.z;
+  const gy = groundY(gx, gz);
+  const cols = [
+    [0xc0392b, 0xf2d06b], [0x2f6f5e, 0xf4e3c0], [0x8e3f6b, 0xeed07a],
+    [0x2c4f8a, 0xf0c96a], [0xd9832c, 0xfdf1d6], [0x9b2c3a, 0xf3dc9a],
+  ];
+  const G = [
+    [0, 0.52, 0, 1.08, 1.04, 1.0],
+    [-0.62, 0.36, 0.34, 0.72, 0.72, 0.7],
+    [0.66, 0.38, -0.26, 0.76, 0.76, 0.72],
+    [0.06, 1.35, 0.04, 0.82, 0.62, 0.78],
+    [-0.34, 1.05, -0.46, 0.52, 0.52, 0.5],
+    [0.06, 1.86, 0.02, 0.56, 0.42, 0.54],
+  ];
+  G.forEach((g, i) => {
+    const [ox, oy, oz, w, h, d] = g;
+    const col = cols[i % cols.length];
+    const mat = new THREE.MeshStandardMaterial({ color: col[0], roughness: 0.55, metalness: 0.12, envMapIntensity: 0.6 });
+    const rmat = new THREE.MeshStandardMaterial({ color: col[1], roughness: 0.34, metalness: 0.5, envMapIntensity: 1.0 });
+    const ry = rand(-0.5, 0.5);
+    const B = vMtx(null, gx + ox, gy, gz + oz, 0, ry, 0);
+    vBoxB(B, mat, w, h, d, 0, oy - h / 2, 0);
+    vBox(B, rmat, w * 1.02, h * 1.02, d * 0.16, 0, oy, 0);
+    vBox(B, rmat, w * 0.16, h * 1.02, d * 1.02, 0, oy, 0);
+    vBall(B, rmat, 0.1 * (w / 0.8), 0, oy + h / 2 + 0.03, 0, 1.5, 0.9, 1.5, VG.ball8);
+    /* 뚜껑 위 눈 */
+    if (i < 4) vBall(B, VMAT.snow, 0.05 * (w / 0.8), 0, oy + h / 2 + 0.02, 0, 2.2, 0.4, 1.2, VG.ball8);
+  });
+  addCollider(gx, gz, 1.28);
+}
+
+/* ---------- 조립 ---------- */
+function buildFairyWorld() {
+  buildFairyPath();
+  buildPond();
+  buildSnowPatch();
+  buildPostOffice();
+  buildGiftTower();
+  const meshCount = vFlush(FAIRY_ROOT);
+  return { meshCount, candy: FAIRY_LIGHTS.length, windows: WINDOW_GLOWS.length };
+}
+const fairyInfo = buildFairyWorld();
+
+/* 🕯 창문 불빛 숨쉬기 — 창문마다 다른 박자로 아주 천천히 밝아졌다 어두워진다 */
+const WINDOW_SPRITES = WINDOW_GLOWS.map((w) => {
+  const sp = glowSprite(0xffb45e, 1.9, 0.0);
+  sp.position.set(w.x, w.y, w.z);
+  sp.scale.set(1.55, 1.35, 1);
+  scene.add(sp);
+  return { sp, ph: w.ph, spd: w.sp };
+});
+function updateWindowGlow() {
+  for (let i = 0; i < WINDOW_SPRITES.length; i++) {
+    const w = WINDOW_SPRITES[i];
+    const s = Math.sin(elapsed * w.spd + w.ph);
+    w.sp.material.opacity = 0.16 + 0.14 * s + 0.03 * Math.sin(elapsed * 2.7 + w.ph * 2.1);
+  }
+}
+function updateFairyLights() {
+  for (let i = 0; i < FAIRY_LIGHTS.length; i++) {
+    const f = FAIRY_LIGHTS[i];
+    const s = Math.sin(elapsed * 1.5 + f.ph);
+    if (f.sprite) f.sprite.material.opacity = 0.52 + 0.16 * s;
+    if (f.pl) f.pl.intensity = 10 + 2.2 * s;
+  }
+}
+
+/* ---------- 🌠 별똥별 ---------- */
+const SHOOT = { stars: [], spawned: 0, next: 5.5 };
+function buildShootingStars() {
+  const tex = canvasTexture(256, 48, (c, W, H) => {
+    c.clearRect(0, 0, W, H);
+    const g = c.createLinearGradient(0, 0, W, 0);
+    g.addColorStop(0, 'rgba(255,255,255,0)');
+    g.addColorStop(0.55, 'rgba(214,238,255,0.35)');
+    g.addColorStop(0.9, 'rgba(255,255,255,0.95)');
+    g.addColorStop(1, 'rgba(255,255,255,1)');
+    c.fillStyle = g;
+    c.beginPath();
+    c.ellipse(W * 0.5, H * 0.5, W * 0.5, H * 0.16, 0, 0, TAU);
+    c.fill();
+    const head = c.createRadialGradient(W * 0.94, H * 0.5, 0, W * 0.94, H * 0.5, H * 0.5);
+    head.addColorStop(0, 'rgba(255,255,255,1)');
+    head.addColorStop(1, 'rgba(255,250,230,0)');
+    c.fillStyle = head;
+    c.beginPath(); c.arc(W * 0.94, H * 0.5, H * 0.42, 0, TAU); c.fill();
+  });
+  for (let i = 0; i < 3; i++) {
+    const sp = new THREE.Sprite(new THREE.SpriteMaterial({
+      map: tex, transparent: true, opacity: 0, depthWrite: false,
+      blending: THREE.AdditiveBlending, toneMapped: false, fog: false, rotation: 0,
+    }));
+    sp.scale.set(34, 3.4, 1);
+    sp.visible = false;
+    scene.add(sp);
+    SHOOT.stars.push({ sp, on: false, life: 0, dur: 1.6, from: new THREE.Vector3(), dir: new THREE.Vector3(), speed: 70 });
+  }
+}
+buildShootingStars();
+
+function spawnShootingStar() {
+  const slot = SHOOT.stars.find((s) => !s.on);
+  if (!slot) return;
+  const a = rand(0, TAU);
+  const R = rand(230, 300);
+  const h0 = rand(120, 210);
+  slot.from.set(Math.sin(a) * R, h0, Math.cos(a) * R);
+  /* 하늘을 가로질러 떨어지는 방향 — 살짝 아래로 */
+  const down = rand(0.25, 0.6);
+  const across = a + rand(0.7, 1.5) * (Math.random() < 0.5 ? 1 : -1);
+  slot.dir.set(Math.sin(across), -down, Math.cos(across)).normalize();
+  slot.sp.position.copy(slot.from);
+  slot.sp.scale.set(rand(26, 46), rand(2.6, 4.4), 1);
+  slot.sp.material.opacity = 0;
+  slot.sp.visible = true;
+  slot.on = true;
+  slot.life = 0;
+  slot.dur = rand(1.1, 1.9);
+  slot.speed = rand(55, 95);
+  SHOOT.spawned++;
+}
+
+function updateShootingStars(dt) {
+  SHOOT.next -= dt;
+  if (SHOOT.next <= 0) {
+    SHOOT.next = rand(6.5, 15.0);
+    spawnShootingStar();
+  }
+  const pa = new THREE.Vector3();
+  const pb = new THREE.Vector3();
+  for (const s of SHOOT.stars) {
+    if (!s.on) continue;
+    s.life += dt;
+    const k = s.life / s.dur;
+    if (k >= 1) { s.on = false; s.sp.visible = false; s.sp.material.opacity = 0; continue; }
+    s.sp.position.addScaledVector(s.dir, s.speed * dt);
+    s.sp.material.opacity = Math.sin(k * Math.PI) * 0.95;
+    /* 궤적 방향에 맞춰 화면상 각도를 돌린다 */
+    pa.copy(s.sp.position).project(camera);
+    pb.copy(s.sp.position).addScaledVector(s.dir, 10).project(camera);
+    const ang = Math.atan2(pb.y - pa.y, pb.x - pa.x);
+    if (Number.isFinite(ang)) s.sp.material.rotation = ang;
+  }
+}
+
+
 
 /* ===============================================================
    🚪 집 안 출입 — 문 앞 현관길 · 이동 화면 · 아늑한 실내
@@ -8201,7 +9018,8 @@ function updateAvatarPose(ud, root, speed, dt) {
 
   const target = clamp(speed / 0.75, 0, 1);
   ud.walk = lerp(ud.walk, target, Math.min(1, dt * 9));
-  const w = ud.walk;
+  /* 스케이트 자세일 때는 걷기 스윙을 덜어낸다 */
+  const w = ud.walk * (1 - clamp((ud.skateW || 0) * 1.2, 0, 1));
   ud.speed = speed;
   const sitW = ud.sit || 0;
 
@@ -8300,6 +9118,10 @@ function updateAvatarPose(ud, root, speed, dt) {
     boneRot(ud, 'Spine01', (0.05 + breath) * sitW);
     boneRot(ud, 'Head', (-0.04 - breath * 0.6) * sitW);
   }
+
+  /* ---------- ⛸️ 스케이트 자세 · ❄️ 눈덩이 밀기 ---------- */
+  if ((ud.skateW > 0.004 || ud.skateWant) && sitW < 0.5) updateSkatePose(ud, root, dt, !!ud.skateWant);
+  if (ud.pushW > 0.004 || ud.pushWant > 0.004) updateRollPose(ud, root, dt, ud.pushWant || 0);
 
   /* 발끝을 바닥에 정확히 접지 (설 때) / 골반을 통나무 윗면에 앉히기 (앉을 때) */
   ud.inner.position.y = 0;
@@ -8771,6 +9593,7 @@ function spawnFloater(playerId, emoji) {
    7. 캐롤 BGM (Web Audio 신스)
 --------------------------------------------------------------- */
 const NOTE_FREQ = {
+  C3: 130.81, D3: 146.83, E3: 164.81, F3: 174.61, G3: 196.00, A3: 220.00, B3: 246.94,
   C4: 261.63, D4: 293.66, E4: 329.63, F4: 349.23, G4: 392.00, A4: 440.00, B4: 493.88,
   C5: 523.25, D5: 587.33, E5: 659.25, F5: 698.46, G5: 783.99, A5: 880.00,
 };
@@ -8793,7 +9616,7 @@ const CAROL = [
 class CarolSynth {
   constructor() {
     this.ctx = null; this.playing = false; this.i = 0; this.next = 0;
-    this.beat = 0.44; this.timer = null;
+    this.beat = 0.47; this.timer = null;
   }
   _ensure() {
     if (this.ctx) return;
@@ -8816,28 +9639,60 @@ class CarolSynth {
     this.dry.gain.value = 0.9;
     this.dry.connect(this.master);
   }
+  /* 오르골 — 쇠 막대를 때린 듯한 배음이 맑게 퍼지고 길게 여운이 남는다 */
   playTone(freq, t, dur) {
     const ctx = this.ctx;
     const g = ctx.createGain();
+    const ring = Math.max(0.7, dur * 1.45);          // 오르골은 음이 오래 남는다
     g.gain.setValueAtTime(0.0001, t);
-    g.gain.exponentialRampToValueAtTime(0.5, t + 0.012);
-    g.gain.exponentialRampToValueAtTime(0.0001, t + Math.max(0.18, dur * 1.05));
+    g.gain.exponentialRampToValueAtTime(0.40, t + 0.006);
+    g.gain.exponentialRampToValueAtTime(0.0001, t + ring);
     g.connect(this.dry);
     g.connect(this.delay);
-    const o1 = ctx.createOscillator();
-    o1.type = 'triangle';
-    o1.frequency.value = freq;
-    o1.connect(g);
-    const o2 = ctx.createOscillator();
-    o2.type = 'sine';
-    o2.frequency.value = freq * 2;
-    const g2 = ctx.createGain();
-    g2.gain.value = 0.28;
-    o2.connect(g2);
-    g2.connect(g);
-    o1.start(t); o2.start(t);
-    o1.stop(t + dur * 1.2 + 0.3);
-    o2.stop(t + dur * 1.2 + 0.3);
+    const partial = (mult, amp, decay) => {
+      const o = ctx.createOscillator();
+      o.type = 'sine';
+      o.frequency.value = freq * mult;
+      const pg = ctx.createGain();
+      pg.gain.setValueAtTime(0.0001, t);
+      pg.gain.exponentialRampToValueAtTime(amp, t + 0.004);
+      pg.gain.exponentialRampToValueAtTime(0.0001, t + Math.max(0.16, decay));
+      o.connect(pg);
+      pg.connect(g);
+      o.start(t);
+      o.stop(t + ring + 0.1);
+    };
+    partial(1, 0.85, ring);          // 기본음
+    partial(2.01, 0.22, ring * 0.55); // 맑은 배음
+    partial(3.02, 0.07, ring * 0.32); // 반짝임
+    /* 부드러운 몸통 — 살짝 늦게 들어와 음을 따뜻하게 받쳐 준다 */
+    const body = ctx.createOscillator();
+    body.type = 'triangle';
+    body.frequency.value = freq * 0.5;
+    const bg = ctx.createGain();
+    bg.gain.setValueAtTime(0.0001, t);
+    bg.gain.linearRampToValueAtTime(0.055, t + 0.05);
+    bg.gain.exponentialRampToValueAtTime(0.0001, t + ring * 0.9);
+    body.connect(bg);
+    bg.connect(this.dry);
+    body.start(t);
+    body.stop(t + ring + 0.1);
+  }
+
+  /* 낮은 베이스 — 한 마디마다 조용히 깔린다 */
+  playBass(freq, t, dur) {
+    const ctx = this.ctx;
+    const g = ctx.createGain();
+    g.gain.setValueAtTime(0.0001, t);
+    g.gain.linearRampToValueAtTime(0.10, t + 0.12);
+    g.gain.exponentialRampToValueAtTime(0.0001, t + Math.max(0.6, dur));
+    g.connect(this.dry);
+    const o = ctx.createOscillator();
+    o.type = 'triangle';
+    o.frequency.value = freq;
+    o.connect(g);
+    o.start(t);
+    o.stop(t + dur + 0.2);
   }
   _bell(t) {
     const ctx = this.ctx;
@@ -8857,10 +9712,21 @@ class CarolSynth {
   _schedule() {
     if (!this.playing) return;
     const ahead = 0.4;
+    const BASS = [NOTE_FREQ.C3, NOTE_FREQ.F3, NOTE_FREQ.C3, NOTE_FREQ.G3];
     while (this.next < this.ctx.currentTime + ahead) {
       const [note, beats] = CAROL[this.i % CAROL.length];
       const dur = beats * this.beat;
-      if (note) { this.playTone(NOTE_FREQ[note], this.next, dur); this._bell(this.next); }
+      if (note) {
+        this.playTone(NOTE_FREQ[note], this.next, dur);
+        if (this.i % 3 === 1) this._bell(this.next);   // 은은한 종소리는 가끔만
+      }
+      /* 한 마디(4박)마다 베이스 한 음 */
+      this._barBeats = (this._barBeats || 0) + beats;
+      while (this._barBeats >= 4) {
+        this._barBeats -= 4;
+        this._bar = (this._bar || 0) + 1;
+        this.playBass(BASS[this._bar % 4], this.next, this.beat * 3.6);
+      }
       this.next += dur;
       this.i++;
     }
@@ -9169,7 +10035,7 @@ net.on('state', ({ players: list }) => {
     p.moving = !!s.moving && p.pose !== 'sit';
     p.seat = s.seat === undefined ? -1 : s.seat;
     p.zone = s.zone || 'p';
-    if (s.tf !== undefined) p.tf = s.tf === 'sn' ? 'sn' : '';
+    if (s.tf !== undefined) p.tf = s.tf === 'sn' ? 'sn' : (s.tf === 'sk' ? 'sk' : '');
     if (s.roast !== undefined) p.roast = clamp(Math.round(+s.roast || 0), 0, 100);
     if (p.isMe) { p.root.position.x = s.x; p.root.position.z = s.z; }
     /* 광장/실내가 다르면 그리지 않는다 */
@@ -10495,7 +11361,7 @@ function updateCocoa(dt) {
 }
 
 /* --- 소원 쪽지 게시판 --- */
-const WISH = { list: [], cards: [], max: 8, root: null };
+const WISH = { list: [], cards: [], max: 10, root: null };
 function wishStoreKey() { return 'xmas-wishes-v1:' + (state.room || 'main'); }
 function buildWishBoardRoot() {
   const g = new THREE.Group();
@@ -10507,10 +11373,22 @@ function buildWishBoardRoot() {
 buildWishBoardRoot();
 
 const WISH_PAPER = ['#fdf6e3', '#f3e6d0', '#e8f2ff', '#fbeee2', '#f7efe0'];
-function wishCardTexture(text, nick, i) {
+function wishCardTexture(text, nick, i, to, kind) {
+  const mail = kind === 'mail';
   return canvasTexture(256, 190, (c, w, h) => {
-    c.fillStyle = WISH_PAPER[i % WISH_PAPER.length];
+    c.fillStyle = mail ? '#fdeaea' : WISH_PAPER[i % WISH_PAPER.length];
     c.fillRect(0, 0, w, h);
+    if (mail) {
+      /* 편지 — 붉은 테두리와 받는 사람 */
+      c.strokeStyle = 'rgba(190,60,70,.55)';
+      c.lineWidth = 7;
+      c.strokeRect(9, 9, w - 18, h - 18);
+      c.fillStyle = '#b53a45';
+      c.textAlign = 'center';
+      c.textBaseline = 'middle';
+      c.font = '800 20px "Apple SD Gothic Neo","Noto Sans KR",system-ui,sans-serif';
+      c.fillText('To. ' + String(to || '산타').slice(0, 8), w / 2, h * 0.17, w - 40);
+    }
     /* 종이 결 · 모서리 그리기 */
     for (let k = 0; k < 14; k++) {
       c.strokeStyle = `rgba(120,96,64,${0.04 + (k % 3) * 0.012})`;
@@ -10536,19 +11414,20 @@ function wishCardTexture(text, nick, i) {
       if (lines.length >= 2) break;
     }
     if (lines.length < 2 && cur) lines.push(cur);
-    lines.slice(0, 2).forEach((ln, i2) => c.fillText(ln, w / 2, h * 0.4 + i2 * 34, w - 30));
+    const y0 = mail ? h * 0.45 : h * 0.4;
+    lines.slice(0, 2).forEach((ln, i2) => c.fillText(ln, w / 2, y0 + i2 * 32, w - 30));
     c.font = '700 17px system-ui,sans-serif';
-    c.fillStyle = 'rgba(90,66,40,.72)';
-    c.fillText('— ' + String(nick || '엘프').slice(0, 8), w / 2, h * 0.8, w - 34);
+    c.fillStyle = mail ? 'rgba(150,50,60,.8)' : 'rgba(90,66,40,.72)';
+    c.fillText((mail ? '💌 ' : '— ') + String(nick || '엘프').slice(0, 8), w / 2, h * 0.83, w - 34);
   });
 }
 
-function placeWishCard(i, text, nick) {
+function placeWishCard(i, text, nick, to, kind) {
   const B = LOUNGE.board;
-  const col = i % 4, row = Math.floor(i / 4) % 2;
-  const zOff = -0.42 + col * 0.28;
-  const y = 1.7 - row * 0.3;
-  const tex = wishCardTexture(text, nick, i);
+  const col = i % 5, row = Math.floor(i / 5) % 2;
+  const zOff = -0.5 + col * 0.25;
+  const y = 1.72 - row * 0.28;
+  const tex = wishCardTexture(text, nick, i, to, kind);
   tex.anisotropy = 4;
   const mat = new THREE.MeshStandardMaterial({ map: tex, roughness: 0.92, metalness: 0 });
   const m = new THREE.Mesh(new THREE.PlaneGeometry(0.24, 0.18), mat);
@@ -10575,19 +11454,23 @@ function loadWishes() {
       if (c.geometry) c.geometry.dispose();
     }
   }
-  WISH.list.forEach((w, i) => placeWishCard(i, w.text, w.nick));
+  WISH.list.forEach((w, i) => placeWishCard(i, w.text, w.nick, w.to, w.kind));
 }
 function saveWishes() {
   try { localStorage.setItem(wishStoreKey(), JSON.stringify(WISH.list.slice(-WISH.max))); } catch (_) {}
 }
 function addWish(text, nick, opts = {}) {
-  const t = String(text || '').replace(/\s+/g, ' ').trim().slice(0, 30);
+  const mail = opts.kind === 'mail';
+  const t = String(text || '').replace(/\s+/g, ' ').trim().slice(0, mail ? 40 : 30);
   if (!t) return false;
-  WISH.list.push({ text: t, nick: String(nick || '엘프').slice(0, 10), at: Date.now() });
+  WISH.list.push({
+    text: t, nick: String(nick || '엘프').slice(0, 10), at: Date.now(),
+    kind: mail ? 'mail' : 'wish', to: mail ? String(opts.to || '산타 할아버지').slice(0, 10) : '',
+  });
   if (WISH.list.length > WISH.max) WISH.list = WISH.list.slice(-WISH.max);
   saveWishes();
   loadWishes();
-  if (!opts.remote) {
+  if (!opts.remote && !opts.quiet) {
     toast('📝 소원 쪽지가 게시판에 걸렸어요 — ' + t, 3200);
     addChatLine('', `📝 <b>${String(nick || '나').slice(0, 10)}</b> 님이 소원 쪽지를 남겼어요 — “${t}”`, false, true);
   }
@@ -10874,6 +11757,9 @@ function updateActivityButtons(dt) {
     if (wishBtnShown) { wishBtnEl.classList.remove('show'); wishBtnShown = false; }
     if (roastBtnShown) { roastBtnEl.classList.remove('show'); roastBtnShown = false; }
     if (snowBtnShown) { snowBtnEl.classList.remove('show'); snowBtnShown = false; }
+    if (skateBtnShown) { skateBtnEl.classList.remove('show'); skateBtnShown = false; }
+    if (mailBtnShown) { mailBtnEl.classList.remove('show'); mailBtnShown = false; }
+    if (rollBtnShown) { rollBtnEl.classList.remove('show'); rollBtnShown = false; }
     return;
   }
   const plaza = ZONE.mode !== 'interior';
@@ -10936,6 +11822,42 @@ function updateActivityButtons(dt) {
   const snowLabel = SNOWMAN.active ? '🧝 엘프로 돌아가기' : '⛄ 눈사람으로 변신';
   if (snowBtnEl.textContent !== snowLabel) snowBtnEl.textContent = snowLabel;
   snowBtnEl.classList.toggle('on', SNOWMAN.active);
+
+  /* ⛸️ 스케이트 — 연못 근처에서 신고, 타는 동안에는 어디서든 벗을 수 있다 */
+  const skateNear = SKATE.active
+    ? plaza
+    : (plaza && !PHOTO.active && !TRANS.busy && !SIT.active && !SNOWMAN.active && !ROAST.active && nearPond());
+  if (skateNear !== skateBtnShown) {
+    skateBtnEl.classList.toggle('show', skateNear);
+    skateBtnShown = skateNear;
+    if (skateNear && !SKATE.active) toast('⛸️ 얼음 연못 — 스케이트를 신고 미끄러져 보세요', 2600);
+  }
+  const skateLabel = SKATE.active ? '🥾 스케이트 벗기' : '⛸️ 스케이트 타기';
+  if (skateBtnEl.textContent !== skateLabel) skateBtnEl.textContent = skateLabel;
+  skateBtnEl.classList.toggle('on', SKATE.active);
+
+  /* 📮 편지 보내기 — 산타 우체통 근처 */
+  const mailNear = plaza && !PHOTO.active && !TRANS.busy && !SKATE.active
+    && Math.hypot(playerPos.x - MAILBOX.x, playerPos.z - MAILBOX.z) < 3.4;
+  if (mailNear !== mailBtnShown) {
+    mailBtnEl.classList.toggle('show', mailNear);
+    mailBtnShown = mailNear;
+    if (mailNear) toast('📮 산타 우체국 — 따뜻한 한 줄 편지를 보내 보세요', 2600);
+  }
+
+  /* ❄️ 눈 굴리기 — 눈사람 만들기 눈밭 */
+  const rollNear = ROLL.active
+    ? plaza
+    : (plaza && !PHOTO.active && !TRANS.busy && !SIT.active && !SKATE.active && !SNOWMAN.active
+      && Math.hypot(playerPos.x - SNOW_PATCH.x, playerPos.z - SNOW_PATCH.z) < SNOW_PATCH.r + 1.4);
+  if (rollNear !== rollBtnShown) {
+    rollBtnEl.classList.toggle('show', rollNear);
+    rollBtnShown = rollNear;
+    if (rollNear && !ROLL.active) toast('❄️ 눈밭 — 눈덩이를 굴려 눈사람을 만들어 보세요', 2600);
+  }
+  const rollLabel = ROLL.active ? (ROLL.phase === 'done' ? '❄️ 눈사람 완성!' : `❄️ 눈 굴리는 중… ${Math.round(ROLL.prog * 100)}%`) : '❄️ 눈 굴리기';
+  if (rollBtnEl.textContent !== rollLabel) rollBtnEl.textContent = rollLabel;
+  rollBtnEl.classList.toggle('on', ROLL.active);
 }
 
 function updateTreeEvent(dt) {
@@ -11400,8 +12322,10 @@ function updatePlayer(dt) {
   if (len > 1) { ix /= len; iz /= len; }
 
   const run = input.keys.has('ShiftLeft') || input.keys.has('ShiftRight');
-  /* 3차 — 광장이 넓어진 만큼 걸음도 경쾌하게 (기존 대비 약 1.45배) */
-  const speed = (run ? RUN_SPEED : WALK_SPEED) * (input.joy.active ? clamp(len, 0, 1) : 1);
+  /* 3차 — 광장이 넓어진 만큼 걸음도 경쾌하게 (기존 대비 약 1.45배)
+     얼음 위에서는 스케이트로 더 빠르게 미끄러진다 */
+  const skating = SKATE.active && onPondIce(playerPos.x, playerPos.z);
+  const speed = (run ? RUN_SPEED : WALK_SPEED) * (input.joy.active ? clamp(len, 0, 1) : 1) * (skating ? 1.55 : 1);
 
   const fx = -Math.sin(rig.yaw), fz = -Math.cos(rig.yaw);
   const rx = -fz, rz = fx;
@@ -11412,8 +12336,10 @@ function updatePlayer(dt) {
 
   const targetVx = mx * speed * (ml > 0.001 ? 1 : 0);
   const targetVz = mz * speed * (ml > 0.001 ? 1 : 0);
-  vel.x = lerp(vel.x, targetVx, Math.min(1, dt * 12));
-  vel.y = lerp(vel.y, targetVz, Math.min(1, dt * 12));
+  /* 얼음 위에서는 가속·감속이 느려 관성으로 미끄러진다 */
+  const accel = skating ? (Math.hypot(targetVx, targetVz) > 0.01 ? 4.2 : 1.6) : 12;
+  vel.x = lerp(vel.x, targetVx, Math.min(1, dt * accel));
+  vel.y = lerp(vel.y, targetVz, Math.min(1, dt * accel));
 
   let nx = playerPos.x + vel.x * dt;
   let nz = playerPos.z + vel.y * dt;
@@ -11454,7 +12380,7 @@ function updatePlayer(dt) {
   net.update({
     x: playerPos.x, z: playerPos.z, yaw: playerYaw.v, moving: moved > 0.004,
     pose: 'stand', seat: -1, zone: ZONE.mode === 'interior' ? 'i' : 'p',
-    tf: SNOWMAN.active ? 'sn' : '', rs: ROAST.net,
+    tf: SNOWMAN.active ? 'sn' : (SKATE.active ? 'sk' : ''), rs: ROAST.net,
   });
 }
 
@@ -11579,7 +12505,7 @@ function standUp() {
   net.update({
     x: playerPos.x, z: playerPos.z, yaw: playerYaw.v, moving: false, pose: 'stand', seat: -1,
     zone: ZONE.mode === 'interior' ? 'i' : 'p',
-    tf: SNOWMAN.active ? 'sn' : '', rs: ROAST.net,
+    tf: SNOWMAN.active ? 'sn' : (SKATE.active ? 'sk' : ''), rs: ROAST.net,
   });
   updateSeatButton();
 }
@@ -11620,7 +12546,7 @@ function updateSeated(dt) {
     x: playerPos.x, z: playerPos.z, yaw: playerYaw.v,
     moving: false, pose: SIT.active ? 'sit' : 'stand', seat: SIT.active ? SIT.seat : -1,
     zone: ZONE.mode === 'interior' ? 'i' : 'p',
-    tf: SNOWMAN.active ? 'sn' : '', rs: ROAST.net,
+    tf: SNOWMAN.active ? 'sn' : (SKATE.active ? 'sk' : ''), rs: ROAST.net,
   });
   if (SIT.active && !seatToastShown) {
     seatToastShown = true;
@@ -12069,6 +12995,564 @@ function updateSnowAvatars(dt) {
 roastBtnEl.addEventListener('click', () => { if (ROAST.active) stopRoast(false); else startRoast(); });
 snowBtnEl.addEventListener('click', () => { if (SNOWMAN.active) revertToElf(false); else transformToSnowman(); });
 
+/* =================================================================
+   ⛸️ 3차 — 얼음 연못 스케이트 타기
+   ---------------------------------------------------------------
+   · 연못 근처에서 ⛸️ 스케이트 타기를 누르면 스케이트를 신는다.
+   · 얼음 위에서는 미끄러지듯 빠르게 활주하고, 팔을 벌린 스케이팅 자세와
+     은은한 궤적·반짝이가 따라붙는다. MQTT 로 tf='sk' 를 주고받아
+     친구 화면에도 같은 자세가 보인다.
+   · 연못 밖으로 나가거나 🥾 스케이트 벗기를 누르면 해제된다.
+   ================================================================= */
+const SKATE = { active: false, near: false, phase: 0, outT: 0, trailT: 0, sparkT: 0, lean: 0, wakeT: 0 };
+const skateBtnEl = document.getElementById('skateBtn');
+let skateBtnShown = false;
+
+function pondDist() { return Math.hypot(playerPos.x - POND.x, playerPos.z - POND.z); }
+function nearPond() { return pondDist() < POND.r + 3.0; }
+function canSkate() {
+  if (!state.joined || PHOTO.active || TRANS.busy) return false;
+  if (ZONE.mode === 'interior') return false;
+  if (SNOWMAN.active || ROAST.active) return false;
+  return nearPond();
+}
+function startSkate() {
+  if (SKATE.active) return false;
+  if (!canSkate()) {
+    toast(SNOWMAN.active ? '⛄ 눈사람일 때는 스케이트를 신을 수 없어요' : '⛸️ 얼음 연못 가까이에서 스케이트를 신을 수 있어요', 2400);
+    return false;
+  }
+  if (SIT.active || SIT.enter > 0) standUp();
+  SKATE.active = true;
+  SKATE.outT = 0;
+  const me = players.get('me');
+  if (me) me.tf = 'sk';
+  spawnSnowBurst(playerPos.x, playerPos.y + 0.10, playerPos.z, 12);
+  toast('⛸️ 스케이트를 신었어요 — 얼음 위를 미끄러져 보세요!', 2600);
+  return true;
+}
+function stopSkate(silent) {
+  if (!SKATE.active) return false;
+  SKATE.active = false;
+  SKATE.outT = 0;
+  const me = players.get('me');
+  if (me) me.tf = '';
+  if (!silent) toast('🥾 스케이트를 벗었어요', 1800);
+  return true;
+}
+
+/* ---------- 얼음 궤적 ---------- */
+const TRAIL = { pool: [], idx: 0, spawned: 0 };
+function buildSkateTrail() {
+  const tex = canvasTexture(64, 128, (c, W, H) => {
+    c.clearRect(0, 0, W, H);
+    const g = c.createLinearGradient(0, 0, 0, H);
+    g.addColorStop(0, 'rgba(255,255,255,0)');
+    g.addColorStop(0.35, 'rgba(236,248,255,0.85)');
+    g.addColorStop(0.72, 'rgba(210,236,255,0.65)');
+    g.addColorStop(1, 'rgba(190,224,255,0)');
+    c.fillStyle = g;
+    c.fillRect(W * 0.34, 0, W * 0.32, H);
+    c.globalAlpha = 0.5;
+    c.fillRect(W * 0.20, H * 0.1, W * 0.10, H * 0.8);
+    c.fillRect(W * 0.70, H * 0.1, W * 0.10, H * 0.8);
+  });
+  const geo = new THREE.PlaneGeometry(0.20, 0.9);
+  const N = IS_TOUCH ? 26 : 44;
+  for (let i = 0; i < N; i++) {
+    const mat = new THREE.MeshBasicMaterial({
+      map: tex, color: 0xe6f4ff, transparent: true, opacity: 0, depthWrite: false,
+      blending: THREE.AdditiveBlending, toneMapped: false,
+      polygonOffset: true, polygonOffsetFactor: -3, polygonOffsetUnits: -3,
+    });
+    const m = new THREE.Mesh(geo, mat);
+    m.rotation.x = -Math.PI / 2;
+    m.visible = false;
+    m.renderOrder = 3;
+    m.frustumCulled = false;
+    scene.add(m);
+    TRAIL.pool.push({ m, life: 0, dur: 1, on: false });
+  }
+}
+buildSkateTrail();
+
+function spawnTrail(x, z, yaw, w) {
+  const p = TRAIL.pool[TRAIL.idx % TRAIL.pool.length];
+  TRAIL.idx++;
+  p.m.position.set(x, POND.y + 0.012, z);
+  p.m.rotation.set(-Math.PI / 2, 0, -yaw);
+  p.m.scale.set(0.85 + w * 0.5, 1, 1);
+  p.m.visible = true;
+  p.m.material.opacity = 0.55;
+  p.life = 0;
+  p.dur = 2.6;
+  p.on = true;
+  TRAIL.spawned++;
+}
+function spawnSkateSpark(x, z) {
+  if (!burstTex) burstTex = radialTexture('rgba(255,255,255,1)', 'rgba(226,240,255,0.45)');
+  const mat = new THREE.SpriteMaterial({
+    map: burstTex, color: Math.random() < 0.35 ? 0xfff2c8 : 0xeaf7ff, transparent: true, opacity: 0.9,
+    depthWrite: false, toneMapped: false, blending: THREE.AdditiveBlending,
+  });
+  const sp = new THREE.Sprite(mat);
+  sp.position.set(x + rand(-0.22, 0.22), POND.y + rand(0.06, 0.30), z + rand(-0.22, 0.22));
+  const s = rand(0.06, 0.13);
+  sp.scale.set(s, s, 1);
+  scene.add(sp);
+  BURSTS.push({
+    sp, vx: rand(-0.5, 0.5), vy: rand(0.6, 1.7), vz: rand(-0.5, 0.5),
+    life: 0, dur: rand(0.35, 0.7), s,
+  });
+}
+
+/* ---------- 매 프레임 — 궤적·반짝이·자동 해제 ---------- */
+function updateSkate(dt) {
+  /* 궤적 페이드 */
+  for (const p of TRAIL.pool) {
+    if (!p.on) continue;
+    p.life += dt;
+    const k = p.life / p.dur;
+    if (k >= 1) { p.on = false; p.m.visible = false; p.m.material.opacity = 0; continue; }
+    p.m.material.opacity = 0.5 * Math.pow(1 - k, 1.4);
+  }
+  if (!SKATE.active) return;
+  /* 얼음 밖으로 나가면 잠시 뒤 자동으로 벗는다 */
+  const onIce = onPondIce(playerPos.x, playerPos.z);
+  if (!onIce) {
+    SKATE.outT += dt;
+    if (SKATE.outT > 0.45) {
+      stopSkate(false);
+      toast('🥾 연못 밖으로 나와 스케이트를 벗었어요', 2200);
+      return;
+    }
+  } else SKATE.outT = 0;
+
+  const sp = Math.hypot(vel.x, vel.y);
+  const moving = sp > 0.5 && onIce;
+  SKATE.phase = (SKATE.phase || 0) + dt * (moving ? 2.0 + sp * 0.30 : 0.8);
+  /* 몸을 좌우로 기울이는 값 — 좌우 이동 성분에서 뽑는다 */
+  const yaw = playerYaw.v;
+  const lx = Math.cos(yaw), lz = -Math.sin(yaw);
+  const lateral = vel.x * lx + vel.y * lz;
+  SKATE.lean = lerp(SKATE.lean, clamp(lateral * 0.085, -0.22, 0.22), Math.min(1, dt * 5));
+
+  if (onIce) {
+    if (moving) {
+      SKATE.trailT += dt;
+      if (SKATE.trailT > 0.075) {
+        SKATE.trailT = 0;
+        spawnTrail(playerPos.x, playerPos.z, yaw, Math.min(1, sp / 6));
+      }
+      SKATE.sparkT += dt;
+      if (SKATE.sparkT > 0.10) {
+        SKATE.sparkT = 0;
+        spawnSkateSpark(playerPos.x, playerPos.z);
+      }
+    } else {
+      SKATE.wakeT += dt;
+      if (SKATE.wakeT > 0.55) { SKATE.wakeT = 0; spawnSkateSpark(playerPos.x, playerPos.z); }
+    }
+  }
+}
+
+/* =================================================================
+   📮 3차 — 산타 우체국 편지 보내기
+   ---------------------------------------------------------------
+   · 산타 우체통 근처에서 📮 편지 보내기를 누르면 받는 사람과
+     따뜻한 한 줄을 적는 창이 열린다.
+   · 보내면 우체통 위로 편지가 날아오르고, 같은 방 친구에게는
+     도착 토스트가 뜨며, 라운지 소원 게시판에도 편지 카드로 걸린다.
+   ================================================================= */
+const MAIL = { sent: 0, got: 0, open: false };
+const mailPanelEl = document.getElementById('mailPanel');
+const mailToEl = document.getElementById('mailTo');
+const mailNameEl = document.getElementById('mailName');
+const mailInputEl = document.getElementById('mailInput');
+const mailBtnEl = document.getElementById('mailBtn');
+let mailBtnShown = false;
+
+function mailSpotDist() { return Math.hypot(playerPos.x - MAILBOX.x, playerPos.z - MAILBOX.z); }
+function canMail() {
+  if (!state.joined || ZONE.mode !== 'plaza' || TRANS.busy || PHOTO.active) return false;
+  return mailSpotDist() < 3.6;
+}
+
+/** 우체통 위로 편지가 날아오르는 연출 */
+function mailFlyFx(emoji) {
+  const tex = emojiTexture(emoji || '💌');
+  for (let i = 0; i < 8; i++) {
+    const sp = new THREE.Sprite(new THREE.SpriteMaterial({
+      map: tex, transparent: true, opacity: 0.96, depthWrite: false, toneMapped: false,
+    }));
+    const a = rand(0, TAU), r = rand(0.05, 0.42);
+    sp.position.set(MAILBOX.x + Math.cos(a) * r, groundY(MAILBOX.x, MAILBOX.z) + rand(1.15, 1.55), MAILBOX.z + Math.sin(a) * r);
+    const s = rand(0.30, 0.52);
+    sp.scale.set(s, s, 1);
+    scene.add(sp);
+    BURSTS.push({
+      sp, vx: Math.cos(a) * rand(0.15, 0.55), vy: rand(0.9, 1.8), vz: Math.sin(a) * rand(0.15, 0.55),
+      life: 0, dur: rand(1.0, 1.7), s,
+    });
+  }
+  spawnSnowBurst(MAILBOX.x, groundY(MAILBOX.x, MAILBOX.z) + 1.35, MAILBOX.z, 10);
+}
+
+function openMailPanel() {
+  if (!state.joined) return false;
+  if (ZONE.mode !== 'plaza') { toast('📮 우체국은 광장, 산타 옆에 있어요', 2200); return false; }
+  if (mailSpotDist() > 3.6) { toast('📮 산타 우체통 가까이 가 주세요', 2200); return false; }
+  if (SKATE.active) stopSkate(true);
+  /* 받는 사람 — 함께 있는 친구 + 산타 + 직접 입력 */
+  while (mailToEl.firstChild) mailToEl.removeChild(mailToEl.firstChild);
+  const addOpt = (value, label) => {
+    const o = document.createElement('option');
+    o.value = value; o.textContent = label;
+    mailToEl.appendChild(o);
+  };
+  addOpt('산타 할아버지', '🎅 산타 할아버지에게');
+  for (const p of players.values()) {
+    if (p.isMe) continue;
+    addOpt(String(p.nickname).slice(0, 10), '🧝 ' + String(p.nickname).slice(0, 10) + ' 님에게');
+  }
+  addOpt('__custom', '✏️ 직접 입력');
+  mailNameEl.style.display = 'none';
+  mailNameEl.value = '';
+  mailInputEl.value = '';
+  mailPanelEl.classList.add('show');
+  mailPanelEl.setAttribute('aria-hidden', 'false');
+  MAIL.open = true;
+  setTimeout(() => { try { mailInputEl.focus(); } catch (_) {} }, 60);
+  return true;
+}
+function closeMailPanel() {
+  mailPanelEl.classList.remove('show');
+  mailPanelEl.setAttribute('aria-hidden', 'true');
+  MAIL.open = false;
+}
+function submitMail() {
+  let to = mailToEl.value;
+  if (to === '__custom') to = (mailNameEl.value || '').trim().slice(0, 10);
+  to = String(to || '').trim().slice(0, 10);
+  const text = (mailInputEl.value || '').trim().replace(/\s+/g, ' ').slice(0, 40);
+  if (!to) { toast('📮 받는 사람 이름을 적어 주세요', 2000); try { mailNameEl.focus(); } catch (_) {} return false; }
+  if (!text) { toast('📮 따뜻한 한 줄을 적어 주세요', 2000); try { mailInputEl.focus(); } catch (_) {} return false; }
+  const from = (state.profile && state.profile.nickname) || '나';
+  addWish(text, from, { kind: 'mail', to, quiet: true });
+  try { net.sendMail(to, text); } catch (_) {}
+  mailFlyFx('💌');
+  MAIL.sent++;
+  toast(`💌 ${to} 님에게 편지를 넣었어요 — 라운지 게시판에도 걸렸어요`, 3600);
+  addChatLine('', `📮 <b>${from}</b> 님이 <b>${to}</b> 님에게 편지를 보냈어요 — “${text}”`, false, true);
+  closeMailPanel();
+  return true;
+}
+if (mailToEl) mailToEl.addEventListener('change', () => {
+  mailNameEl.style.display = mailToEl.value === '__custom' ? 'block' : 'none';
+  if (mailToEl.value === '__custom') setTimeout(() => { try { mailNameEl.focus(); } catch (_) {} }, 30);
+});
+if (mailPanelEl) {
+  mailPanelEl.addEventListener('click', (e) => {
+    if (e.target.closest('#mailSubmit')) submitMail();
+    else if (e.target.closest('#mailCancel')) closeMailPanel();
+  });
+  mailPanelEl.addEventListener('keydown', (e) => {
+    if (e.code === 'Enter') { e.preventDefault(); submitMail(); }
+    else if (e.code === 'Escape') { e.preventDefault(); closeMailPanel(); }
+  });
+}
+if (mailBtnEl) mailBtnEl.addEventListener('click', () => { if (MAIL.open) closeMailPanel(); else openMailPanel(); });
+
+/* 도착한 편지 — 게시판에 함께 걸고, 내게 온 편지는 토스트로 알린다 */
+net.on('mail', (m) => {
+  if (!m || !m.text) return;
+  addWish(m.text, m.from, { kind: 'mail', to: m.to, remote: true, quiet: true });
+  if (m.mine && m.from !== (state.profile && state.profile.nickname)) {
+    MAIL.got++;
+    toast(`💌 ${m.from} 님이 보낸 편지가 도착했어요 — “${m.text}”`, 4600);
+    addChatLine('', `💌 <b>${m.from}</b> 님이 보낸 편지가 도착했어요 — “${m.text}”`, false, true);
+  } else {
+    addChatLine('', `📮 <b>${m.from}</b> 님이 <b>${m.to}</b> 님에게 편지를 보냈어요`, false, true);
+  }
+});
+
+/* =================================================================
+   ❄️ 3차 — 눈 굴려 눈사람 만들기
+   ---------------------------------------------------------------
+   · 눈밭에서 ❄️ 눈 굴리기를 누르면 눈덩이가 앞에서 굴러 커지고,
+     그 눈덩이가 몸통이 되어 위에 머리가 얹히고, 당근 코·모자·목도리가
+     차례로 붙어 작은 눈사람이 완성된다.
+   · 완성된 눈사람은 눈밭에 남고(방별 저장), MQTT 로 친구 화면에도 선다.
+   ================================================================= */
+const ROLL = {
+  active: false, phase: 'idle', t: 0, prog: 0, dur: 12.6,
+  ball: null, body: null, head: null, gear: [], built: [], tmp: null,
+  push: 0,
+};
+const ROLL_SPOT = { x: SNOW_PATCH.x - 0.2, z: SNOW_PATCH.z + 1.35 };
+
+function rollStoreKey() { return 'xmas-snowmen-v1:' + (state.room || 'main'); }
+function loadSnowmen() {
+  let saved = null;
+  try { saved = JSON.parse(localStorage.getItem(rollStoreKey()) || 'null'); } catch (_) {}
+  if (Array.isArray(saved)) saved.slice(0, 6).forEach((s) => addSnowmanFigure(s.x, s.z, s.scale || 0.72, s.seed || 0, true));
+}
+function saveSnowmen() {
+  try {
+    localStorage.setItem(rollStoreKey(), JSON.stringify(ROLL.built.slice(-6).map((s) => ({ x: +s.x.toFixed(2), z: +s.z.toFixed(2), scale: s.scale, seed: s.seed }))));
+  } catch (_) {}
+}
+
+const SNOWMAN_GEAR = { scarf: 0xc0392b };
+
+/** 눈밭에 세울 작은 눈사람 — makeSnowmanAvatar 를 그대로 줄여 쓴다 */
+function addSnowmanFigure(x, z, scale, seed, silent) {
+  const g = makeSnowmanAvatar();
+  g.scale.setScalar(scale * (0.94 + (seed % 7) * 0.02));
+  g.position.set(x, groundY(x, z), z);
+  g.rotation.y = (seed % 100) * 0.063 + 1.1;
+  if (g.userData.armL) g.userData.armL.rotation.z += 0.25;
+  if (g.userData.armR) g.userData.armR.rotation.z -= 0.35;
+  const sh = contactShadow(0.52 * scale * 1.6, 0.42);
+  sh.position.y = 0.012;
+  g.add(sh);
+  scene.add(g);
+  const rec = { grp: g, x, z, scale, seed };
+  ROLL.built.push(rec);
+  if (ROLL.built.length > 6) {
+    const old = ROLL.built.shift();
+    scene.remove(old.grp);
+  }
+  if (!silent) saveSnowmen();
+  return rec;
+}
+
+function canRoll() {
+  if (!state.joined || ZONE.mode !== 'plaza' || TRANS.busy || PHOTO.active) return false;
+  if (SKATE.active || SNOWMAN.active) return false;
+  return Math.hypot(playerPos.x - SNOW_PATCH.x, playerPos.z - SNOW_PATCH.z) < SNOW_PATCH.r + 1.5;
+}
+
+/* ---------- 굴리는 동안의 임시 눈덩이 ---------- */
+function makeRollBall(r) {
+  const m = new THREE.Mesh(new THREE.SphereGeometry(r, 18, 14), new THREE.MeshStandardMaterial({
+    color: 0xf7fbff, roughness: 0.92, metalness: 0, envMapIntensity: 0.5,
+  }));
+  m.castShadow = true; m.receiveShadow = true;
+  scene.add(m);
+  return m;
+}
+function startRoll() {
+  if (ROLL.active) return false;
+  if (!canRoll()) {
+    toast(SNOWMAN.active ? '⛄ 눈사람일 때는 눈을 굴릴 수 없어요' : '❄️ 눈사람 만들기 눈밭으로 가까이 가 주세요', 2400);
+    return false;
+  }
+  if (SIT.active || SIT.enter > 0) standUp();
+  ROLL.active = true;
+  ROLL.phase = 'roll';
+  ROLL.t = 0;
+  ROLL.prog = 0;
+  const yaw = playerYaw.v;
+  ROLL.ball = makeRollBall(0.20);
+  ROLL.ball.position.set(playerPos.x + Math.sin(yaw) * 0.75, POND.y + 0.2, playerPos.z + Math.cos(yaw) * 0.75);
+  ROLL.body = null; ROLL.head = null; ROLL.gear = [];
+  toast('❄️ 눈덩이를 굴려 볼게요 — 앞으로 밀면서 커져요', 2600);
+  return true;
+}
+function stopRoll(silent) {
+  if (!ROLL.active) return false;
+  ROLL.active = false;
+  ROLL.phase = 'idle';
+  if (ROLL.ball) { scene.remove(ROLL.ball); ROLL.ball.geometry.dispose(); ROLL.ball.material.dispose(); ROLL.ball = null; }
+  if (ROLL.body) { scene.remove(ROLL.body); ROLL.body = null; }
+  if (ROLL.head) { scene.remove(ROLL.head); ROLL.head = null; }
+  ROLL.gear.forEach((g) => scene.remove(g));
+  ROLL.gear.length = 0;
+  if (!silent) toast('❄️ 눈 굴리기를 멈췄어요', 1600);
+  return true;
+}
+
+function updateRoll(dt) {
+  if (!ROLL.active) return;
+  ROLL.t += dt;
+  ROLL.prog = clamp(ROLL.t / ROLL.dur, 0, 1);
+  const t = ROLL.t;
+  const yaw0 = Math.atan2(ROLL_SPOT.x - playerPos.x, ROLL_SPOT.z - playerPos.z);
+
+  if (t < 4.4) {
+    /* 1단계 — 앞에서 눈덩이가 굴러 커진다 */
+    ROLL.phase = 'roll';
+    const k = t / 4.4;
+    const r = 0.20 + 0.34 * smoothstep(0, 1, k);
+    if (ROLL.ball) {
+      ROLL.ball.scale.setScalar(1);
+      ROLL.ball.geometry.dispose();
+      ROLL.ball.geometry = new THREE.SphereGeometry(r, 18, 14);
+      const px = playerPos.x + Math.sin(yaw0) * (0.75 + 0.55 * k);
+      const pz = playerPos.z + Math.cos(yaw0) * (0.75 + 0.55 * k);
+      ROLL.ball.position.set(px, POND.y + r * 0.98, pz);
+      ROLL.ball.rotation.x += dt * (0.6 + k * 2.4);
+      if (Math.random() < 0.35) spawnSkateSpark(px, pz);
+    }
+    ROLL.push = 1;
+  } else if (t < 8.6) {
+    /* 2단계 — 눈덩이가 몸통이 되고 위에 머리가 얹힌다 */
+    if (ROLL.phase !== 'body') {
+      ROLL.phase = 'body';
+      ROLL.push = 0.35;
+      if (ROLL.ball) { scene.remove(ROLL.ball); ROLL.ball.geometry.dispose(); ROLL.ball.material.dispose(); ROLL.ball = null; }
+      ROLL.body = makeRollBall(0.42);
+      ROLL.body.position.set(ROLL_SPOT.x, POND.y + 0.40, ROLL_SPOT.z);
+      spawnSnowBurst(ROLL_SPOT.x, POND.y + 0.4, ROLL_SPOT.z, 16);
+      toast('❄️ 눈덩이를 몸통 자리에 놓았어요', 2200);
+    }
+    const k = smoothstep(0.15, 0.95, (t - 4.4) / 4.2);
+    if (ROLL.head) ROLL.head.scale.setScalar(0.6 + 0.4 * k);
+    else if (k > 0.25) {
+      ROLL.head = makeRollBall(0.26);
+      ROLL.head.position.set(ROLL_SPOT.x, POND.y + 1.02, ROLL_SPOT.z);
+      ROLL.head.scale.setScalar(0.3);
+    }
+  } else if (t < ROLL.dur) {
+    /* 3단계 — 당근 코 · 숯눈 · 모자 · 목도리 */
+    if (ROLL.phase !== 'gear') {
+      ROLL.phase = 'gear';
+      ROLL.push = 0.25;
+      const mat = {
+        carrot: new THREE.MeshStandardMaterial({ color: 0xe8792a, roughness: 0.7 }),
+        coal: new THREE.MeshStandardMaterial({ color: 0x1d1f26, roughness: 0.6 }),
+        hat: new THREE.MeshStandardMaterial({ color: 0x232733, roughness: 0.76 }),
+        scarf: new THREE.MeshStandardMaterial({ color: 0xc0392b, roughness: 0.86 }),
+        branch: new THREE.MeshStandardMaterial({ color: 0x6b4a2f, roughness: 0.9 }),
+      };
+      const headY = POND.y + 1.02;
+      const nose = new THREE.Mesh(new THREE.ConeGeometry(0.045, 0.30, 8), mat.carrot);
+      nose.position.set(ROLL_SPOT.x, headY + 0.02, ROLL_SPOT.z + 0.26);
+      nose.rotation.x = Math.PI / 2;
+      scene.add(nose); ROLL.gear.push(nose);
+      [-0.075, 0.075].forEach((ox) => {
+        const e = new THREE.Mesh(new THREE.SphereGeometry(0.032, 8, 6), mat.coal);
+        e.position.set(ROLL_SPOT.x + ox, headY + 0.07, ROLL_SPOT.z + 0.22);
+        scene.add(e); ROLL.gear.push(e);
+      });
+      const brim = new THREE.Mesh(new THREE.CylinderGeometry(0.30, 0.30, 0.03, 16), mat.hat);
+      brim.position.set(ROLL_SPOT.x, headY + 0.24, ROLL_SPOT.z);
+      brim.rotation.z = 0.05;
+      scene.add(brim); ROLL.gear.push(brim);
+      const crown = new THREE.Mesh(new THREE.CylinderGeometry(0.19, 0.21, 0.32, 16), mat.hat);
+      crown.position.set(ROLL_SPOT.x, headY + 0.42, ROLL_SPOT.z);
+      crown.rotation.z = 0.05;
+      scene.add(crown); ROLL.gear.push(crown);
+      const band = new THREE.Mesh(new THREE.TorusGeometry(0.205, 0.030, 6, 16), mat.scarf);
+      band.position.set(ROLL_SPOT.x, headY + 0.32, ROLL_SPOT.z);
+      band.rotation.x = Math.PI / 2;
+      scene.add(band); ROLL.gear.push(band);
+      const scarf = new THREE.Mesh(new THREE.TorusGeometry(0.235, 0.062, 8, 18), mat.scarf);
+      scarf.position.set(ROLL_SPOT.x, POND.y + 0.78, ROLL_SPOT.z);
+      scarf.rotation.x = Math.PI / 2;
+      scene.add(scarf); ROLL.gear.push(scarf);
+      [-1, 1].forEach((sgn) => {
+        const arm = new THREE.Mesh(new THREE.CylinderGeometry(0.018, 0.030, 0.46, 6), mat.branch);
+        arm.position.set(ROLL_SPOT.x + sgn * 0.40, POND.y + 0.76, ROLL_SPOT.z);
+        arm.rotation.z = sgn * 1.18;
+        scene.add(arm); ROLL.gear.push(arm);
+      });
+      spawnSnowBurst(ROLL_SPOT.x, POND.y + 1.1, ROLL_SPOT.z, 26);
+      toast('🥕 당근 코와 모자를 얹었어요!', 2200);
+    }
+    /* 붙는 순간 살짝 통통 튀게 */
+    const k = smoothstep(0.0, 0.6, (t - 8.6) / 2.0);
+    ROLL.gear.forEach((g, i) => {
+      const gk = smoothstep(0.05 + i * 0.05, 0.35 + i * 0.05, (t - 8.6) / 2.0);
+      g.visible = gk > 0.01;
+      g.scale.setScalar(0.6 + 0.4 * gk);
+    });
+    ROLL.push = 0.2 * (1 - k);
+  } else {
+    /* 완성 */
+    const seed = ROLL.built.length * 13 + 7;
+    if (ROLL.body) { scene.remove(ROLL.body); ROLL.body.geometry.dispose(); ROLL.body.material.dispose(); ROLL.body = null; }
+    if (ROLL.head) { scene.remove(ROLL.head); ROLL.head.geometry.dispose(); ROLL.head.material.dispose(); ROLL.head = null; }
+    ROLL.gear.forEach((g) => scene.remove(g));
+    ROLL.gear.length = 0;
+    const rec = addSnowmanFigure(ROLL_SPOT.x, ROLL_SPOT.z, 0.86, seed, false);
+    spawnSnowBurst(ROLL_SPOT.x, POND.y + 0.9, ROLL_SPOT.z, 30);
+    toast('⛄ 나만의 눈사람이 완성됐어요!', 3200);
+    addChatLine('', `⛄ <b>${(state.profile && state.profile.nickname) || '엘프'}</b> 님이 눈밭에 눈사람을 세웠어요`, false, true);
+    try { net.sendRollSnowman({ x: rec.x, z: rec.z, scale: rec.scale, seed }); } catch (_) {}
+    ROLL.active = false;
+    ROLL.phase = 'done';
+  }
+}
+
+net.on('roll', (m) => {
+  if (!m) return;
+  addSnowmanFigure(m.x, m.z, m.scale || 0.72, m.seed || 0, true);
+  addChatLine('', '⛄ 친구가 눈밭에 눈사람을 세웠어요', false, true);
+});
+
+const rollBtnEl = document.getElementById('rollBtn');
+let rollBtnShown = false;
+if (rollBtnEl) rollBtnEl.addEventListener('click', () => { if (ROLL.active) stopRoll(false); else startRoll(); });
+/* 지난번에 세운 눈사람 되살리기 (방별 저장) */
+loadSnowmen();
+
+/* ---------- 스케이팅 자세 ---------- */
+const _sk8 = new THREE.Vector3();
+function updateSkatePose(ud, root, dt, want) {
+  const w = (ud.skateW = lerp(ud.skateW || 0, want ? 1 : 0, Math.min(1, dt * (want ? 6.5 : 8))));
+  if (w < 0.004) {
+    if (ud.tilt && Math.abs(ud.tilt.rotation.z) > 1e-4) ud.tilt.rotation.z = lerp(ud.tilt.rotation.z, 0, Math.min(1, dt * 9));
+    return;
+  }
+  const yaw = root.rotation.y;
+  const fx = Math.sin(yaw), fz = Math.cos(yaw);
+  const lx = Math.cos(yaw), lz = -Math.sin(yaw);
+  const ph = ud.skatePhase || (ud.skatePhase = 0);
+  const sway = Math.sin(ph);
+  const V = (x, y, z) => _sk8.set(x, y, z);
+  /* 팔 — 크게 벌려 균형을 잡는다 (살짝 앞·위로, 미세하게 흔들림) */
+  aimBoneBlend(ud, 'L_Upperarm', V(lx * 1.0 + fx * 0.26, 0.20 + sway * 0.05, lz * 1.0 + fz * 0.26), w);
+  aimBoneBlend(ud, 'R_Upperarm', V(-lx * 1.0 + fx * 0.26, 0.20 - sway * 0.05, -lz * 1.0 + fz * 0.26), w);
+  aimBoneBlend(ud, 'L_Forearm', V(lx * 0.84 + fx * 0.48, 0.06 + sway * 0.05, lz * 0.84 + fz * 0.48), w);
+  aimBoneBlend(ud, 'R_Forearm', V(-lx * 0.84 + fx * 0.48, 0.06 - sway * 0.05, -lz * 0.84 + fz * 0.48), w);
+  /* 다리 — 한 발은 앞으로 디디고 한 발은 뒤로 길게 뻗어 활주한다 */
+  const sF = 0.60 + sway * 0.10, sB = -0.46 - sway * 0.10;
+  aimBoneBlend(ud, 'L_Thigh', V(fx * sF + lx * 0.16, -0.74, fz * sF + lz * 0.16), w);
+  aimBoneBlend(ud, 'R_Thigh', V(fx * sB - lx * 0.12, -0.80, fz * sB - lz * 0.12), w);
+  aimBoneBlend(ud, 'L_Calf', V(fx * 0.12 - lx * 0.04, -1, fz * 0.12 - lz * 0.04), w);
+  aimBoneBlend(ud, 'R_Calf', V(fx * sB * 0.55 - lx * 0.06, -0.92, fz * sB * 0.55 - lz * 0.06), w);
+  aimBoneBlend(ud, 'L_Foot', V(fx * 0.92, -0.34, fz * 0.92), w);
+  aimBoneBlend(ud, 'R_Foot', V(fx * 0.55, -0.62, fz * 0.55), w);
+  /* 상체·고개 */
+  boneRot(ud, 'Spine01', (0.15 + sway * 0.012) * w);
+  boneRot(ud, 'Spine02', 0.05 * w);
+  boneRot(ud, 'Head', (-0.12 + sway * 0.02) * w);
+  boneRotY(ud, 'Head', Math.sin(elapsed * 0.5) * 0.07 * w);
+  /* 몸을 좌우로 기울여 활주 궤적을 만든다 */
+  if (ud.tilt) ud.tilt.rotation.z = lerp(ud.tilt.rotation.z || 0, (SKATE.active ? SKATE.lean : 0) * w, Math.min(1, dt * 6));
+}
+
+/* ❄️ 눈덩이 밀기 자세 — 허리를 숙이고 두 손으로 앞을 민다 */
+function updateRollPose(ud, root, dt, want) {
+  const w = (ud.pushW = lerp(ud.pushW || 0, want || 0, Math.min(1, dt * 5)));
+  if (w < 0.004) return;
+  const yaw = root.rotation.y;
+  const fx = Math.sin(yaw), fz = Math.cos(yaw);
+  const lx = Math.cos(yaw), lz = -Math.sin(yaw);
+  const bob = Math.sin(elapsed * 3.6) * 0.06;
+  const V = (x, y, z) => _sk8.set(x, y, z);
+  aimBoneBlend(ud, 'L_Upperarm', V(fx * 0.66 - lx * 0.20, -0.60 + bob, fz * 0.66 - lz * 0.20), w);
+  aimBoneBlend(ud, 'R_Upperarm', V(fx * 0.66 + lx * 0.20, -0.60 - bob, fz * 0.66 + lz * 0.20), w);
+  aimBoneBlend(ud, 'L_Forearm', V(fx * 0.96, -0.26 + bob * 0.4, fz * 0.96), w);
+  aimBoneBlend(ud, 'R_Forearm', V(fx * 0.96, -0.26 - bob * 0.4, fz * 0.96), w);
+  boneRot(ud, 'Spine01', (0.30 + bob * 0.12) * w);
+  boneRot(ud, 'Head', -0.20 * w);
+  aimBoneBlend(ud, 'L_Thigh', V(fx * 0.22 + lx * 0.14, -1, fz * 0.22 + lz * 0.14), w * 0.55);
+  aimBoneBlend(ud, 'R_Thigh', V(fx * 0.02 - lx * 0.14, -1, fz * 0.02 - lz * 0.14), w * 0.55);
+}
+
 /* 엘프 애니메이션 — idle 클립 + 절차적 걷기 모션 */
 function animateAvatar(p, dt) {
   const ud = p.root.userData;
@@ -12098,6 +13582,10 @@ function animateAvatar(p, dt) {
   /* 앉기 자세 블렌드 — 로컬·원경 모두 같은 값으로 따라간다 */
   const wantSit = p.pose === 'sit' ? 1 : 0;
   ud.sit = lerp(ud.sit || 0, wantSit, Math.min(1, dt * (wantSit ? 6.5 : 9)));
+  /* ⛸️ 스케이트 — 내 캐릭터는 SKATE 상태, 친구는 tf='sk' */
+  ud.skateWant = (p.isMe ? SKATE.active : p.tf === 'sk') && seatIdx < 0;
+  if (p.isMe) ud.skatePhase = SKATE.phase;
+  ud.pushWant = (p.isMe && ROLL.active) ? (ROLL.push || 0) : 0;
   updateAvatarPose(ud, p.root, speed, dt);
 }
 
@@ -12108,7 +13596,8 @@ function updateLabels() {
   for (const p of players.values()) {
     const el = p.label.el;
     if (!p.root.visible) { if (el.style.opacity !== '0') el.style.opacity = '0'; continue; }
-    proj.set(p.root.position.x, p.root.position.y + (p.pose === 'sit' ? 1.62 : lerp(2.02, 1.62, Math.min(1, ((p.root.userData && p.root.userData.snowW) || 0) * 1.2))), p.root.position.z);
+    /* 이름표는 머리 바로 위에 — 문·창문과 덜 겹치게 조금 낮춘다 */
+    proj.set(p.root.position.x, p.root.position.y + (p.pose === 'sit' ? 1.52 : lerp(1.86, 1.50, Math.min(1, ((p.root.userData && p.root.userData.snowW) || 0) * 1.2))), p.root.position.z);
     const dist = camera.position.distanceTo(proj);
     proj.project(camera);
     const visible = proj.z < 1 && proj.x > -1.2 && proj.x < 1.2 && proj.y > -1.2 && proj.y < 1.2;
@@ -12191,11 +13680,13 @@ function updateSmoke(dt) {
     const arr = pos.array;
     for (let i = 0; i < h.sdata.length; i++) {
       const d = h.sdata[i];
-      d.t += dt * 0.12;
+      d.t += dt * 0.095;
       if (d.t > 1) d.t -= 1;
-      arr[i * 3] = d.x + Math.sin(d.t * 5 + i) * 0.5 + d.t * 0.9;
-      arr[i * 3 + 1] = d.t * 4.6;
-      arr[i * 3 + 2] = d.z + Math.cos(d.t * 4 + i) * 0.4;
+      /* 위로 오를수록 더 넓게 퍼지며 천천히 흔들린다 */
+      const spread = 0.35 + d.t * 1.35;
+      arr[i * 3] = d.x + Math.sin(d.t * 4.2 + i) * spread + d.t * 1.15;
+      arr[i * 3 + 1] = d.t * 5.0;
+      arr[i * 3 + 2] = d.z + Math.cos(d.t * 3.4 + i) * spread * 0.8;
     }
     pos.needsUpdate = true;
   }
@@ -12225,8 +13716,12 @@ function updateFloaters(dt) {
 function updateAmbient(dt) {
   const ch = sky.aurora.children;
   for (let i = 0; i < ch.length; i++) {
-    ch[i].position.x += Math.sin(elapsed * 0.08 + i) * dt * 0.7;
-    ch[i].material.opacity = (i === 0 ? 0.34 : 0.2) + Math.sin(elapsed * 0.35 + i * 1.7) * 0.06;
+    const c = ch[i];
+    c.position.y += Math.sin(elapsed * 0.09 + i * 1.3) * dt * 0.55;
+    c.position.x += Math.sin(elapsed * 0.06 + i * 2.1) * dt * 0.45;
+    c.rotation.z = 0.05 * (i - 2) + Math.sin(elapsed * 0.11 + i) * 0.035;
+    const base = c.userData.base === undefined ? 0.18 : c.userData.base;
+    c.material.opacity = base + Math.sin(elapsed * 0.33 + (c.userData.ph || i * 1.7)) * 0.055;
   }
   if (sky.fallTex) sky.fallTex.offset.y = (elapsed * 0.22) % 1;
 }
@@ -12258,6 +13753,9 @@ function tick(dt) {
     updateCampfire(dt);
     updateProps(dt);
     updateAmbient(dt);
+    updateWindowGlow();
+    updateFairyLights();
+    updateShootingStars(dt);
   }
   updateFloaters(dt);
   updatePhotoZone(dt);
@@ -12266,6 +13764,8 @@ function tick(dt) {
   /* 3차 — 마시멜로 굽기 자세 · 눈사람 몸 · 변신 파티클 */
   updateRoastAll(dt);
   updateSnowAvatars(dt);
+  updateSkate(dt);
+  updateRoll(dt);
   updateBursts(dt);
   updateSecondWave(dt);
   updateLabels();
@@ -12886,6 +14386,117 @@ window.__plaza = {
     playerYaw.v = Math.atan2(s.x - playerPos.x, s.z - playerPos.z);
     rig.lookAt.set(playerPos.x, 1.4, playerPos.z); rig.snap = true;
     return [+playerPos.x.toFixed(2), +playerPos.z.toFixed(2)];
+  },
+  /* 캡처용: 한 프레임을 직접 그려 캔버스 내용을 그대로 넘긴다 (컴포지터 지연 없이) */
+  capture() {
+    renderFrame();
+    try { return renderer.domElement.toDataURL('image/png'); } catch (_) { return ''; }
+  },
+  /* --- 3차: ⛸️ 스케이트 · 📮 우체국 · ❄️ 눈사람 · 🌌 밤하늘 --- */
+  get skateState() {
+    const me = players.get('me');
+    const ud = me && me.root.userData ? me.root.userData : null;
+    return {
+      active: SKATE.active, near: nearPond(), dist: +pondDist().toFixed(2), can: canSkate(),
+      w: ud ? +(ud.skateW || 0).toFixed(2) : 0, lean: +SKATE.lean.toFixed(2),
+      onIce: onPondIce(playerPos.x, playerPos.z),
+      tf: me ? me.tf : null, trail: TRAIL.pool.filter((p) => p.on).length,
+      trailSpawned: TRAIL.spawned, pos: [+playerPos.x.toFixed(2), +playerPos.z.toFixed(2)],
+      btn: skateBtnEl ? { shown: skateBtnEl.classList.contains('show'), label: skateBtnEl.textContent } : null,
+      vel: +Math.hypot(vel.x, vel.y).toFixed(2),
+    };
+  },
+  gotoPond(a) {
+    const ang = a === undefined ? POND.door : a;
+    const x = POND.x + Math.sin(ang) * (POND.r - 0.6), z = POND.z + Math.cos(ang) * (POND.r - 0.6);
+    playerPos.set(x, groundY(x, z), z);
+    const p = players.get('me'); if (p) p.root.position.copy(playerPos);
+    playerYaw.v = Math.atan2(POND.x - x, POND.z - z) + Math.PI;
+    rig.lookAt.set(x, 1.45, z); rig.snap = true;
+    return [+playerPos.x.toFixed(2), +playerPos.z.toFixed(2)];
+  },
+  skateStart() { startSkate(); return this.skateState; },
+  skateStop() { stopSkate(true); return this.skateState; },
+  get mailState() {
+    const me = players.get('me');
+    return {
+      open: MAIL.open, sent: MAIL.sent, got: MAIL.got, dist: +mailSpotDist().toFixed(2), can: canMail(),
+      btn: mailBtnEl ? { shown: mailBtnEl.classList.contains('show'), label: mailBtnEl.textContent } : null,
+      to: mailToEl ? mailToEl.value : null, options: mailToEl ? mailToEl.options.length : 0,
+      cards: WISH.list.filter((w) => w.kind === 'mail').length, wishes: WISH.list.length,
+      board: WISH.root ? WISH.root.children.length : 0,
+      text: mailInputEl ? mailInputEl.value : '',
+    };
+  },
+  gotoMailbox(d) {
+    const dist = d === undefined ? 2.0 : d;
+    const a = Math.atan2(playerPos.x - MAILBOX.x, playerPos.z - MAILBOX.z) || 0.6;
+    const x = MAILBOX.x + Math.sin(a) * dist, z = MAILBOX.z + Math.cos(a) * dist;
+    playerPos.set(x, groundY(x, z), z);
+    const p = players.get('me'); if (p) p.root.position.copy(playerPos);
+    playerYaw.v = Math.atan2(MAILBOX.x - x, MAILBOX.z - z);
+    rig.lookAt.set(x, 1.45, z); rig.snap = true;
+    return [+playerPos.x.toFixed(2), +playerPos.z.toFixed(2)];
+  },
+  openMail() { openMailPanel(); return this.mailState; },
+  closeMail() { closeMailPanel(); return this.mailState; },
+  sendMail(to, text) {
+    if (mailToEl) {
+      const has = [...mailToEl.options].some((o) => o.value === to);
+      if (!has) { mailNameEl.style.display = 'block'; mailToEl.value = '__custom'; mailNameEl.value = to; }
+      else mailToEl.value = to;
+    }
+    if (mailInputEl) mailInputEl.value = text || '';
+    return submitMail();
+  },
+  get rollState() {
+    return {
+      active: ROLL.active, phase: ROLL.phase, t: +ROLL.t.toFixed(2), prog: +ROLL.prog.toFixed(2),
+      push: ROLL.push, built: ROLL.built.length, gear: ROLL.gear.length,
+      ball: !!ROLL.ball, body: !!ROLL.body, head: !!ROLL.head,
+      btn: rollBtnEl ? { shown: rollBtnEl.classList.contains('show'), label: rollBtnEl.textContent } : null,
+      near: Math.hypot(playerPos.x - SNOW_PATCH.x, playerPos.z - SNOW_PATCH.z) < SNOW_PATCH.r + 1.5,
+    };
+  },
+  gotoSnowPatch(d) {
+    const dist = d === undefined ? 1.4 : d;
+    const x = SNOW_PATCH.x + 0.9, z = SNOW_PATCH.z + dist;
+    playerPos.set(x, groundY(x, z), z);
+    const p = players.get('me'); if (p) p.root.position.copy(playerPos);
+    rig.lookAt.set(x, 1.45, z); rig.snap = true;
+    return [+playerPos.x.toFixed(2), +playerPos.z.toFixed(2)];
+  },
+  rollStart() { startRoll(); return this.rollState; },
+  rollStop() { stopRoll(true); return this.rollState; },
+  rollStep(sec) {
+    const n = clamp(Math.round((sec || 1) * 60), 1, 1200);
+    for (let i = 0; i < n; i++) tick(1 / 60);
+    renderFrame();
+    return this.rollState;
+  },
+  get story() {
+    return {
+      aurora: sky && sky.aurora ? sky.aurora.children.length : 0,
+      shooting: SHOOT.stars.filter((s) => s.on).length,
+      shot: SHOOT.spawned,
+      windows: WINDOW_SPRITES.length,
+      fairyLights: FAIRY_LIGHTS.length,
+      pond: { x: POND.x, z: POND.z, r: POND.r },
+      snowmen: ROLL.built.length,
+      walkPond: walkableAt(POND.x, POND.z),
+      auroraSample: (() => {
+        const c = sky && sky.aurora ? sky.aurora.children[0] : null;
+        if (!c) return null;
+        const v = c.position.clone().project(camera);
+        return {
+          pos: c.position.toArray().map((n) => +n.toFixed(1)),
+          op: +(c.material.opacity || 0).toFixed(3), vis: c.visible,
+          ndc: [+v.x.toFixed(2), +v.y.toFixed(2), +v.z.toFixed(2)],
+          far: camera.far, cam: camera.position.toArray().map((n) => +n.toFixed(1)),
+          camFov: camera.fov,
+        };
+      })(),
+    };
   },
   gotoCampfire(d) {
     const dist = d === undefined ? 2.9 : d;
