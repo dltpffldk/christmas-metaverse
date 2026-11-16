@@ -190,6 +190,36 @@
     box-shadow:0 10px 26px rgba(120,160,255,.34), inset 0 1px 0 rgba(255,255,255,.7);
   }
 
+  /* ---------- 마시멜로 굽기 · 눈사람 변신 버튼 (3차) ---------- */
+  #roastBtn, #snowBtn{
+    display:none;align-items:center;justify-content:center;gap:7px;
+    padding:11px 17px;border-radius:15px;cursor:pointer;font-family:inherit;
+    font-size:14px;font-weight:800;letter-spacing:-.3px;white-space:nowrap;
+    transition:transform .12s ease, box-shadow .18s, background .18s, color .18s;
+  }
+  #roastBtn.show, #snowBtn.show{display:flex}
+  #roastBtn:hover, #snowBtn:hover{transform:translateY(-2px)}
+  #roastBtn:active, #snowBtn:active{transform:scale(.94)}
+  #roastBtn{
+    color:#3d2408;background:linear-gradient(180deg,#ffeccd,#f0a45a);
+    border:1px solid rgba(255,244,220,.95);
+    box-shadow:0 10px 26px rgba(230,130,40,.34), inset 0 1px 0 rgba(255,255,255,.7);
+  }
+  #roastBtn.on{
+    color:#2d1804;background:linear-gradient(180deg,#ffd79c,#e08534);
+    box-shadow:0 10px 26px rgba(255,150,40,.5), inset 0 1px 0 rgba(255,255,255,.72);
+  }
+  #snowBtn{
+    color:#1b2c44;background:linear-gradient(180deg,#f4fbff,#a6d3ef);
+    border:1px solid rgba(230,246,255,.95);
+    box-shadow:0 10px 26px rgba(110,180,235,.32), inset 0 1px 0 rgba(255,255,255,.8);
+  }
+  #snowBtn.on{
+    color:#22304a;background:linear-gradient(180deg,#eef4fb,#c0cfe4);
+    border-color:rgba(226,240,255,.95);
+    box-shadow:0 10px 26px rgba(120,150,200,.3), inset 0 1px 0 rgba(255,255,255,.8);
+  }
+
   /* ---------- 집 안 출입 버튼 ---------- */
   #doorBtn, #exitBtn{
     display:none;align-items:center;justify-content:center;gap:8px;
@@ -833,7 +863,7 @@
     #treeHud .th-ico{font-size:12px}
     #treeHud .th-bar{display:none}
     #treeHudText{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-    #treeBtn, #cocoaBtn, #wishBtn{padding:10px 13px;font-size:12.5px;border-radius:13px}
+    #treeBtn, #cocoaBtn, #wishBtn, #roastBtn, #snowBtn{padding:10px 13px;font-size:12.5px;border-radius:13px}
     #ornPicker, #wishPanel{bottom:calc(178px + var(--safe-b));padding:11px 12px 12px;gap:7px}
     #ornPicker .op-row button{padding:7px 2px 5px;font-size:9px}
     #ornPicker .op-row button b{font-size:17px}
@@ -934,6 +964,8 @@
   <button id="doorBtn" type="button" aria-label="라운지로 들어가기">🚪 라운지로 들어가기 <span class="key">F</span></button>
   <button id="exitBtn" type="button" aria-label="광장으로 나가기">🚪 광장으로 나가기 <span class="key">F</span></button>
   <button id="seatBtn" type="button" aria-label="모닥불에 앉기">🪑 앉기</button>
+  <button id="roastBtn" type="button" aria-label="마시멜로 굽기">🍡 마시멜로 굽기</button>
+  <button id="snowBtn" type="button" aria-label="눈사람으로 변신">⛄ 눈사람으로 변신</button>
   <button id="treeBtn" type="button" aria-label="트리에 장식 달기">🎄 트리 장식 달기</button>
   <button id="cocoaBtn" type="button" aria-label="코코아 마시기">☕ 코코아 마시기</button>
   <button id="wishBtn" type="button" aria-label="소원 쪽지 남기기">📝 소원 쪽지 남기기</button>
@@ -1624,7 +1656,7 @@ class LiveNetwork extends NetworkAdapter {
     this.broker = '';
     this.seq = 0;
     this._pending = null;
-    this._lastState = { x: 1e9, z: 1e9, yaw: 0, moving: null, pose: 'stand', seat: -1 };
+    this._lastState = { x: 1e9, z: 1e9, yaw: 0, moving: null, pose: 'stand', seat: -1, tf: '', rs: 0 };
     this._lastPubAt = 0;
     this._timers = [];
     this._closed = false;
@@ -1783,7 +1815,10 @@ class LiveNetwork extends NetworkAdapter {
         peer.pose = m.p === 'sit' ? 'sit' : 'stand';
         peer.seat = m.si === undefined ? -1 : (+m.si || -1);
         peer.zone = m.zn === 'i' ? 'i' : 'p';
-        this.emit('state', { players: [{ id: m.id, x: peer.x, z: peer.z, yaw: peer.yaw, moving: peer.moving, pose: peer.pose, seat: peer.seat, zone: peer.zone }] });
+        /* 3차 — 눈사람 변신(tf) · 마시멜로 굽기 진행률(rs) */
+        peer.tf = m.tf === 'sn' ? 'sn' : '';
+        peer.roast = clamp(Math.round(+m.rs || 0), 0, 100);
+        this.emit('state', { players: [{ id: m.id, x: peer.x, z: peer.z, yaw: peer.yaw, moving: peer.moving, pose: peer.pose, seat: peer.seat, zone: peer.zone, tf: peer.tf, roast: peer.roast }] });
       }
     }
   }
@@ -1803,6 +1838,7 @@ class LiveNetwork extends NetworkAdapter {
       nickname: String(n || '엘프').slice(0, 10),
       character: charById(c).id,
       x: SPAWN.x, z: SPAWN.z, yaw: Math.PI, moving: false, pose: 'stand', seat: -1, zone: 'p', lastSeen: now,
+      tf: '', roast: 0,
     };
     this.peers.set(id, peer);
     this.emit('join', {
@@ -1833,13 +1869,14 @@ class LiveNetwork extends NetworkAdapter {
     if (!this.connected || !this.mqtt || !this._pending) return;
     const s = this._pending;
     this._lastPubAt = performance.now();
-    this._lastState = { x: s.x, z: s.z, yaw: s.yaw, moving: !!s.moving, pose: s.pose || 'stand', seat: s.seat === undefined ? -1 : s.seat, zone: s.zone || 'p' };
+    this._lastState = { x: s.x, z: s.z, yaw: s.yaw, moving: !!s.moving, pose: s.pose || 'stand', seat: s.seat === undefined ? -1 : s.seat, zone: s.zone || 'p', tf: s.tf === 'sn' ? 'sn' : '', rs: clamp(Math.round(+s.rs || 0), 0, 100) };
     this.seq = (this.seq + 1) % 100000;
     this.mqtt.publish(`${this.base}/s/${this.cid}`, JSON.stringify({
       t: 'pos', id: this.cid, n: this.profile.nickname, c: this.profile.character,
       x: +s.x.toFixed(2), z: +s.z.toFixed(2), y: +s.yaw.toFixed(2),
       mv: s.moving ? 1 : 0, p: s.pose || 'stand', si: s.seat === undefined ? -1 : s.seat,
       zn: s.zone === 'i' ? 'i' : 'p', q: this.seq,
+      tf: s.tf === 'sn' ? 'sn' : '', rs: clamp(Math.round(+s.rs || 0), 0, 100),
     }));
   }
 
@@ -1851,6 +1888,8 @@ class LiveNetwork extends NetworkAdapter {
     const moved = (!!s.moving !== !!L.moving)
       || (s.pose || 'stand') !== (L.pose || 'stand')
       || (s.zone || 'p') !== (L.zone || 'p')
+      || (s.tf === 'sn' ? 'sn' : '') !== (L.tf || '')
+      || clamp(Math.round(+s.rs || 0), 0, 100) !== (L.rs || 0)
       || Math.abs(s.x - L.x) > 0.02 || Math.abs(s.z - L.z) > 0.02
       || Math.abs(s.yaw - L.yaw) > 0.04;
     if (!moved || now - this._lastPubAt < 110) return;
@@ -1978,7 +2017,7 @@ class NetRouter extends NetworkAdapter {
     this.emit('status', { state: 'demo', room: this.room });
   }
 
-  update(s) { if (this.active) this.active.update(s); }
+  update(s) { this.lastSent = s; if (this.active) this.active.update(s); }
   sendChat(t) { if (this.active) this.active.sendChat(t); }
   sendReaction(e) { if (this.active) this.active.sendReaction(e); }
   sendTree(s) { if (this.active) this.active.sendTree(s); }
@@ -5300,9 +5339,12 @@ function addBench(x, z, ry, opt) {
 }
 
 /* ---------- 눈사람 ---------- */
+/* 광장 눈사람 위치 — ⛄ 눈사람 변신 버튼이 다가갔는지 판단하는 데 쓴다 (3차) */
+const SNOW_OBJS = [];
 function addSnowman(x, z, opt) {
   opt = opt || {};
   const y = opt.y === undefined ? groundY(x, z) : opt.y;
+  SNOW_OBJS.push({ x, z, y });
   const base = vMtx(null, x, y, z, 0, opt.ry || 0, 0);
   vBall(base, VMAT.snow, 0.5, 0, 0.46, 0, 1, 0.95, 1);
   vBall(base, VMAT.snow, 0.36, 0, 1.1, 0, 1, 0.98, 1);
@@ -7024,6 +7066,11 @@ function setWorldLayer(inside) {
 function enterInterior(idx, keepReturn) {
   const i = idx === undefined || idx < 0 ? ZONE.door : idx;
   if (SIT.active || SIT.enter > 0) standUp();
+  /* 따뜻한 실내 — 눈사람은 녹아서 엘프로 돌아온다 (3차) */
+  if (SNOWMAN.active) {
+    revertToElf(true);
+    toast('🧝 따뜻한 실내에서는 눈사람이 녹아 엘프로 돌아왔어요', 2600);
+  }
   if (!keepReturn) { ZONE.returnX = playerPos.x; ZONE.returnZ = playerPos.z; ZONE.returnYaw = playerYaw.v; }
   ZONE.mode = 'interior'; ZONE.door = i;
   playerPos.set(INTERIOR_ORIGIN.x + INTERIOR.spawn.x, 0, INTERIOR_ORIGIN.z + INTERIOR.spawn.z);
@@ -7998,6 +8045,22 @@ function makeElfAvatar(charId) {
     hipB.getWorldPosition(hv);
     root.userData.hipY = hv.y - root.position.y;
   }
+
+  /* --- ⛄ 눈사람 변신 몸 (숨겨 둔다) — 변신할 때만 엘프와 교대한다 --- */
+  const snowRoot = makeSnowmanAvatar();
+  snowRoot.visible = false;
+  root.add(snowRoot);
+  root.userData.snowRoot = snowRoot;
+  root.userData.snowW = 0;
+
+  /* --- 🍡 마시멜로 꼬치 (숨겨 둔다) --- */
+  const skewer = makeRoastSkewer();
+  root.add(skewer.group);
+  root.userData.roast = {
+    w: 0, phase: 'idle', prog: 0, eat: 0, netHit: false,
+    skewer: skewer.group, mat: skewer.mat, steam: skewer.steam,
+  };
+
   return root;
 }
 
@@ -8143,7 +8206,7 @@ function updateAvatarPose(ud, root, speed, dt) {
   const sitW = ud.sit || 0;
 
   if (w > 0.001) {
-    ud.phase += dt * (2.4 + clamp(speed * 2.3, 0, 8.4));
+    ud.phase += dt * (2.4 + clamp(speed * 2.6, 0, 13.0));
   } else {
     ud.phase += dt * 0.0;
   }
@@ -8174,9 +8237,9 @@ function updateAvatarPose(ud, root, speed, dt) {
   }
 
   if (w > 0.002) {
-    const A = (0.36 + 0.20 * clamp(speed / 3.3, 0, 1)) * w;   // 허벅지 스윙
+    const A = (0.36 + 0.20 * clamp(speed / 4.8, 0, 1)) * w;   // 허벅지 스윙
     const K = 0.62 * w;                                       // 무릎 굽힘
-    const AR = (0.26 + 0.20 * clamp(speed / 3.3, 0, 1)) * w;  // 팔 스윙
+    const AR = (0.26 + 0.20 * clamp(speed / 4.8, 0, 1)) * w;  // 팔 스윙
     const s = Math.sin(ud.phase);
     const c = Math.cos(ud.phase);
 
@@ -8255,7 +8318,7 @@ function updateAvatarPose(ud, root, speed, dt) {
       want = lerp(want, (sTop + SIT_HIP_LIFT) - hipNow, sitW);
     }
   }
-  ud.drop = lerp(ud.drop, want, Math.min(1, dt * 18));
+  ud.drop = lerp(ud.drop, want, Math.min(1, dt * 24));
   ud.inner.position.y = ud.drop;
 
   /* 흔들의자 — 의자 피벗을 따라 몸도 같이 앞뒤로 기운다 */
@@ -8280,6 +8343,9 @@ const rig = {
 
 /* 입장 지점 — 광장 남쪽 빈 자리에서 트리를 바라본다 (소품에 끼지 않게) */
 const SPAWN = { x: 1.2, z: 11.6 };
+/* 3차 — 걷기/달리기 속도 (기존 3.3 / 5.4 의 약 1.45배) */
+const WALK_SPEED = 4.8;
+const RUN_SPEED = 7.8;
 const playerPos = new THREE.Vector3(SPAWN.x, 0, SPAWN.z);
 const playerYaw = { v: Math.PI };
 const vel = new THREE.Vector2(0, 0);
@@ -8446,6 +8512,7 @@ function addPlayer(p) {
     id: p.id, nickname: p.nickname, character: p.character,
     root, label: lab, tx: p.x, tz: p.z, tyaw: p.yaw, moving: false, pose: p.pose || 'stand', seat: -1,
     bubbleTimer: 0, isMe: p.id === 'me', isNpc: npc, accent: charById(p.character).accent, zone: p.zone || 'p',
+    tf: '', roast: 0,
   });
   renderPlayerList();
 }
@@ -8456,6 +8523,12 @@ function removePlayer(id) {
   scene.remove(p.root);
   const ud = p.root.userData;
   if (ud && ud.mixer) ud.mixer.stopAllAction();
+  /* 3차 — 이 아바타만의 꼬치·눈사람 지오메트리 반납 (공유 재질은 그대로) */
+  if (ud && ud.roast && ud.roast.skewer) {
+    ud.roast.skewer.traverse((o) => { if (o.isMesh && o.geometry) o.geometry.dispose(); });
+    if (ud.roast.mat) ud.roast.mat.dispose();
+  }
+  if (ud && ud.snowRoot) ud.snowRoot.traverse((o) => { if (o.isMesh && o.geometry) o.geometry.dispose(); });
   /* .glb 지오메트리·머티리얼은 다른 아바타와 공유하므로 dispose 하지 않는다 */
   p.label.el.remove();
   p.root.userData = null;
@@ -9093,6 +9166,8 @@ net.on('state', ({ players: list }) => {
     p.moving = !!s.moving && p.pose !== 'sit';
     p.seat = s.seat === undefined ? -1 : s.seat;
     p.zone = s.zone || 'p';
+    if (s.tf !== undefined) p.tf = s.tf === 'sn' ? 'sn' : '';
+    if (s.roast !== undefined) p.roast = clamp(Math.round(+s.roast || 0), 0, 100);
     if (p.isMe) { p.root.position.x = s.x; p.root.position.z = s.z; }
     /* 광장/실내가 다르면 그리지 않는다 */
     const show = (p.zone || 'p') === (ZONE.mode === 'interior' ? 'i' : 'p');
@@ -9415,6 +9490,7 @@ function enterPhotoMode() {
   camera.fov = PHOTO_FOV;
   camera.updateProjectionMatrix();
   if (SIT.active) standUp();
+  if (SNOWMAN.active) revertToElf(true);      // 눈사람이면 엘프 모습으로 찍는다
   input.keys.clear();
   input.joy.active = false; input.joy.x = input.joy.y = 0;
   document.body.classList.add('photomode');
@@ -9500,11 +9576,45 @@ function updatePhotoPose(dt) {
     aimBoneBlend(ud, 'R_Forearm', dir(-0.3 + Math.sin(t * 7) * 0.22, 0.9, 0.1), w);
     boneRotZ(ud, 'Head', Math.sin(t * 2.4) * 0.05 * w);
   } else if (PHOTO.pose === 'jump') {
-    const cyc = (t % 1.5) / 1.5;
-    const hop = Math.sin(cyc * Math.PI) * 0.5;
-    if (ud.tilt) ud.tilt.position.y = hop * w;
-    aimBoneBlend(ud, 'L_Upperarm', dir(-0.62, 0.74, 0.06), w);
-    aimBoneBlend(ud, 'R_Upperarm', dir(0.62, 0.74, 0.06), w);
+    /* 🙌 점프 — 높이를 2배 이상(0.5 → 1.08m) 올리고 웅크리기 → 도약 → 착지까지
+       한 호흡으로 붙였다. 발이 바닥을 뚫지 않도록 내려가는 대신 무릎을 굽혀
+       충격을 먹고(발끝 접지는 아래 updateAvatarPose 가 계속 맞춘다),
+       카메라는 캐릭터 몸(dilt)만 보고 있어서 화면은 흔들리지 않는다. */
+    const cyc = (t % 1.65) / 1.65;
+    const T0 = 0.20, T1 = 1.0;                      // 도약 · 착지 시점
+    let h = 0, squat = 0, tuck = 0;
+    if (cyc < T0) {
+      squat = Math.sin((cyc / T0) * Math.PI * 0.5);                    // 웅크리기
+    } else if (cyc < T1) {
+      const u = (cyc - T0) / (T1 - T0);
+      h = Math.sin(u * Math.PI) * 1.08;                                // 0.5 → 1.08 (2.16배)
+      tuck = Math.sin(u * Math.PI);
+      squat = (1 - Math.sin(u * Math.PI)) * 0.55;
+    } else {
+      const v = (cyc - T1) / (1 - T1);
+      squat = Math.sin(Math.min(1, v * 1.7) * Math.PI) * 0.85;          // 착지 스쿼시
+    }
+    if (ud.tilt) ud.tilt.position.y = h * w;
+    /* 무릎 굽혀 충격 흡수 */
+    if (squat > 0.01) {
+      aimBoneBlend(ud, 'L_Thigh', dir(0.06, -0.52, 0.85), squat * 0.8 * w);
+      aimBoneBlend(ud, 'R_Thigh', dir(-0.06, -0.52, 0.85), squat * 0.8 * w);
+      aimBoneBlend(ud, 'L_Calf', dir(0.01, -0.97, -0.22), squat * 0.8 * w);
+      aimBoneBlend(ud, 'R_Calf', dir(-0.01, -0.97, -0.22), squat * 0.8 * w);
+    }
+    /* 공중 — 두 다리를 뒤로 접어 경쾌하게 */
+    if (tuck > 0.01) {
+      aimBoneBlend(ud, 'L_Thigh', dir(0.07, 0.22, 0.97), tuck * w);
+      aimBoneBlend(ud, 'R_Thigh', dir(-0.07, 0.22, 0.97), tuck * w);
+      aimBoneBlend(ud, 'L_Calf', dir(0, -0.42, -0.91), tuck * w);
+      aimBoneBlend(ud, 'R_Calf', dir(0, -0.42, -0.91), tuck * w);
+    }
+    /* 팔 — 도약하며 위로 쭉, 착지하면 내린다 */
+    const up = clamp(tuck * 1.15 - squat * 0.45, 0, 1);
+    aimBoneBlend(ud, 'L_Upperarm', dir(-0.50 - 0.12 * up, 0.74 + 0.20 * up, 0.05), w);
+    aimBoneBlend(ud, 'R_Upperarm', dir(0.50 + 0.12 * up, 0.74 + 0.20 * up, 0.05), w);
+    boneRot(ud, 'Spine01', -0.05 * tuck * w + 0.05 * squat * w);
+    boneRot(ud, 'Head', 0.05 * up * w);
   } else if (PHOTO.pose === 'heart') {
     settle();
     const A = HEART_AIM;
@@ -10742,6 +10852,8 @@ function updateActivityButtons(dt) {
     if (treeBtnShown) { treeBtnEl.classList.remove('show'); treeBtnShown = false; }
     if (cocoaBtnShown) { cocoaBtnEl.classList.remove('show'); cocoaBtnShown = false; }
     if (wishBtnShown) { wishBtnEl.classList.remove('show'); wishBtnShown = false; }
+    if (roastBtnShown) { roastBtnEl.classList.remove('show'); roastBtnShown = false; }
+    if (snowBtnShown) { snowBtnEl.classList.remove('show'); snowBtnShown = false; }
     return;
   }
   const plaza = ZONE.mode !== 'interior';
@@ -10778,6 +10890,32 @@ function updateActivityButtons(dt) {
     wishBtnShown = wishNear;
     if (wishNear) toast(`📝 소원 게시판 — 쪽지 ${WISH.list.length}장이 걸려 있어요`, 2400);
   }
+
+  /* 🍡 마시멜로 굽기 — 모닥불 가까이 서 있거나 통나무에 앉았을 때 */
+  const roastNear = plaza && !PHOTO.active && !TRANS.busy && !SNOWMAN.active
+    && (SIT.active || SIT.enter > 0 || Math.hypot(playerPos.x - CAMPFIRE.x, playerPos.z - CAMPFIRE.z) < 4.8);
+  const roastShow = roastNear || ROAST.active;
+  if (roastShow !== roastBtnShown) {
+    roastBtnEl.classList.toggle('show', roastShow);
+    roastBtnShown = roastShow;
+  }
+  const roastLabel = ROAST.phase === 'eat' ? '🍡 냠냠 먹는 중…'
+    : (ROAST.active ? '🍡 굽는 중…' : '🍡 마시멜로 굽기');
+  if (roastBtnEl.textContent !== roastLabel) roastBtnEl.textContent = roastLabel;
+  roastBtnEl.classList.toggle('on', ROAST.active);
+
+  /* ⛄ 눈사람 변신 — 눈사람 3.5m 안에서, 변신 중에는 어디서든 복귀 */
+  const snowShow = SNOWMAN.active
+    ? plaza
+    : (plaza && !PHOTO.active && !TRANS.busy && !SIT.active && !ROAST.active && nearSnowman());
+  if (snowShow !== snowBtnShown) {
+    snowBtnEl.classList.toggle('show', snowShow);
+    snowBtnShown = snowShow;
+    if (snowShow && !SNOWMAN.active) toast('⛄ 눈사람 — 다가가면 눈사람으로 변신할 수 있어요', 2400);
+  }
+  const snowLabel = SNOWMAN.active ? '🧝 엘프로 돌아가기' : '⛄ 눈사람으로 변신';
+  if (snowBtnEl.textContent !== snowLabel) snowBtnEl.textContent = snowLabel;
+  snowBtnEl.classList.toggle('on', SNOWMAN.active);
 }
 
 function updateTreeEvent(dt) {
@@ -11076,7 +11214,9 @@ function updateCamera(dt) {
     rig.targetDist = 30 * MAP;
     rig.lookAt.lerp(tmpV.set(0, 5.4 * MAP, 0), Math.min(1, dt * 2));
   } else {
-    const eye = ZONE.mode === 'interior' ? 1.15 : 1.45;
+    const meCam = players.get('me');
+    const snowEye = meCam && meCam.root.userData ? (meCam.root.userData.snowW || 0) : 0;
+    const eye = (ZONE.mode === 'interior' ? 1.15 : 1.45) - snowEye * 0.22;
     const target = tmpV.set(playerPos.x, playerPos.y + eye, playerPos.z);
     rig.lookAt.lerp(target, Math.min(1, dt * 7));
     rig.dist = lerp(rig.dist, rig.targetDist, Math.min(1, dt * 4.5));
@@ -11228,7 +11368,8 @@ function updatePlayer(dt) {
   if (len > 1) { ix /= len; iz /= len; }
 
   const run = input.keys.has('ShiftLeft') || input.keys.has('ShiftRight');
-  const speed = (run ? 5.4 : 3.3) * (input.joy.active ? clamp(len, 0, 1) : 1);
+  /* 3차 — 광장이 넓어진 만큼 걸음도 경쾌하게 (기존 대비 약 1.45배) */
+  const speed = (run ? RUN_SPEED : WALK_SPEED) * (input.joy.active ? clamp(len, 0, 1) : 1);
 
   const fx = -Math.sin(rig.yaw), fz = -Math.cos(rig.yaw);
   const rx = -fz, rz = fx;
@@ -11265,6 +11406,7 @@ function updatePlayer(dt) {
 
   const dxm = nx - playerPos.x, dzm = nz - playerPos.z;
   const moved = Math.hypot(dxm, dzm);
+  if (moved > 0.006 && ROAST.active) stopRoast(true);   // 걸어가면 굽기를 멈춘다
   playerPos.x = nx; playerPos.z = nz;
   playerPos.y = groundY(nx, nz);
   playerLight.position.set(nx, playerPos.y + 2.6, nz);
@@ -11280,6 +11422,7 @@ function updatePlayer(dt) {
   net.update({
     x: playerPos.x, z: playerPos.z, yaw: playerYaw.v, moving: moved > 0.004,
     pose: 'stand', seat: -1, zone: ZONE.mode === 'interior' ? 'i' : 'p',
+    tf: SNOWMAN.active ? 'sn' : '', rs: ROAST.net,
   });
 }
 
@@ -11345,7 +11488,8 @@ const SIT_AIM_KIND = {
 function updateSeatButton() {
   let near = false;
   if (state.joined) {
-    if (SIT.active || SIT.enter > 0) near = true;
+    if (SNOWMAN.active) near = false;          // 눈사람은 앉기 전에 엘프로
+    else if (SIT.active || SIT.enter > 0) near = true;
     else if (ZONE.mode === 'interior') near = nearestSeatInZone('i').d < 2.6;
     else near = Math.hypot(playerPos.x - CAMPFIRE.x, playerPos.z - CAMPFIRE.z) < 4.8;
   }
@@ -11358,6 +11502,7 @@ function updateSeatButton() {
 
 function sitDown() {
   if (!state.joined || SIT.active || SIT.enter > 0) return;
+  if (SNOWMAN.active) { toast('⛄ 눈사람일 때는 앉을 수 없어요 — 엘프로 돌아와 주세요', 2400); return; }
   const i = nearestSeat();
   if (i < 0) { toast(ZONE.mode === 'interior' ? '🪑 앉을 자리를 못 찾았어요' : '🪵 앉을 자리를 못 찾았어요', 1800); return; }
   const s = SEATS[i];
@@ -11371,6 +11516,7 @@ function sitDown() {
 }
 
 function standUp() {
+  if (ROAST.active) stopRoast(true);          // 일어나면 굽던 꼬치는 내린다
   if (!SIT.active && SIT.enter <= 0) return;
   const s = SEATS[SIT.seat];
   SIT.active = false;
@@ -11401,6 +11547,7 @@ function standUp() {
   net.update({
     x: playerPos.x, z: playerPos.z, yaw: playerYaw.v, moving: false, pose: 'stand', seat: -1,
     zone: ZONE.mode === 'interior' ? 'i' : 'p',
+    tf: SNOWMAN.active ? 'sn' : '', rs: ROAST.net,
   });
   updateSeatButton();
 }
@@ -11441,6 +11588,7 @@ function updateSeated(dt) {
     x: playerPos.x, z: playerPos.z, yaw: playerYaw.v,
     moving: false, pose: SIT.active ? 'sit' : 'stand', seat: SIT.active ? SIT.seat : -1,
     zone: ZONE.mode === 'interior' ? 'i' : 'p',
+    tf: SNOWMAN.active ? 'sn' : '', rs: ROAST.net,
   });
   if (SIT.active && !seatToastShown) {
     seatToastShown = true;
@@ -11463,6 +11611,432 @@ window.addEventListener('keydown', (e) => {
   if (SIT.active) standUp(); else sitDown();
 });
 
+/* ===============================================================
+   🍡 3차 — 캠프파이어 마시멜로 굽기 · ⛄ 눈사람 변신
+   ---------------------------------------------------------------
+   · 모닥불 옆(통나무에 앉아서도) 꼬치를 쥐고 팔을 뻗어 7초 동안 굽는다.
+     마시멜로가 하얀색 → 노릇노릇으로 익고 김이 오르며, 마지막엔 한 입.
+   · 광장 눈사람 3.5m 안에서 ⛄ 변신 — 뒤뚱뒤뚱 걷는 눈사람, 🧝 로 복귀.
+   · 둘 다 MQTT 로 tf(변신)·rs(굽기 진행률)를 주고받아 친구 화면에도 보인다.
+   =============================================================== */
+const ROAST = { active: false, phase: 'idle', t: 0, dur: 7.0, eatT: 0, net: 0, near: false };
+const SNOWMAN = { active: false };
+const roastBtnEl = document.getElementById('roastBtn');
+const snowBtnEl = document.getElementById('snowBtn');
+let roastBtnShown = false, snowBtnShown = false;
+
+/* ---------- 눈사람 아바타 재질 (아바타끼리 공유) ---------- */
+const SNOWMAN_MAT = {
+  snow: new THREE.MeshStandardMaterial({ color: 0xf6fbff, roughness: 0.93, metalness: 0, envMapIntensity: 0.46 }),
+  coal: new THREE.MeshStandardMaterial({ color: 0x1d1f26, roughness: 0.62 }),
+  carrot: new THREE.MeshStandardMaterial({ color: 0xe8792a, roughness: 0.7 }),
+  scarf: new THREE.MeshStandardMaterial({ color: 0xc0392b, roughness: 0.86 }),
+  hat: new THREE.MeshStandardMaterial({ color: 0x232733, roughness: 0.76 }),
+  branch: new THREE.MeshStandardMaterial({ color: 0x6b4a2f, roughness: 0.9 }),
+};
+
+/** 광장 눈사람과 같은 스타일의 귀여운 3D 눈사람 — 원점은 발밑, 정면은 +Z */
+function makeSnowmanAvatar() {
+  const G = new THREE.Group();
+  const part = (geo, mat, x, y, z, parent) => {
+    const m = new THREE.Mesh(geo, mat);
+    m.position.set(x, y, z);
+    m.castShadow = true; m.receiveShadow = true;
+    (parent || G).add(m);
+    return m;
+  };
+  const sphere = (r, seg) => new THREE.SphereGeometry(r, seg || 18, Math.max(8, (seg || 18) - 6));
+
+  /* 몸통 3단 */
+  part(sphere(0.38), SNOWMAN_MAT.snow, 0, 0.36, 0).scale.y = 0.96;
+  part(sphere(0.30), SNOWMAN_MAT.snow, 0, 0.86, 0).scale.y = 0.97;
+  const head = new THREE.Group();
+  head.position.set(0, 1.23, 0);
+  G.add(head);
+  part(sphere(0.225), SNOWMAN_MAT.snow, 0, 0, 0, head);
+
+  /* 얼굴 — 숯눈 · 당근 코 · 웃는 입 */
+  part(sphere(0.027, 10), SNOWMAN_MAT.coal, -0.072, 0.05, 0.196, head);
+  part(sphere(0.027, 10), SNOWMAN_MAT.coal, 0.072, 0.05, 0.196, head);
+  const nose = part(new THREE.ConeGeometry(0.030, 0.21, 7), SNOWMAN_MAT.carrot, 0, 0.0, 0.30, head);
+  nose.rotation.x = Math.PI / 2;
+  part(sphere(0.017, 8), SNOWMAN_MAT.coal, -0.055, -0.085, 0.198, head);
+  part(sphere(0.017, 8), SNOWMAN_MAT.coal, 0, -0.098, 0.202, head);
+  part(sphere(0.017, 8), SNOWMAN_MAT.coal, 0.055, -0.085, 0.198, head);
+
+  /* 모자 — 살짝 삐뚤어진 중절모 + 빨간 띠 */
+  part(new THREE.CylinderGeometry(0.268, 0.268, 0.028, 18), SNOWMAN_MAT.hat, 0, 0.195, 0, head).rotation.z = 0.06;
+  part(new THREE.CylinderGeometry(0.168, 0.188, 0.30, 18), SNOWMAN_MAT.hat, 0, 0.355, 0, head).rotation.z = 0.06;
+  part(new THREE.TorusGeometry(0.181, 0.027, 8, 20), SNOWMAN_MAT.scarf, 0, 0.272, 0, head).rotation.x = Math.PI / 2;
+
+  /* 목도리 */
+  const scarf = part(new THREE.TorusGeometry(0.205, 0.055, 8, 20), SNOWMAN_MAT.scarf, 0, 1.0, 0);
+  scarf.rotation.x = Math.PI / 2;
+  scarf.scale.z = 1.12;
+  const tail = part(new THREE.BoxGeometry(0.10, 0.26, 0.05), SNOWMAN_MAT.scarf, 0.10, 0.85, 0.17);
+  tail.rotation.z = -0.3;
+  tail.rotation.x = 0.2;
+
+  /* 나뭇가지 팔 — 어깨 피벗을 돌려 뒤뚱뒤뚱 흔든다 */
+  const armR = new THREE.Group();
+  armR.position.set(0.30, 0.96, 0);
+  G.add(armR);
+  part(new THREE.CylinderGeometry(0.017, 0.030, 0.46, 6), SNOWMAN_MAT.branch, 0.21, 0.02, 0, armR).rotation.z = -1.32;
+  part(new THREE.CylinderGeometry(0.011, 0.017, 0.19, 5), SNOWMAN_MAT.branch, 0.35, 0.12, 0.01, armR).rotation.z = -0.75;
+  const armL = new THREE.Group();
+  armL.position.set(-0.30, 0.96, 0);
+  G.add(armL);
+  part(new THREE.CylinderGeometry(0.017, 0.030, 0.46, 6), SNOWMAN_MAT.branch, -0.21, 0.02, 0, armL).rotation.z = 1.32;
+  part(new THREE.CylinderGeometry(0.011, 0.017, 0.19, 5), SNOWMAN_MAT.branch, -0.35, 0.12, 0.01, armL).rotation.z = 0.75;
+
+  /* 단추 */
+  part(sphere(0.024, 8), SNOWMAN_MAT.coal, 0, 0.74, 0.288);
+  part(sphere(0.024, 8), SNOWMAN_MAT.coal, 0, 0.86, 0.297);
+  part(sphere(0.024, 8), SNOWMAN_MAT.coal, 0, 0.98, 0.273);
+
+  G.userData.armL = armL;
+  G.userData.armR = armR;
+  G.userData.head = head;
+  return G;
+}
+
+/** 나무 꼬치 + 마시멜로 두 알 + 김 스프라이트 */
+function makeRoastSkewer() {
+  const g = new THREE.Group();
+  const woodMat = new THREE.MeshStandardMaterial({ color: 0xc3a071, roughness: 0.9 });
+  const stick = new THREE.Mesh(new THREE.CylinderGeometry(0.010, 0.013, 0.68, 6), woodMat);
+  stick.position.y = 0.34;
+  stick.castShadow = true;
+  g.add(stick);
+  const mm = new THREE.MeshStandardMaterial({ color: 0xfff7ea, roughness: 0.72, emissive: 0x000000, emissiveIntensity: 1 });
+  [0.50, 0.61].forEach((y) => {
+    const m = new THREE.Mesh(new THREE.SphereGeometry(0.053, 12, 10), mm);
+    m.position.y = y;
+    m.scale.set(1, 0.9, 1);
+    m.castShadow = true;
+    g.add(m);
+  });
+  /* 김 — 마시멜로 위로 피어오르는 작은 연기 */
+  const tex = radialTexture('rgba(255,255,255,0.95)', 'rgba(255,255,255,0.3)');
+  const steam = [];
+  for (let i = 0; i < 4; i++) {
+    const mat = new THREE.SpriteMaterial({ map: tex, color: 0xffffff, transparent: true, opacity: 0, depthWrite: false, toneMapped: false });
+    const sp = new THREE.Sprite(mat);
+    sp.userData = { x: rand(-0.03, 0.03), y: 0.56, z: rand(-0.03, 0.03), t: Math.random() };
+    sp.visible = false;
+    g.add(sp);
+    steam.push(sp);
+  }
+  g.visible = false;
+  return { group: g, mat: mm, steam };
+}
+
+const _skv = new THREE.Vector3();
+const _skd = new THREE.Vector3();
+const _skt = new THREE.Vector3();
+const _skq = new THREE.Quaternion();
+const _skrq = new THREE.Quaternion();
+const SKEW_UP = new THREE.Vector3(0, 1, 0);
+
+/** 꼬치를 오른손에 쥐고 끝이 target(모닥불) 쪽을 향하게 */
+function placeSkewer(p, R, target) {
+  const ud = p.root.userData;
+  const hand = ud.bones['R_Hand'] || ud.bones['R_Forearm'];
+  if (!hand) return;
+  p.root.updateMatrixWorld(true);
+  hand.getWorldPosition(_skv);
+  _skd.copy(target).sub(_skv);
+  if (_skd.lengthSq() < 1e-6) _skd.set(0, 0.4, 1);
+  _skd.y += 0.22 * _skd.length();          // 꼬치 끝을 살짝 들어 올린다
+  _skd.normalize();
+  _skq.setFromUnitVectors(SKEW_UP, _skd);
+  _skt.copy(_skv);
+  p.root.worldToLocal(_skt);
+  R.skewer.position.copy(_skt);
+  _skrq.setFromAxisAngle(SKEW_UP, -p.root.rotation.y);
+  R.skewer.quaternion.copy(_skrq).multiply(_skq);
+}
+
+/* ---------- 변신 · 굽기 상태 ---------- */
+function nearestSnowman() {
+  let best = -1, bd = 1e9;
+  for (let i = 0; i < SNOW_OBJS.length; i++) {
+    const s = SNOW_OBJS[i];
+    const d = Math.hypot(playerPos.x - s.x, playerPos.z - s.z);
+    if (d < bd) { bd = d; best = i; }
+  }
+  return { i: best, d: bd };
+}
+function nearSnowman() { return nearestSnowman().d < 3.5; }
+
+function canRoast() {
+  if (!state.joined || PHOTO.active || TRANS.busy) return false;
+  if (ZONE.mode === 'interior') return false;
+  if (SNOWMAN.active) return false;
+  return SIT.active || SIT.enter > 0 || Math.hypot(playerPos.x - CAMPFIRE.x, playerPos.z - CAMPFIRE.z) < 4.8;
+}
+
+function startRoast() {
+  if (ROAST.active) return false;
+  if (!canRoast()) {
+    toast(SNOWMAN.active ? '⛄ 눈사람일 때는 마시멜로를 구울 수 없어요 — 엘프로 돌아와 주세요' : '🍡 모닥불 가까이에서 구울 수 있어요', 2400);
+    return false;
+  }
+  ROAST.active = true;
+  ROAST.phase = 'roast';
+  ROAST.t = 0;
+  ROAST.eatT = 0;
+  ROAST.net = 5;
+  toast('🍡 꼬치에 마시멜로를 끼고 노릇노릇 구워 볼게요', 2400);
+  return true;
+}
+
+function stopRoast(silent) {
+  if (!ROAST.active) return false;
+  ROAST.active = false;
+  ROAST.phase = 'idle';
+  ROAST.t = 0;
+  ROAST.eatT = 0;
+  ROAST.net = 0;
+  if (!silent) toast('🍡 마시멜로 굽기를 멈췄어요', 1600);
+  return true;
+}
+
+function transformToSnowman() {
+  if (SNOWMAN.active) return false;
+  if (!state.joined || TRANS.busy) return false;
+  if (ZONE.mode === 'interior') {
+    toast('⛄ 따뜻한 실내에서는 눈사람이 녹아요 — 광장에서 변신해요', 2600);
+    return false;
+  }
+  if (ROAST.active) stopRoast(true);
+  if (SIT.active || SIT.enter > 0) standUp();
+  SNOWMAN.active = true;
+  { const me = players.get('me'); if (me) me.tf = 'sn'; }
+  spawnSnowBurst(playerPos.x, playerPos.y + 0.55, playerPos.z, 34);
+  toast('⛄ 눈사람으로 변신! 뒤뚱뒤뚱 걸어 보세요', 2800);
+  return true;
+}
+
+function revertToElf(silent) {
+  if (!SNOWMAN.active) return false;
+  SNOWMAN.active = false;
+  { const me = players.get('me'); if (me) me.tf = ''; }
+  spawnSnowBurst(playerPos.x, playerPos.y + 0.5, playerPos.z, 26);
+  if (!silent) toast('🧝 엘프로 돌아왔어요', 2200);
+  return true;
+}
+
+/* ---------- 눈 파티클 (변신 순간) ---------- */
+const BURSTS = [];
+let burstTex = null;
+function spawnSnowBurst(x, y, z, n) {
+  if (!burstTex) burstTex = radialTexture('rgba(255,255,255,1)', 'rgba(226,240,255,0.45)');
+  const count = clamp(n | 0, 6, 60);
+  for (let i = 0; i < count; i++) {
+    const sparkle = i % 5 === 0;
+    const mat = new THREE.SpriteMaterial({
+      map: burstTex, color: sparkle ? 0xfff0bf : 0xffffff, transparent: true, opacity: 0.92,
+      depthWrite: false, toneMapped: false, blending: sparkle ? THREE.AdditiveBlending : THREE.NormalBlending,
+    });
+    const sp = new THREE.Sprite(mat);
+    const a = Math.random() * TAU, r = 0.12 + Math.random() * 0.5;
+    sp.position.set(x + Math.cos(a) * r, y + rand(-0.22, 0.55), z + Math.sin(a) * r);
+    const s = sparkle ? 0.1 + Math.random() * 0.1 : 0.12 + Math.random() * 0.16;
+    sp.scale.set(s, s, 1);
+    scene.add(sp);
+    BURSTS.push({
+      sp, vx: Math.cos(a) * rand(0.7, 2.0), vy: rand(0.9, 2.5), vz: Math.sin(a) * rand(0.7, 2.0),
+      life: 0, dur: 0.55 + Math.random() * 0.55, s,
+    });
+  }
+}
+function updateBursts(dt) {
+  for (let i = BURSTS.length - 1; i >= 0; i--) {
+    const b = BURSTS[i];
+    b.life += dt;
+    const k = b.life / b.dur;
+    b.sp.position.x += b.vx * dt;
+    b.sp.position.y += b.vy * dt;
+    b.sp.position.z += b.vz * dt;
+    b.vy -= dt * 2.4;
+    b.vx *= 0.97; b.vz *= 0.97;
+    const s = b.s * (0.7 + k * 0.7);
+    b.sp.scale.set(s, s, 1);
+    b.sp.material.opacity = clamp(1 - k, 0, 1) * 0.95;
+    if (b.life >= b.dur) {
+      scene.remove(b.sp);
+      b.sp.material.dispose();
+      BURSTS.splice(i, 1);
+    }
+  }
+}
+
+/* ---------- 매 프레임 — 굽기 자세 · 눈사람 몸 ---------- */
+const _aimV = new THREE.Vector3();
+const _skTarget = new THREE.Vector3();
+function updateRoastAvatar(p, dt) {
+  const ud = p.root.userData;
+  if (!ud || !ud.roast) return;
+  const R = ud.roast;
+
+  /* 상태 — 내 캐릭터는 ROAST, 친구는 네트워크 진행률(rs)에서 만든다 */
+  if (p.isMe) {
+    R.phase = ROAST.active ? ROAST.phase : 'idle';
+    R.prog = ROAST.active ? clamp(ROAST.t / ROAST.dur, 0, 1) : 0;
+  } else {
+    const pct = p.roast || 0;
+    if (pct > 0) {
+      R.phase = 'roast';
+      R.prog = clamp(pct / 100, 0, 1);
+      R.netHit = true;
+    } else if (R.phase === 'roast' && R.netHit) {
+      R.phase = 'eat'; R.eatT = 0; R.netHit = false;   // 친구가 먹는 순간 — 같이 냠냠
+      R.prog = 1;
+    } else if (R.phase === 'eat') {
+      R.eatT = (R.eatT || 0) + dt;
+      if (R.eatT > 1.3) R.phase = 'idle';
+      R.prog = 1;
+    } else {
+      R.phase = 'idle';
+      R.prog = 0;
+    }
+  }
+
+  const wantW = R.phase === 'idle' ? 0 : 1;
+  /* 눈사람일 때는 손에 꼬치를 들지 않는다 */
+  const snowed = p.isMe ? SNOWMAN.active : p.tf === 'sn';
+  if (snowed) { R.phase = 'idle'; R.prog = 0; }
+  R.w = lerp(R.w || 0, snowed ? 0 : wantW, Math.min(1, dt * (snowed ? 12 : 7)));
+  const w = R.w;
+  const eating = R.phase === 'eat';
+  R.eat = lerp(R.eat || 0, eating ? 1 : 0, Math.min(1, dt * (eating ? 9 : 6)));
+  const eW = R.eat;
+
+  const sk = R.skewer;
+  if (!sk) return;
+  sk.visible = w > 0.02;
+  if (!sk.visible) {
+    for (const s of R.steam) s.visible = false;
+    return;
+  }
+  const sc = 0.72 + 0.28 * w;
+  sk.scale.set(sc, sc, sc);
+
+  /* 마시멜로 색 — 하얀색에서 노릇노릇 */
+  const done = smoothstep(0.10, 0.92, R.prog || 0);
+  R.mat.color.setRGB(lerp(1.0, 0.76, done), lerp(0.97, 0.46, done), lerp(0.90, 0.19, done));
+  R.mat.emissive.setRGB(0.20 * done, 0.085 * done, 0.0);
+  R.mat.roughness = lerp(0.72, 0.52, done);
+
+  /* 김 */
+  for (let i = 0; i < R.steam.length; i++) {
+    const s = R.steam[i];
+    const on = w > 0.35 && done > 0.16;
+    if (!on) { s.visible = false; s.userData.t = 0; continue; }
+    s.visible = true;
+    s.userData.t = (s.userData.t + dt * (0.5 + i * 0.08)) % 1;
+    const t2 = s.userData.t;
+    s.position.set(s.userData.x + Math.sin(t2 * 6 + i) * 0.06, s.userData.y + t2 * 0.44, s.userData.z);
+    const g2 = 0.07 + t2 * 0.17;
+    s.scale.set(g2, g2, 1);
+    s.material.opacity = Math.sin(t2 * Math.PI) * 0.36 * done;
+  }
+
+  /* 팔 · 상체 */
+  const yaw = p.root.rotation.y;
+  const fx = Math.sin(yaw), fz = Math.cos(yaw);
+  const lx = Math.cos(yaw), lz = -Math.sin(yaw);
+  const wig = Math.sin(elapsed * 8.2) * 0.085 + Math.sin(elapsed * 3.3) * 0.035;
+  const V = (x, y, z) => _aimV.set(x, y, z);
+  const wR = w * (1 - eW * 0.9);
+  aimBoneBlend(ud, 'R_Upperarm', V(fx * 0.90 + lx * 0.10, -0.20 + wig * 0.5, fz * 0.90 + lz * 0.10), wR);
+  aimBoneBlend(ud, 'R_Forearm', V(fx * 0.97 + lx * 0.04, 0.12 + wig, fz * 0.97 + lz * 0.04), wR);
+  aimBoneBlend(ud, 'L_Upperarm', V(-lx * 0.18 + fx * 0.02, -0.97, -lz * 0.18 + fz * 0.02), w * 0.5);
+  if (eW > 0.01) {
+    aimBoneBlend(ud, 'R_Upperarm', V(fx * 0.30 + lx * 0.16, 0.42, fz * 0.30 + lz * 0.16), eW * w);
+    aimBoneBlend(ud, 'R_Forearm', V(fx * 0.16 + lx * 0.08, 0.88, fz * 0.16 + lz * 0.08), eW * w);
+    boneRot(ud, 'Head', -0.12 * eW * w);
+    boneRotZ(ud, 'Head', 0.07 * eW * w);
+  }
+  boneRot(ud, 'Spine01', (0.06 + Math.sin(elapsed * 1.6) * 0.012) * w * (1 - eW));
+  boneRot(ud, 'Head', 0.09 * w * (1 - eW));
+  boneRotY(ud, 'Head', wig * 0.6 * w * (1 - eW));
+
+  /* 꼬치 — 굽는 동안은 불꽃 쪽, 먹을 때는 입 쪽으로 기울인다 */
+  _skTarget.set(
+    lerp(CAMPFIRE.x, p.root.position.x + fx * 0.22, eW),
+    lerp(CAMPFIRE.y + 0.55, p.root.position.y + 1.34, eW),
+    lerp(CAMPFIRE.z, p.root.position.z + fz * 0.22, eW)
+  );
+  placeSkewer(p, R, _skTarget);
+}
+
+/** 프레임마다 — 굽기 진행 + 모든 캐릭터의 굽기 자세 */
+function updateRoastAll(dt) {
+  if (ROAST.active) {
+    if (ROAST.phase === 'roast') {
+      ROAST.t += dt;
+      if (ROAST.t >= ROAST.dur) {
+        ROAST.phase = 'eat';
+        ROAST.eatT = 0;
+        toast('🍡 노릇노릇 구운 마시멜로 한 입! 달콤해요', 3000);
+      }
+    } else if (ROAST.phase === 'eat') {
+      ROAST.eatT += dt;
+      if (ROAST.eatT > 1.5) { ROAST.active = false; ROAST.phase = 'idle'; ROAST.t = 0; }
+    }
+    /* 불꽃 쪽으로 천천히 몸을 돌린다 (앉아 있을 때는 좌석 방향 그대로) */
+    if (!SIT.active && !(SIT.enter > 0)) {
+      const aim = Math.atan2(CAMPFIRE.x - playerPos.x, CAMPFIRE.z - playerPos.z);
+      playerYaw.v = angleLerp(playerYaw.v, aim, Math.min(1, dt * 4.5));
+      const me = players.get('me');
+      if (me) me.root.rotation.y = playerYaw.v;
+    }
+  }
+  ROAST.net = !ROAST.active ? 0
+    : (ROAST.phase === 'eat' ? 100 : Math.max(5, Math.round((ROAST.t / ROAST.dur) * 20) * 5));
+  for (const p of players.values()) updateRoastAvatar(p, dt);
+}
+
+/** 눈사람 몸 갈아입기 · 뒤뚱뒤뚱 걷기 */
+function updateSnowAvatar(p, dt) {
+  const ud = p.root.userData;
+  if (!ud || !ud.snowRoot) return;
+  const want = (p.isMe ? SNOWMAN.active : p.tf === 'sn') ? 1 : 0;
+  ud.snowW = lerp(ud.snowW || 0, want, Math.min(1, dt * (want ? 5.5 : 6.5)));
+  const w = ud.snowW;
+  const G = ud.snowRoot;
+  if (w < 0.004) {
+    if (G.visible) G.visible = false;
+    if (ud.tilt && !ud.tilt.visible) ud.tilt.visible = true;
+    ud.snowPhase = 0;
+    return;
+  }
+  G.visible = true;
+  if (ud.tilt) ud.tilt.visible = w < 0.5;      // 전환 중반에 엘프 ↔ 눈사람 교대
+  G.scale.setScalar(0.62 + 0.38 * clamp(w * 1.45, 0, 1));
+
+  const speed = p.isMe ? Math.hypot(vel.x, vel.y) : (p.moving ? 3.2 : 0);
+  const moving = speed > 0.12;
+  ud.snowPhase = (ud.snowPhase || 0) + dt * (moving ? 5.2 + clamp(speed, 0, 8) * 1.05 : 1.1);
+  const s = Math.sin(ud.snowPhase);
+  const amp = moving ? 0.17 : 0.03;
+  G.rotation.z = s * amp * w;
+  G.rotation.y = (moving ? Math.sin(ud.snowPhase * 2) * 0.08 : Math.sin(elapsed * 0.5) * 0.03) * w;
+  G.position.y = (moving ? Math.abs(s) * 0.075 : Math.sin(elapsed * 1.4) * 0.012) * w;
+  const swing = moving ? 0.34 : 0.08;
+  if (G.userData.armR) G.userData.armR.rotation.z = -Math.sin(ud.snowPhase) * swing * w;
+  if (G.userData.armL) G.userData.armL.rotation.z = Math.sin(ud.snowPhase) * swing * w;
+  if (G.userData.head) G.userData.head.rotation.z = -s * 0.075 * w;
+}
+function updateSnowAvatars(dt) {
+  for (const p of players.values()) updateSnowAvatar(p, dt);
+}
+
+roastBtnEl.addEventListener('click', () => { if (ROAST.active) stopRoast(false); else startRoast(); });
+snowBtnEl.addEventListener('click', () => { if (SNOWMAN.active) revertToElf(false); else transformToSnowman(); });
+
 /* 엘프 애니메이션 — idle 클립 + 절차적 걷기 모션 */
 function animateAvatar(p, dt) {
   const ud = p.root.userData;
@@ -11476,7 +12050,7 @@ function animateAvatar(p, dt) {
     p.root.rotation.y = angleLerp(p.root.rotation.y, p.tyaw, Math.min(1, dt * 8));
   }
 
-  const speed = p.isMe ? Math.hypot(vel.x, vel.y) : (p.moving ? 2.3 : 0);
+  const speed = p.isMe ? Math.hypot(vel.x, vel.y) : (p.moving ? 3.2 : 0);
   /* 앉은 좌석 — 높이와 흔들림을 내 캐릭터와 다른 사람 캐릭터가 똑같이 따른다 */
   const seatIdx = p.isMe
     ? ((SIT.active || SIT.enter > 0) ? SIT.seat : -1)
@@ -11502,7 +12076,7 @@ function updateLabels() {
   for (const p of players.values()) {
     const el = p.label.el;
     if (!p.root.visible) { if (el.style.opacity !== '0') el.style.opacity = '0'; continue; }
-    proj.set(p.root.position.x, p.root.position.y + (p.pose === 'sit' ? 1.62 : 2.02), p.root.position.z);
+    proj.set(p.root.position.x, p.root.position.y + (p.pose === 'sit' ? 1.62 : lerp(2.02, 1.62, Math.min(1, ((p.root.userData && p.root.userData.snowW) || 0) * 1.2))), p.root.position.z);
     const dist = camera.position.distanceTo(proj);
     proj.project(camera);
     const visible = proj.z < 1 && proj.x > -1.2 && proj.x < 1.2 && proj.y > -1.2 && proj.y < 1.2;
@@ -11657,6 +12231,10 @@ function tick(dt) {
   updatePhotoZone(dt);
   updatePhotoFacing(dt);
   updatePhotoPose(dt);
+  /* 3차 — 마시멜로 굽기 자세 · 눈사람 몸 · 변신 파티클 */
+  updateRoastAll(dt);
+  updateSnowAvatars(dt);
+  updateBursts(dt);
   updateSecondWave(dt);
   updateLabels();
 
@@ -12194,6 +12772,181 @@ window.__plaza = {
   stopCocoa() { return window.__plazaAudit.stopCocoa(); },
   wish(t) { return window.__plazaAudit.wish(t); },
   audioToggle(on) { return audioToggle(on); },
+  /* --- 3차: 🍡 마시멜로 굽기 · ⛄ 눈사람 변신 진단 --- */
+  get roastState() {
+    const me = players.get('me');
+    const R = me && me.root.userData ? me.root.userData.roast : null;
+    return {
+      active: ROAST.active, phase: ROAST.phase, t: +ROAST.t.toFixed(2), dur: ROAST.dur,
+      net: ROAST.net, can: canRoast(),
+      w: R ? +(R.w || 0).toFixed(2) : 0, prog: R ? +(R.prog || 0).toFixed(2) : 0,
+      skewer: R && R.skewer ? { visible: R.skewer.visible, y: +R.skewer.position.y.toFixed(2), z: +R.skewer.position.z.toFixed(2), scale: +R.skewer.scale.x.toFixed(2) } : null,
+      color: R && R.mat ? '#' + R.mat.color.getHexString() : null,
+      steam: R ? R.steam.filter((s) => s.visible).length : 0,
+      btn: roastBtnEl ? { shown: roastBtnEl.classList.contains('show'), label: roastBtnEl.textContent } : null,
+      fireDist: +Math.hypot(playerPos.x - CAMPFIRE.x, playerPos.z - CAMPFIRE.z).toFixed(2),
+    };
+  },
+  roastStart() { startRoast(); return this.roastState; },
+  roastStop() { stopRoast(true); return this.roastState; },
+  get snowState() {
+    const me = players.get('me');
+    const ud = me && me.root.userData ? me.root.userData : null;
+    return {
+      active: SNOWMAN.active, blend: ud ? +(ud.snowW || 0).toFixed(2) : 0,
+      near: nearSnowman(), dist: +nearestSnowman().d.toFixed(2),
+      spots: SNOW_OBJS.length, bursts: BURSTS.length,
+      elfVisible: ud && ud.tilt ? ud.tilt.visible : null,
+      snowVisible: ud && ud.snowRoot ? ud.snowRoot.visible : null,
+      tf: me ? me.tf : null,
+      btn: snowBtnEl ? { shown: snowBtnEl.classList.contains('show'), label: snowBtnEl.textContent } : null,
+    };
+  },
+  toSnowman() { transformToSnowman(); return this.snowState; },
+  toElf(silent) { revertToElf(!!silent); return this.snowState; },
+  /* 같은 방 친구 화면에 보이는 모습을 그대로 재현 — 수신 파서(LiveNetwork._onMessage)와
+     앱의 상태 반영 경로를 둘 다 탄다. 브로커가 막힌 환경에서 동기화를 검사하는 훅. */
+  simPeer(msg) {
+    const m = Object.assign({ t: 'pos', id: 'friend1', n: '친구', c: 'luka' }, msg || {});
+    if (!this._simNet) this._simNet = new LiveNetwork(state.room || 'main');
+    const L = this._simNet;
+    const parsed = [];
+    if (L.removeAllListeners) L.removeAllListeners();
+    L.on('join', (d) => parsed.push({ ev: 'join', d }));
+    L.on('state', (d) => parsed.push({ ev: 'state', d }));
+    const was = L.connected;
+    L.connected = true;
+    try { L._onMessage(`${L.base}/s/${m.id}`, JSON.stringify(m), false); } finally { L.connected = was; }
+    for (const e of parsed) net.emit(e.ev, e.d);
+    const p = players.get(m.id);
+    const ud = p && p.root.userData;
+    return {
+      events: parsed.map((e) => e.ev),
+      parsed: parsed.map((e) => ({ ev: e.ev, d: e.d })),
+      peer: p ? {
+        id: p.id, tf: p.tf, roast: p.roast, pose: p.pose, zone: p.zone,
+        snowW: ud ? +(ud.snowW || 0).toFixed(2) : null,
+        snowVisible: ud && ud.snowRoot ? ud.snowRoot.visible : null,
+        skewerVisible: ud && ud.roast && ud.roast.skewer ? ud.roast.skewer.visible : null,
+        skewerColor: ud && ud.roast && ud.roast.mat ? '#' + ud.roast.mat.color.getHexString() : null,
+        visible: p.root.visible,
+        pos: [+p.root.position.x.toFixed(2), +p.root.position.z.toFixed(2)],
+      } : null,
+    };
+  },
+  /* 내 클라이언트가 매 프레임 보내는 상태 (브로커가 막힌 환경에서 송신 내용 확인용) */
+  netPreview() {
+    const s = net.lastSent;
+    if (!s) return null;
+    return {
+      tf: s.tf || '', rs: +s.rs || 0, pose: s.pose || 'stand',
+      moving: !!s.moving, zone: s.zone || 'p', seat: s.seat === undefined ? -1 : s.seat,
+      x: +s.x.toFixed(2), z: +s.z.toFixed(2),
+    };
+  },
+  gotoSnowman(i) {
+    const s = SNOW_OBJS[i === undefined ? 0 : i];
+    if (!s) return null;
+    playerPos.set(s.x + 1.7, 0, s.z + 0.7);
+    playerPos.y = groundY(playerPos.x, playerPos.z);
+    const p = players.get('me');
+    if (p) p.root.position.copy(playerPos);
+    playerYaw.v = Math.atan2(s.x - playerPos.x, s.z - playerPos.z);
+    rig.lookAt.set(playerPos.x, 1.4, playerPos.z); rig.snap = true;
+    return [+playerPos.x.toFixed(2), +playerPos.z.toFixed(2)];
+  },
+  gotoCampfire(d) {
+    const dist = d === undefined ? 2.9 : d;
+    let ax = Math.atan2(playerPos.x - CAMPFIRE.x, playerPos.z - CAMPFIRE.z);
+    if (!Number.isFinite(ax) || Math.hypot(playerPos.x - CAMPFIRE.x, playerPos.z - CAMPFIRE.z) < 0.3) ax = 0.6;
+    playerPos.set(CAMPFIRE.x + Math.sin(ax) * dist, 0, CAMPFIRE.z + Math.cos(ax) * dist);
+    playerPos.y = groundY(playerPos.x, playerPos.z);
+    const p = players.get('me');
+    if (p) { p.root.position.copy(playerPos); p.root.rotation.y = playerYaw.v; }
+    rig.lookAt.set(playerPos.x, 1.4, playerPos.z); rig.snap = true;
+    return [+playerPos.x.toFixed(2), +playerPos.z.toFixed(2)];
+  },
+  get speed() {
+    return {
+      walk: WALK_SPEED, run: RUN_SPEED,
+      vel: +Math.hypot(vel.x, vel.y).toFixed(2),
+      stepCycle: (() => { const me = players.get('me'); const ud = me && me.root.userData; return ud ? +(ud.phase || 0).toFixed(2) : null; })(),
+    };
+  },
+  /* 굽기 자세가 실제로 팔에 먹었는지 · 꼬치가 어디 있는지 */
+  roastRig() {
+    const me = players.get('me');
+    if (!me || !me.root.userData) return null;
+    const ud = me.root.userData;
+    const out = { rootYaw: +me.root.rotation.y.toFixed(2) };
+    ['R_Upperarm', 'R_Forearm', 'R_Hand', 'L_Upperarm'].forEach((n) => {
+      const b = ud.bones[n];
+      if (!b) return;
+      const q = new THREE.Quaternion(); b.getWorldQuaternion(q);
+      const d = new THREE.Vector3(0, 1, 0).applyQuaternion(q);
+      const v = new THREE.Vector3(); b.getWorldPosition(v);
+      out[n] = { dir: d.toArray().map((x) => +x.toFixed(2)), pos: [+(v.x - me.root.position.x).toFixed(2), +(v.y - me.root.position.y).toFixed(2), +(v.z - me.root.position.z).toFixed(2)] };
+    });
+    const sk = ud.roast && ud.roast.skewer;
+    if (sk) {
+      const w = new THREE.Vector3(); sk.getWorldPosition(w);
+      const tip = new THREE.Vector3(0, 0.62, 0); sk.localToWorld(tip);
+      out.skewer = { visible: sk.visible, world: [+(w.x - me.root.position.x).toFixed(2), +(w.y - me.root.position.y).toFixed(2), +(w.z - me.root.position.z).toFixed(2)], tip: [+(tip.x - me.root.position.x).toFixed(2), +(tip.y - me.root.position.y).toFixed(2), +(tip.z - me.root.position.z).toFixed(2)] };
+    }
+    return out;
+  },
+  /* 점프 한 주기를 렌더 없이 돌려 최고 높이·발끝 최저점을 잰다 */
+  jumpProbe(frames) {
+    const k = clamp(Math.round(frames || 120), 1, 600);
+    const me = players.get('me');
+    if (!me || !me.root.userData || !me.root.userData.tilt) return null;
+    const v = new THREE.Vector3();
+    const low = () => {
+      let y = Infinity;
+      for (const n of ['L_ToeBase', 'R_ToeBase', 'L_Foot', 'R_Foot']) {
+        const b = me.root.userData.bones[n];
+        if (!b) continue;
+        b.getWorldPosition(v);
+        y = Math.min(y, v.y - groundY(me.root.position.x, me.root.position.z));
+      }
+      return Number.isFinite(y) ? y : 0;
+    };
+    let maxTilt = -9, minFoot = 9, at = -1;
+    for (let i = 0; i < k; i++) {
+      tick(1 / 60);
+      const ty = me.root.userData.tilt.position.y;
+      if (ty > maxTilt) { maxTilt = ty; at = i; }
+      minFoot = Math.min(minFoot, low());
+    }
+    renderFrame();
+    return { frames: k, maxTilt: +maxTilt.toFixed(3), at, footMin: +minFoot.toFixed(3) };
+  },
+  /* 점프 사이클의 특정 지점으로 시간을 맞춰 고정 (캡처·검증용) */
+  jumpFreeze(frac) {
+    const CYC = 1.65;
+    const f = ((frac === undefined ? 0.6 : frac) % 1 + 1) % 1;
+    elapsed = Math.floor(elapsed / CYC) * CYC + f * CYC - 1 / 60;
+    tick(1 / 60);
+    renderFrame();
+    return this.jumpState;
+  },
+  get jumpState() {    const me = players.get('me');
+    const ud = me && me.root.userData ? me.root.userData : null;
+    return {
+      photo: PHOTO.active, pose: PHOTO.pose,
+      tiltY: ud && ud.tilt ? +ud.tilt.position.y.toFixed(3) : null,
+      rootY: me ? +me.root.position.y.toFixed(2) : null,
+      footY: (() => {
+        if (!ud || !ud.bones) return null;
+        const v = new THREE.Vector3(); let low = Infinity;
+        for (const n of ['L_ToeBase', 'R_ToeBase', 'L_Foot', 'R_Foot']) {
+          const b = ud.bones[n]; if (!b) continue;
+          b.getWorldPosition(v); low = Math.min(low, v.y);
+        }
+        return Number.isFinite(low) ? +low.toFixed(3) : null;
+      })(),
+    };
+  },
   ready: true,
 };
 </script>
