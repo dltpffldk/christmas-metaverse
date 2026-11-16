@@ -11079,6 +11079,8 @@ function clampCameraByBuildings(desired) {
 function limitCamera(desired) {
   if (ZONE.mode === 'interior') return limitInteriorCamera(desired);
   const floorY = groundY(desired.x, desired.z);
+  /* 눈둑(바깥 지면)보다 카메라가 낮게 깔리면 지면 속을 비추게 된다 — 지면 위로 살짝 띄운다 */
+  if (desired.y < floorY + 0.8) desired.y = floorY + 0.8;
   /* 멀리 줌아웃한 상태에서는 지붕 위라도 광장 밖(코티지 위)으로 나가지 않게 잡아 준다.
      그대로 두면 시야 아래쪽이 코티지 지붕으로 가득 찬다. */
   const farOut = rig.dist > CAM_FAR;
