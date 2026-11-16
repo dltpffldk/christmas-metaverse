@@ -6576,10 +6576,10 @@ function buildShootingStars() {
 }
 buildShootingStars();
 
-function spawnShootingStar() {
+function spawnShootingStar(angHint) {
   const slot = SHOOT.stars.find((s) => !s.on);
-  if (!slot) return;
-  const a = rand(0, TAU);
+  if (!slot) return null;
+  const a = angHint === undefined ? rand(0, TAU) : angHint;
   const R = rand(230, 300);
   const h0 = rand(120, 210);
   slot.from.set(Math.sin(a) * R, h0, Math.cos(a) * R);
@@ -6596,6 +6596,7 @@ function spawnShootingStar() {
   slot.dur = rand(1.1, 1.9);
   slot.speed = rand(55, 95);
   SHOOT.spawned++;
+  return slot;
 }
 
 function updateShootingStars(dt) {
@@ -14452,6 +14453,12 @@ window.__plaza = {
     }
     if (mailInputEl) mailInputEl.value = text || '';
     return submitMail();
+  },
+  /* 별똥별을 원하는 방위에 띄운다 (검증용) */
+  shootNow(ang) {
+    SHOOT.next = 6.5;
+    const s = spawnShootingStar(ang === undefined ? 0 : ang);
+    return s ? { pos: s.sp.position.toArray().map((n) => +n.toFixed(1)), dir: s.dir.toArray().map((n) => +n.toFixed(2)) } : null;
   },
   /* 친구가 보낸 편지가 도착하는 경로 재현 (수신 파서 + 앱 반영) */
   simMail(from, to, text) {
