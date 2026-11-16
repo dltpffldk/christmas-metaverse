@@ -10147,7 +10147,7 @@ function makeCocoaCup() {
   handle.rotation.y = Math.PI / 2;
   saucer.position.y = -0.006;
   g.add(body, bottom, drink, handle, saucer);
-  g.scale.setScalar(1.32);
+  g.scale.setScalar(1.16);
   /* 김이 모락모락 — 작은 스프라이트 3장을 이어 올린다 */
   const steam = [];
   for (let i = 0; i < 3; i++) {
@@ -10278,9 +10278,9 @@ function updateCocoa(dt) {
       0.125 + k * 0.2,
       Math.cos(s2.life * 2.0 + s2.ph) * 0.016 * (1 + k * 2)
     );
-    const sc = 0.035 + k * 0.075;
+    const sc = 0.04 + k * 0.085;
     s2.sp.scale.set(sc, sc, 1);
-    s2.sp.material.opacity = Math.sin(Math.min(1, k) * Math.PI) * 0.45;
+    s2.sp.material.opacity = Math.sin(Math.min(1, k) * Math.PI) * 0.5;
   }
 }
 
