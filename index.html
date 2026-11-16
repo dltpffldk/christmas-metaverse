@@ -3473,7 +3473,7 @@ function buildHouse(x, z, rotY, opt = {}) {
   g.position.set(x, y, z);
   g.rotation.y = rotY;
   scene.add(g);
-  addCollider(x, z, Math.max(W, D) * 0.45);
+  addCollider(x, z, Math.max(W, D) * 0.45, { cam: true });
 
   // 굴뚝 연기
   const SN = 16;
@@ -3495,8 +3495,8 @@ function buildHouse(x, z, rotY, opt = {}) {
 /* ---------------------------------------------------------------
    중앙 대형 트리 — 계단식 석조 단상 위의 웅장한 트리
 --------------------------------------------------------------- */
-const colliders = []; // {x,z,r}
-function addCollider(x, z, r) { colliders.push({ x, z, r }); }
+const colliders = []; // {x,z,r,cam} — cam: 카메라 충돌에도 쓰는 큰 구조물(건물·중앙 단상)
+function addCollider(x, z, r, opt) { colliders.push({ x, z, r, cam: !!(opt && opt.cam) }); }
 
 function starShape(outer = 1, inner = 0.42, pts = 5) {
   const s = new THREE.Shape();
@@ -3827,7 +3827,7 @@ function buildGrandTree() {
   });
 
   scene.add(group);
-  addCollider(0, 0, 4.6 * MAP + 1.75);      // 단상(4.6m) + 캐릭터 기준 여유 1.75m
+  addCollider(0, 0, 4.6 * MAP + 1.75, { cam: true });      // 단상(4.6m) + 캐릭터 기준 여유 1.75m
 
   return { group, star, starLight, lights, baseCol };
 }
@@ -5209,7 +5209,7 @@ function addCottage(c) {
     vBox(base, VMAT.snow, w * 0.6, 0.06, 0.66, 0, by + 0.1, bz);
   }
 
-  addCollider(c.x, c.z, Math.max(w, d) * 0.55);
+  addCollider(c.x, c.z, Math.max(w, d) * 0.55, { cam: true });
 
   if (c.smoke) {
     const lo = { x: w * (c.chimneyX || 0.32), z: -d * 0.16 };
@@ -8318,9 +8318,12 @@ function updateAvatarPose(ud, root, speed, dt) {
       want = lerp(want, (sTop + SIT_HIP_LIFT) - hipNow, sitW);
     }
   }
+  /* 점프처럼 몸이 떠오르면(tilt 상승) 바닥 접지를 풀어 발이 몸과 함께 뜨게 한다.
+     그대로 두면 상승분을 drop 이 도로 끌어내려 점프가 땅에 붙은 채로 보였다. */
+  const liftY = ud.tilt ? ud.tilt.position.y : 0;
+  if (liftY > 0.01) want = lerp(want, 0, clamp(liftY / 0.32, 0, 1));
   ud.drop = lerp(ud.drop, want, Math.min(1, dt * 24));
   ud.inner.position.y = ud.drop;
-
   /* 흔들의자 — 의자 피벗을 따라 몸도 같이 앞뒤로 기운다 */
   if (ud.tilt) {
     const target = sitW > 0.15 ? (ud.rockAng || 0) : 0;
@@ -9595,24 +9598,41 @@ function updatePhotoPose(dt) {
       squat = Math.sin(Math.min(1, v * 1.7) * Math.PI) * 0.85;          // 착지 스쿼시
     }
     if (ud.tilt) ud.tilt.position.y = h * w;
-    /* 무릎 굽혀 충격 흡수 */
+    /* 무릎 굽혀 충격 흡수 — 허벅지는 살짝 앞으로, 정강이는 거의 아래로.
+       예전에는 허벅지를 58°나 앞으로 눕혀 무릎이 70° 넘게 접혔고, 그 탓에
+       부츠가 허벅지·정강이에 파묻혀 무릎이 뭉개져 보였다. */
     if (squat > 0.01) {
-      aimBoneBlend(ud, 'L_Thigh', dir(0.06, -0.52, 0.85), squat * 0.8 * w);
-      aimBoneBlend(ud, 'R_Thigh', dir(-0.06, -0.52, 0.85), squat * 0.8 * w);
-      aimBoneBlend(ud, 'L_Calf', dir(0.01, -0.97, -0.22), squat * 0.8 * w);
-      aimBoneBlend(ud, 'R_Calf', dir(-0.01, -0.97, -0.22), squat * 0.8 * w);
+      const sw = squat * 0.9 * w;
+      aimBoneBlend(ud, 'L_Thigh', dir(0.12, -0.82, 0.56), sw);
+      aimBoneBlend(ud, 'R_Thigh', dir(-0.12, -0.82, 0.56), sw);
+      aimBoneBlend(ud, 'L_Calf', dir(0.05, -0.98, -0.10), sw);
+      aimBoneBlend(ud, 'R_Calf', dir(-0.05, -0.98, -0.10), sw);
     }
-    /* 공중 — 두 다리를 뒤로 접어 경쾌하게 */
+    /* 공중 — 무릎만 40° 남짓 굽힌 발랄한 점프. 발끝은 아래로 뻗어 경쾌하게.
+       (예전에는 넓적다리를 수평으로 들고 정강이를 뒤로 65° 접어
+        앉은 듯 웅크린 자세가 됐다) */
     if (tuck > 0.01) {
-      aimBoneBlend(ud, 'L_Thigh', dir(0.07, 0.22, 0.97), tuck * w);
-      aimBoneBlend(ud, 'R_Thigh', dir(-0.07, 0.22, 0.97), tuck * w);
-      aimBoneBlend(ud, 'L_Calf', dir(0, -0.42, -0.91), tuck * w);
-      aimBoneBlend(ud, 'R_Calf', dir(0, -0.42, -0.91), tuck * w);
+      const tw = tuck * w;
+      aimBoneBlend(ud, 'L_Thigh', dir(0.16, -0.90, 0.40), tw);
+      aimBoneBlend(ud, 'R_Thigh', dir(-0.16, -0.90, 0.40), tw);
+      aimBoneBlend(ud, 'L_Calf', dir(0.10, -0.93, -0.35), tw);
+      aimBoneBlend(ud, 'R_Calf', dir(-0.10, -0.93, -0.35), tw);
+      aimBoneBlend(ud, 'L_Foot', dir(0.03, -0.72, 0.69), tw * 0.9);
+      aimBoneBlend(ud, 'R_Foot', dir(-0.03, -0.72, 0.69), tw * 0.9);
     }
-    /* 팔 — 도약하며 위로 쭉, 착지하면 내린다 */
-    const up = clamp(tuck * 1.15 - squat * 0.45, 0, 1);
-    aimBoneBlend(ud, 'L_Upperarm', dir(-0.50 - 0.12 * up, 0.74 + 0.20 * up, 0.05), w);
-    aimBoneBlend(ud, 'R_Upperarm', dir(0.50 + 0.12 * up, 0.74 + 0.20 * up, 0.05), w);
+    /* 팔 — 웅크릴 때는 몸 옆, 도약하며 양옆 대각선 위로 시원하게 뻗는다.
+       본의 +x 가 몸의 왼쪽이라 L 은 +, R 은 - 로 벌린다. (예전 코드는 좌우가
+       뒤집혀 두 팔이 몸통을 가로질러 안으로 말렸고, 정면에서 팔이 사라졌다) */
+    const up = clamp(tuck * 1.25 - squat * 0.5, 0, 1);
+    const aOut = 0.34 + 0.36 * up;         // 좌우로 벌리는 정도
+    const aUp = -0.90 + 1.62 * up;         // 위로 드는 정도 (아래 → 브이)
+    aimBoneBlend(ud, 'L_Upperarm', dir(aOut, aUp, 0.10), w);
+    aimBoneBlend(ud, 'R_Upperarm', dir(-aOut, aUp, 0.10), w);
+    /* 팔꿈치는 거의 펴서 팔이 짧아 보이지 않게 (윗팔과 같은 방향) */
+    const fOut = 0.28 + 0.34 * up;
+    const fUp = -0.94 + 1.72 * up;
+    aimBoneBlend(ud, 'L_Forearm', dir(fOut, fUp, 0.12), w);
+    aimBoneBlend(ud, 'R_Forearm', dir(-fOut, fUp, 0.12), w);
     boneRot(ud, 'Spine01', -0.05 * tuck * w + 0.05 * squat * w);
     boneRot(ud, 'Head', 0.05 * up * w);
   } else if (PHOTO.pose === 'heart') {
@@ -9995,7 +10015,7 @@ function buildTreeStand() {
   put(new THREE.BoxGeometry(0.3, 0.24, 0.3), VMAT.redDeep, -0.95, 0.12, 0.35, 0.3);
   put(new THREE.BoxGeometry(0.06, 0.26, 0.32), VMAT.snowDk, -0.95, 0.12, 0.35, 0.3);
   scene.add(G);
-  addCollider(TREE_STAND.x, TREE_STAND.z, 0.92);
+  addCollider(TREE_STAND.x, TREE_STAND.z, 0.92, { cam: true });
   return G;
 }
 treeStandGroup = buildTreeStand();
@@ -11255,7 +11275,12 @@ function updateCamera(dt) {
 /* 카메라가 코티지 벽 속으로 파고들지 않게 — 건물 콜라이더(원) 기준 간단한 충돌 처리.
    · 시선 선분이 건물 원을 지나면 건물 앞으로 당긴다(벽 가림 방지)
    · 카메라가 건물 원 안에 들어가면 밖으로 밀어낸다
-   지붕보다 높은 시점(멀리 보기)은 가리지 않으므로 건드리지 않는다. */
+   · 카메라는 캐릭터에서 MIN_CAM_BACK 보다 가까이 당겨지지 않는다
+   지붕보다 높은 시점(멀리 보기)은 가리지 않으므로 건드리지 않는다.
+   막는 대상은 건물·중앙 단상(cam 플래그)뿐이다 — 통나무 의자·모닥불 돌·스툴·
+   표지판 같은 낮은 소품까지 막으면 모닥불 앞에서 카메라가 캐릭터 코앞까지
+   끌려와 화면이 정수리만 잡혔다. */
+const MIN_CAM_BACK = 3.2;      // 캐릭터와 카메라 사이 최소 수평 거리
 function clampCameraByBuildings(desired) {
   if (ZONE.mode === 'interior' || !colliders.length) return;
   const ax = rig.lookAt.x, az = rig.lookAt.z;
@@ -11264,26 +11289,33 @@ function clampCameraByBuildings(desired) {
   const lowEnough = desired.y < 7.4;
   if (lowEnough && len2 > 0.04) {
     let tHit = 1;
+    const tMin = Math.min(0.92, MIN_CAM_BACK / Math.sqrt(len2));
     for (let i = 0; i < colliders.length; i++) {
       const c = colliders[i];
+      if (!c.cam) continue;
       const R = c.r + 0.4;
       const t = ((c.x - ax) * dx + (c.z - az) * dz) / len2;
       if (t <= 0.1 || t >= tHit) continue;
       const px = ax + dx * t, pz = az + dz * t;
-      if (Math.hypot(px - c.x, pz - c.z) < R) tHit = Math.max(0.1, t - 0.05);
+      if (Math.hypot(px - c.x, pz - c.z) < R) tHit = Math.max(tMin, t - 0.05);
     }
     if (tHit < 1) {
       desired.x = ax + dx * tHit;
       desired.z = az + dz * tHit;
     }
   }
-  /* 너무 가까이 붙어 얼굴만 가득 차지 않게 — 모자란 거리만큼 카메라를 살짝 올린다 */
+  /* 너무 가까이 붙어 얼굴만 가득 차지 않게 — 모자란 거리만큼만 살짝 올린다
+     (예전에는 올리는 양에 상한이 없어 카메라가 캐릭터 머리 위에서
+      정수리를 내려다보는 구도가 됐다) */
   const dHor = Math.hypot(desired.x - ax, desired.z - az);
-  if (dHor < 3.2) desired.y += (3.2 - dHor) * 0.55;
+  if (dHor < MIN_CAM_BACK + 0.4) {
+    desired.y += Math.min((MIN_CAM_BACK + 0.4 - dHor) * 0.42, 0.62);
+  }
   /* 원 안에 들어간 경우 밖으로 밀어낸다 (위에서 당긴 뒤에도 확인) */
   if (desired.y < 7.4) {
     for (let i = 0; i < colliders.length; i++) {
       const c = colliders[i];
+      if (!c.cam) continue;
       const R = c.r + 0.45;
       const ex = desired.x - c.x, ez = desired.z - c.z;
       const d = Math.hypot(ex, ez);
