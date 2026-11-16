@@ -14449,6 +14449,26 @@ window.__plaza = {
     if (mailInputEl) mailInputEl.value = text || '';
     return submitMail();
   },
+  /* 친구가 보낸 편지가 도착하는 경로 재현 (수신 파서 + 앱 반영) */
+  simMail(from, to, text) {
+    if (!this._simNet) this._simNet = new LiveNetwork(state.room || 'main');
+    const L = this._simNet;
+    const got = [];
+    if (L.removeAllListeners) L.removeAllListeners();
+    L.on('mail', (d) => got.push(d));
+    const was = L.connected;
+    L.connected = true;
+    try {
+      L._onMessage(`${L.base}/e/peer9`, JSON.stringify({ t: 'mail', id: 'peer9', n: from, to, m: text }), false);
+    } finally { L.connected = was; }
+    for (const d of got) net.emit('mail', d);
+    return {
+      events: got.length, mine: got.length ? !!got[0].mine : null,
+      cards: WISH.list.filter((w) => w.kind === 'mail').length,
+      toast: toastEl ? toastEl.textContent : '',
+      boardChildren: WISH.root ? WISH.root.children.length : 0,
+    };
+  },
   get rollState() {
     return {
       active: ROLL.active, phase: ROLL.phase, t: +ROLL.t.toFixed(2), prog: +ROLL.prog.toFixed(2),
