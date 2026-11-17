@@ -12892,7 +12892,7 @@ function sparkPoolClear(pool) {
 const FW_COLORS = [0xffd27a, 0xff6b6b, 0x6ef0a8, 0xa9d8ff, 0xffb3e6, 0xfff0b8, 0xc9a2ff, 0xff8f4a];
 const FW = {
   active: false, t: 0, dur: 0, seed: 0, plan: [], queued: 0,
-  rockets: [], flashes: [], sfx: 1,
+  rockets: [], flashes: [], sfx: 1, timer: 0,
   _r: ((Math.random() * 0xffffffff) >>> 0) || 0x9e3779b9,   // 불꽃 연출용 난수 상태
 };
 
@@ -13073,8 +13073,28 @@ function startFireworks(opts = {}) {
      (에셋 로딩 직후처럼 프레임이 한참 멈춘 뒤 누르면, 그 간격이 '오래 멈춘 탭' 으로 보여
      쇼가 시작하자마자 끝나 버렸다) */
   clock.getDelta();
+  /* 안전 타임아웃 — 프레임이 아주 느린 환경(초당 1프레임 이하)에서는 화면이 다음 프레임을
+     그릴 때까지 라벨을 못 바꾸므로, 시간이 되면 타이머가 직접 쇼를 끝내고 버튼을 되돌린다. */
+  clearTimeout(FW.timer);
+  FW.timer = setTimeout(() => { if (FW.active) fwEnd(true); }, Math.round((dur + 0.5) * 1000));
   if (opts.broadcast !== false) net.sendFireworks(seed);
   return seed;
+}
+
+/* 쇼 끝내기 — burstRest 이면 아직 뜨지 않은 발·오르는 중인 로켓을 목표 고도에서 한꺼번에 터뜨린다.
+   버튼 라벨은 프레임을 기다리지 않고 바로 되돌린다(저FPS에서도 '불꽃놀이 중…' 에 갇히지 않게). */
+function fwEnd(burstRest) {
+  if (burstRest) {
+    while (FW.queued < FW.plan.length) { fwLaunch(FW.plan[FW.queued]); FW.queued++; }
+    for (const r of FW.rockets) { r.x = r.x0; r.y = r.targetY; r.z = r.z0; fwBurstAt(r); }
+  }
+  FW.rockets.length = 0;
+  FW.active = false;
+  if (FW.timer) { clearTimeout(FW.timer); FW.timer = 0; }
+  if (fwBtnEl) {
+    fwBtnEl.classList.remove('on');
+    if (fwBtnEl.textContent !== '🎆 불꽃놀이') fwBtnEl.textContent = '🎆 불꽃놀이';
+  }
 }
 
 /* 시퀀스 시계 — 프레임 dt 는 0.05초로 잘려 있어(frame loop 의 Math.min(raw, 0.05)),
@@ -13092,23 +13112,18 @@ function updateFireworks(dt) {
   if (FW.active) {
     if (tl > 8) {
       /* 탭이 오래(8초 넘게) 멈춰 있다 돌아온 경우 — 지나간 쇼는 그냥 끝낸다 */
-      FW.queued = FW.plan.length; FW.rockets.length = 0; FW.active = false;
+      FW.queued = FW.plan.length;
+      fwEnd(false);
     } else {
       FW.t += tl;
       while (FW.queued < FW.plan.length && FW.t >= FW.plan[FW.queued].at) {
         fwLaunch(FW.plan[FW.queued]);
         FW.queued++;
       }
-      /* 끝맺음 — 마지막 발이 다 터지면 끝. 아주 느린 환경에서도 실제 시간 기준으로 끊어
+      /* 끝맺음 — 마지막 발이 다 터지면 끝. 아주 느린 환경에서는 실제 시간 기준으로 끊어
          버튼이 '불꽃놀이 중…' 에 갈히지 않게 남은 발은 지금 터뜨려 피날레로 마무리 */
-      if (FW.t > FW.dur) {
-        while (FW.queued < FW.plan.length) { fwLaunch(FW.plan[FW.queued]); FW.queued++; }
-        for (const r of FW.rockets) { r.x = r.x0; r.y = r.targetY; r.z = r.z0; fwBurstAt(r); }
-        FW.rockets.length = 0;
-        FW.active = false;
-      } else if (FW.queued >= FW.plan.length && !FW.rockets.length) {
-        FW.active = false;
-      }
+      if (FW.t > FW.dur) fwEnd(true);
+      else if (FW.queued >= FW.plan.length && !FW.rockets.length) fwEnd(false);
     }
   }
   /* 솟아오르는 폭죽 — 꼬리를 남기며 목표 고도에 닿으면 터진다 */
@@ -16658,6 +16673,8 @@ window.__plaza = {
   },
   fireworksStop() {
     FW.active = false; FW.plan = []; FW.queued = 0; FW.rockets.length = 0;
+    if (FW.timer) { clearTimeout(FW.timer); FW.timer = 0; }
+    if (fwBtnEl) { fwBtnEl.classList.remove('on'); fwBtnEl.textContent = '🎆 불꽃놀이'; }
     for (const f of FW.flashes) { scene.remove(f.sp); f.sp.material.dispose(); }
     FW.flashes.length = 0;
     sparkPoolClear(FW_POOL);
