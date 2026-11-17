@@ -13121,7 +13121,7 @@ const GIFT_PALETTE = [
 const GIFT_REACH = 2.5;
 const TREASURE = {
   found: [], gifts: [], celebrateT: 0, celebrated: false,
-  glowT: 0, sparkAcc: 0, hintT: 0, openFxTotal: 0,
+  glowT: 0, sparkAcc: 0, hintT: 0, celebTick: 0,
 };
 const TREASURE_KEY = () => 'xmas-treasure-v1:' + (state.room || 'main');
 
@@ -13293,10 +13293,6 @@ function updateTreasureBadge(pop) {
   }
 }
 
-function treasureVisible() {
-  return state.joined && ZONE.mode === 'plaza';
-}
-
 function nearestGift() {
   let best = -1, bd = GIFT_REACH;
   for (let i = 0; i < TREASURE.gifts.length; i++) {
@@ -13457,9 +13453,9 @@ function updateTreasure(dt) {
   /* 모두 찾은 뒤 캐릭터 반짝이 */
   if (TREASURE.glowT > 0) {
     TREASURE.glowT -= dt;
-    TREASURE.openFxTotal += dt;
-    if (TREASURE.openFxTotal > 0.07) {
-      TREASURE.openFxTotal = 0;
+    TREASURE.celebTick += dt;
+    if (TREASURE.celebTick > 0.07) {
+      TREASURE.celebTick = 0;
       const a = fwR(0, TAU), rr = fwR(0.25, 0.75);
       spawnSpark(playerPos.x + Math.cos(a) * rr, playerPos.y + fwR(0.2, 1.9), playerPos.z + Math.sin(a) * rr,
         fwRnd() < 0.6 ? 0xffe08a : 0xfff6dc, fwR(0.14, 0.24), fwR(0.9, 1.6),
