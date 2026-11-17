@@ -12793,7 +12793,7 @@ function makeSparkPool(max, size, name) {
 
 /* 폭죽은 20m 밖 밤하늘이라 점 하나로 그린다. 선물·캐릭터의 잔불은 바로 눈앞이라
    점 크기를 입자마다 다르게 줄 수 있는 스프라이트로 따로 그린다. */
-const FW_POOL = makeSparkPool(IS_TOUCH ? 1600 : 2900, IS_TOUCH ? 0.86 : 1.0, 'fireworks');
+const FW_POOL = makeSparkPool(IS_TOUCH ? 2400 : 4200, IS_TOUCH ? 1.5 : 1.9, 'fireworks');
 
 /* 눈앞의 작은 불티 — 스프라이트 하나가 입자 하나 (개수는 많아야 20~30개) */
 const SPARK_SPRITES = [];
@@ -12833,7 +12833,7 @@ function sparkEmit(pool, x, y, z, vx, vy, vz, r, g, b, life, grav, twinkle) {
   if (pool.freeN <= 0) return -1;
   const i = pool.free[--pool.freeN];
   const i3 = i * 3;
-  const k = 1.15;                             // 밤하늘 불티는 조금 더 밝게
+  const k = 2.4;                              // 밤하늘 불티는 톤매핑 위로 밀어 올려 하얗게 타오르게
   pool.pos[i3] = x; pool.pos[i3 + 1] = y; pool.pos[i3 + 2] = z;
   pool.vel[i3] = vx; pool.vel[i3 + 1] = vy; pool.vel[i3 + 2] = vz;
   pool.base[i3] = r * k; pool.base[i3 + 1] = g * k; pool.base[i3 + 2] = b * k;
@@ -12865,8 +12865,8 @@ function sparkPoolUpdate(pool, dt) {
     pool.pos[i3 + 1] += pool.vel[i3 + 1] * dt;
     pool.pos[i3 + 2] += pool.vel[i3 + 2] * dt;
     const frac = pool.life[i] / pool.dur[i];
-    const fade = frac < 0.38 ? frac / 0.38 : 1;
-    const tw = pool.tw[i] ? 0.55 + 0.45 * Math.sin(pool.life[i] * 38 + i * 1.7) : 1;
+    const fade = frac < 0.45 ? frac / 0.45 : 1;
+    const tw = pool.tw[i] ? 0.72 + 0.28 * Math.sin(pool.life[i] * 38 + i * 1.7) : 1;
     const f = fade * tw;
     pool.col[i3] = pool.base[i3] * f;
     pool.col[i3 + 1] = pool.base[i3 + 1] * f;
@@ -12908,30 +12908,41 @@ function fwRnd() {
 }
 const fwR = (a, b) => a + fwRnd() * (b - a);
 
-/* 시드 하나로 4~6발의 발사 타임라인을 만든다 — 같은 시드면 누구 화면에서나 같은 폭죽 */
+/* 시드 하나로 10발의 발사 타임라인을 만든다 — 같은 시드면 누구 화면에서나 같은 폭죽.
+   ⚠️ 발사 자리 — 기본 3인칭 카메라는 캐릭터 뒤 8.6m·눈높이 1.45m 에서 살짝(약 11°)
+   내려다본다. 그래서 화면에 담기는 하늘은 카메라 높이 +14° 남짓까지만이고,
+   광장 가운데의 큰 트리가 정면 상단을 가린다. 트리 바로 위(광장 반지름 10m·고도 15m 이상)
+   에서 터뜨리면 폭발이 늘 화면 밖으로 벗어나 '소리와 버튼만 있고 하늘은 비어 있는'
+   상태가 됐다(뮤즈 크로스체크 보고).
+   → 트리 좌우로 트인 33~74° 하늘 띠에, 광장을 감싸는 28~44m 거리·고도 7~8.5m 로 올린다.
+     멀어질수록 고도도 조금씩 올려 어느 발이든 화면에서 같은 높이(위쪽 하늘)에 걸린다. */
 function fwPlanFor(seed) {
   fwSeedSet(seed);
-  const n = 4 + Math.floor(fwRnd() * 3);
+  const n = 10;                                      // 10발
   const plan = [];
-  const span = 4.3;                                  // 마지막 발까지 — 전체 6~8초
+  const span = 5.2;                                  // 마지막 발까지 — 전체 약 7초
   const gap = span / Math.max(1, n - 1);
-  let t = 0.22;
-  const baseA = fwR(0, TAU);
+  let t = 0.28;
   for (let i = 0; i < n; i++) {
-    const a = baseA + (i / n) * TAU + fwR(-0.5, 0.5);
-    const rad = fwR(2.5, 9.5);
+    /* 트리 바로 뒤(정면)는 나무에 가리고, 하늘은 트리 좌우 띠로만 트여 있다.
+       좌우를 번갈아 쏘아 어느 쪽을 보고 있어도 몇 발은 보이게 한다. */
+    const side = i % 2 === 0 ? 1 : -1;
+    const k = Math.floor(i / 2);
+    const d = 0.58 + k * 0.18 + fwR(-0.05, 0.05);        // 33° · 44° · 54° · 64° · 74°
+    const a = Math.PI + side * d;
+    const rad = fwR(28, 44);
     const col1 = FW_COLORS[(fwRnd() * FW_COLORS.length) | 0];
     let col2 = FW_COLORS[(fwRnd() * FW_COLORS.length) | 0];
     if (col2 === col1) col2 = FW_COLORS[(fwRnd() * FW_COLORS.length) | 0];
     plan.push({
       at: t,
       x: Math.sin(a) * rad, z: Math.cos(a) * rad,
-      y: fwR(14.5, 24.0),
+      y: 5.4 + rad * 0.070 + fwR(-0.5, 0.5),
       color: col1, color2: col2,
-      sparks: IS_TOUCH ? 84 : 112,
+      sparks: IS_TOUCH ? 150 : 220,
       kind: fwRnd() < 0.3 ? 'ring' : 'sphere',
       spin: fwR(-1, 1), tilt: fwR(-0.9, 0.9),
-      speed: fwR(7.4, 11.2),
+      speed: fwR(15.0, 18.5),
       rise: fwR(0.55, 0.85),
     });
     t += gap * fwR(0.9, 1.1);
@@ -13023,24 +13034,24 @@ function fwBurstAt(rk) {
     const roll = fwRnd();
     const col = roll < 0.62 ? c1 : (roll < 0.86 ? c2 : cw);
     sparkEmit(FW_POOL,
-      b.x, b.y, b.z,
+      rk.x, rk.y, rk.z,
       ux * sp + fwR(-0.35, 0.35), uy * sp + fwR(-0.3, 0.3), uz * sp + fwR(-0.35, 0.35),
       col.r, col.g, col.b,
-      fwR(1.35, 2.25), 3.1, fwRnd() < 0.55
+      fwR(1.5, 2.4), 3.1, fwRnd() < 0.55
     );
   }
-  /* 터지는 순간의 섬광 — 블룸이 이 한 점을 크게 번지게 한다 */
-  const fl = glowSprite(0xfff4d6, 4.6, 1);
-  fl.position.set(b.x, b.y, b.z);
+  /* 터지는 순간의 섬광 — 블룸이 이 한 점을 크게 번지게 한다 (먼 하늘만큼 크게) */
+  const fl = glowSprite(0xfff4d6, 4.2, 1);
+  fl.position.set(rk.x, rk.y, rk.z);
   scene.add(fl);
-  FW.flashes.push({ sp: fl, t: 0, dur: 0.42 });
-  fwSoundBurst(Math.hypot(playerPos.x - b.x, playerPos.z - b.z));
+  FW.flashes.push({ sp: fl, t: 0, dur: 0.3 });
+  fwSoundBurst(Math.hypot(playerPos.x - rk.x, playerPos.z - rk.z));
 }
 
 function fwLaunch(b) {
   const y0 = Math.max(0.5, groundY(b.x, b.z) + 1.0);
   FW.rockets.push({
-    x: b.x, y: y0, z: b.z, targetY: b.y, vy: (b.y - y0) / b.rise,
+    x: b.x, y: y0, z: b.z, x0: b.x, z0: b.z, y0: y0, targetY: b.y,
     t: 0, ph: fwR(0, TAU), burst: b,
   });
   fwSoundLaunch(Math.hypot(playerPos.x - b.x, playerPos.z - b.z));
@@ -13062,25 +13073,59 @@ function startFireworks(opts = {}) {
   return seed;
 }
 
+/* 시퀀스 시계 — 프레임 dt 는 0.05초로 잘려 있어(frame loop 의 Math.min(raw, 0.05)),
+   초당 몇 프레임짜리 환경(백그라운드 탭·저사양 GPU·헤드리스)에서는 7초짜리 불꽃놀이가
+   실제로는 6~12분씩 끌렸다(뮤즈 크로스체크 보고). 화면 루프가 잰 실제 프레임 간격을
+   함께 써서 실시간으로 흐르게 한다. (진단용 pause()/step() 에서는 dt 만 쓴다) */
+function fwClock(dt) {
+  const step = Math.max(dt, frameWallDt || 0);
+  return Number.isFinite(step) ? step : dt;
+}
+
 function updateFireworks(dt) {
+  const tl = fwClock(dt);            // 시퀀스 시간 — 실제 경과 시간
+  const sdt = Math.min(tl, 0.25);    // 불티·섬광 애니메이션은 한 프레임에 0.25초까지만
   if (FW.active) {
-    FW.t += dt;
-    while (FW.queued < FW.plan.length && FW.t >= FW.plan[FW.queued].at) {
-      fwLaunch(FW.plan[FW.queued]);
-      FW.queued++;
+    if (tl > 3) {
+      /* 탭이 오래 멈춰 있다 돌아온 경우 — 지나간 쇼는 그냥 끝낸다 */
+      FW.queued = FW.plan.length; FW.rockets.length = 0; FW.active = false;
+    } else {
+      FW.t += tl;
+      while (FW.queued < FW.plan.length && FW.t >= FW.plan[FW.queued].at) {
+        fwLaunch(FW.plan[FW.queued]);
+        FW.queued++;
+      }
+      /* 끝맺음 — 마지막 발이 다 터지면 끝. 아주 느린 환경에서도 실제 시간 기준으로 끊어
+         버튼이 '불꽃놀이 중…' 에 갈히지 않게 남은 발은 지금 터뜨려 피날레로 마무리 */
+      if (FW.t > FW.dur + 1.2) {
+        while (FW.queued < FW.plan.length) { fwLaunch(FW.plan[FW.queued]); FW.queued++; }
+        for (const r of FW.rockets) { r.x = r.x0; r.y = r.targetY; r.z = r.z0; fwBurstAt(r); }
+        FW.rockets.length = 0;
+        FW.active = false;
+      } else if (FW.queued >= FW.plan.length && !FW.rockets.length) {
+        FW.active = false;
+      }
     }
-    if (FW.queued >= FW.plan.length && !FW.rockets.length) FW.active = false;
   }
   /* 솟아오르는 폭죽 — 꼬리를 남기며 목표 고도에 닿으면 터진다 */
   for (let i = FW.rockets.length - 1; i >= 0; i--) {
     const r = FW.rockets[i];
-    r.t += dt;
-    r.y += r.vy * dt;
-    r.x += Math.sin(r.t * 7.5 + r.ph) * 0.55 * dt;
-    r.z += Math.cos(r.t * 6.1 + r.ph) * 0.45 * dt;
-    sparkEmit(FW_POOL, r.x, r.y, r.z, fwR(-0.2, 0.2), fwR(-1.5, -0.5), fwR(-0.2, 0.2),
-      1, 0.88, 0.56, fwR(0.16, 0.3), 0.5, 0);
-    if (r.y >= r.targetY) {
+    const px = r.x, py = r.y, pz = r.z;
+    r.t += tl;
+    const k = clamp(r.t / r.burst.rise, 0, 1);
+    const e = 1 - (1 - k) * (1 - k);                 // 오를수록 천천히 (감속)
+    r.y = r.y0 + (r.targetY - r.y0) * e;
+    r.x = r.x0 + Math.sin(r.t * 7.5 + r.ph) * 0.45 * r.t;
+    r.z = r.z0 + Math.cos(r.t * 6.1 + r.ph) * 0.35 * r.t;
+    /* 프레임이 띄엄띄엄해도 꼬리가 끊기지 않게 지난 위치에서 지금 위치까지 채워 뿜는다 */
+    const seg = clamp(Math.ceil(Math.hypot(r.x - px, r.y - py, r.z - pz) / 0.55), 1, 6);
+    for (let j = 1; j <= seg; j++) {
+      const u = j / seg;
+      sparkEmit(FW_POOL, px + (r.x - px) * u, py + (r.y - py) * u, pz + (r.z - pz) * u,
+        fwR(-0.2, 0.2), fwR(-1.5, -0.5), fwR(-0.2, 0.2),
+        1, 0.88, 0.56, fwR(0.22, 0.4), 0.5, 0);
+    }
+    if (k >= 1) {
       fwBurstAt(r);
       FW.rockets.splice(i, 1);
     }
@@ -13088,10 +13133,10 @@ function updateFireworks(dt) {
   /* 섬광 페이드 */
   for (let i = FW.flashes.length - 1; i >= 0; i--) {
     const f = FW.flashes[i];
-    f.t += dt;
+    f.t += sdt;
     const k = clamp(f.t / f.dur, 0, 1);
     f.sp.material.opacity = 0.95 * (1 - k) * (1 - k);
-    const s = 4.6 + k * 4.4;
+    const s = 4.2 + k * 4.2;
     f.sp.scale.set(s, s, 1);
     if (k >= 1) {
       scene.remove(f.sp);
@@ -13099,7 +13144,7 @@ function updateFireworks(dt) {
       FW.flashes.splice(i, 1);
     }
   }
-  sparkPoolUpdate(FW_POOL, dt);
+  sparkPoolUpdate(FW_POOL, sdt);
 }
 
 /* ---------- 🎁 숨은 선물상자 ---------- */
@@ -13996,6 +14041,8 @@ function wantPanelSnapshot() {
 --------------------------------------------------------------- */
 const clock = new THREE.Clock();
 let elapsed = 0, lastDt = 0, frames = 0;
+/* 화면 루프가 잰 실제 프레임 간격(초) — 아래 불꽃놀이 시퀀스가 저FPS에서도 실시간으로 흐르게 한다 */
+let frameWallDt = 0;
 const tmpV = new THREE.Vector3();
 let fpsAcc = 0, fpsFrames = 0, fpsVal = 0;
 
@@ -15975,6 +16022,7 @@ let rosterAcc = 0, rosterSig = '';
 /* 애니메이션 루프 */
 function loop() {
   const raw = clock.getDelta();
+  frameWallDt = raw;
   const dt = Math.min(raw, 0.05);
   tick(dt);
   renderFrame();
@@ -16521,7 +16569,7 @@ window.__plaza = {
   /* 캡처용: 프레임을 n 번 계산만 하고 마지막에 한 번 그린다 (소프트웨어 렌더 환경에서 빠르다) */
   step(n) {
     const k = clamp(Math.round(n || 1), 1, 900);
-    for (let i = 0; i < k; i++) tick(1 / 60);
+    for (let i = 0; i < k; i++) { frameWallDt = 0; tick(1 / 60); }
     renderFrame();
     return frames;
   },
