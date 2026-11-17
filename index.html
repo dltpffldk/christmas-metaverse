@@ -220,16 +220,16 @@
     box-shadow:0 10px 26px rgba(120,150,200,.3), inset 0 1px 0 rgba(255,255,255,.8);
   }
 
-  /* ---------- ⛸️ 스케이트 · 📮 편지 · ❄️ 눈 굴리기 버튼 (3차) ---------- */
-  #skateBtn, #mailBtn, #rollBtn{
+  /* ---------- ⛸️ 스케이트 · 📮 편지 · ❄️ 눈 굴리기 · ⛄ 눈사람 부수기 버튼 (3차) ---------- */
+  #skateBtn, #mailBtn, #rollBtn, #breakBtn{
     display:none;align-items:center;justify-content:center;gap:7px;
     padding:11px 17px;border-radius:15px;cursor:pointer;font-family:inherit;
     font-size:14px;font-weight:800;letter-spacing:-.3px;white-space:nowrap;
     transition:transform .12s ease, box-shadow .18s, background .18s, color .18s;
   }
-  #skateBtn.show, #mailBtn.show, #rollBtn.show{display:flex}
-  #skateBtn:hover, #mailBtn:hover, #rollBtn:hover{transform:translateY(-2px)}
-  #skateBtn:active, #mailBtn:active, #rollBtn:active{transform:scale(.94)}
+  #skateBtn.show, #mailBtn.show, #rollBtn.show, #breakBtn.show{display:flex}
+  #skateBtn:hover, #mailBtn:hover, #rollBtn:hover, #breakBtn:hover{transform:translateY(-2px)}
+  #skateBtn:active, #mailBtn:active, #rollBtn:active, #breakBtn:active{transform:scale(.94)}
   #skateBtn{
     color:#123049;background:linear-gradient(180deg,#eefbff,#a8dcf2);
     border:1px solid rgba(228,248,255,.95);
@@ -252,6 +252,11 @@
   #rollBtn.on{
     color:#20334c;background:linear-gradient(180deg,#eaf6ff,#b3d3ea);
     box-shadow:0 10px 26px rgba(110,165,215,.44), inset 0 1px 0 rgba(255,255,255,.85);
+  }
+  #breakBtn{
+    color:#3a1220;background:linear-gradient(180deg,#ffe6ea,#f0a0ab);
+    border:1px solid rgba(255,238,240,.95);
+    box-shadow:0 10px 26px rgba(205,70,95,.32), inset 0 1px 0 rgba(255,255,255,.7);
   }
 
   /* ---------- 📮 산타 우체국 편지 쓰기 ---------- */
@@ -937,6 +942,7 @@
     #treeHud .th-bar{display:none}
     #treeHudText{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
     #treeBtn, #cocoaBtn, #wishBtn, #roastBtn, #snowBtn{padding:10px 13px;font-size:12.5px;border-radius:13px}
+    #rollBtn, #breakBtn{padding:10px 13px;font-size:12.5px;border-radius:13px}
     #ornPicker, #wishPanel{bottom:calc(178px + var(--safe-b));padding:11px 12px 12px;gap:7px}
     #ornPicker .op-row button{padding:7px 2px 5px;font-size:9px}
     #ornPicker .op-row button b{font-size:17px}
@@ -1043,6 +1049,7 @@
   <button id="skateBtn" type="button" aria-label="스케이트 타기">⛸️ 스케이트 타기</button>
   <button id="mailBtn" type="button" aria-label="편지 보내기">📮 편지 보내기</button>
   <button id="rollBtn" type="button" aria-label="눈 굴리기">❄️ 눈 굴리기</button>
+  <button id="breakBtn" type="button" aria-label="눈사람 부수기">⛄ 눈사람 부수기</button>
   <button id="treeBtn" type="button" aria-label="트리에 장식 달기">🎄 트리 장식 달기</button>
   <button id="cocoaBtn" type="button" aria-label="코코아 마시기">☕ 코코아 마시기</button>
   <button id="wishBtn" type="button" aria-label="소원 쪽지 남기기">📝 소원 쪽지 남기기</button>
@@ -1934,6 +1941,11 @@ class LiveNetwork extends NetworkAdapter {
       return;
     }
 
+    if (m.t === 'unroll') {
+      this.emit('unroll', { x: +m.x || 0, z: +m.z || 0 });
+      return;
+    }
+
     if (m.t === 'chat') {
       const peer = this._touchPeer(m.id, m.n, m.c, now);
       if (!peer) return;
@@ -2105,6 +2117,15 @@ class LiveNetwork extends NetworkAdapter {
     }));
   }
 
+  /* ⛄ 눈사람 부수기 — 친구 화면에서도 같이 치운다 */
+  sendRemoveSnowman(s) {
+    if (!this.connected || !this.mqtt || !s) return;
+    this.mqtt.publish(`${this.base}/e/${this.cid}`, JSON.stringify({
+      t: 'unroll', id: this.cid, n: this.profile.nickname,
+      x: +(+s.x).toFixed(2), z: +(+s.z).toFixed(2),
+    }));
+  }
+
   disconnect() {
     this._closed = true;
     this._clearTimers();
@@ -2150,7 +2171,7 @@ class NetRouter extends NetworkAdapter {
     this.room = sanitizeRoom(this.room);
     const live = new LiveNetwork(this.room);
     this._adopt(live, 'live');
-    ['join', 'leave', 'state', 'chat', 'reaction', 'tree', 'wish'].forEach((ev) => {
+    ['join', 'leave', 'state', 'chat', 'reaction', 'tree', 'wish', 'roll', 'unroll', 'mail'].forEach((ev) => {
       live.on(ev, (d) => { if (this.active === live) this.emit(ev, d); });
     });
     live.on('status', (s) => { if (this.active === live) this.emit('status', s); });
@@ -2189,6 +2210,8 @@ class NetRouter extends NetworkAdapter {
   sendReaction(e) { if (this.active) this.active.sendReaction(e); }
   sendTree(s) { if (this.active) this.active.sendTree(s); }
   sendWish(t) { if (this.active) this.active.sendWish(t); }
+  sendRollSnowman(s) { if (this.active && this.active.sendRollSnowman) this.active.sendRollSnowman(s); }
+  sendRemoveSnowman(s) { if (this.active && this.active.sendRemoveSnowman) this.active.sendRemoveSnowman(s); }
   disconnect() { if (this.active) this.active.disconnect(); }
 
   info() {
@@ -3674,6 +3697,9 @@ function buildHouse(x, z, rotY, opt = {}) {
 --------------------------------------------------------------- */
 const colliders = []; // {x,z,r,cam} — cam: 카메라 충돌에도 쓰는 큰 구조물(건물·중앙 단상)
 function addCollider(x, z, r, opt) { colliders.push({ x, z, r, cam: !!(opt && opt.cam) }); }
+/* 걸어 지나갈 수는 있지만 눈사람을 세우면 겹치는 작은 장식물(콜라이더 없는 소나무 등)의 자리 */
+const DECOR_BLOCKERS = [];
+function addDecorBlocker(x, z, r) { DECOR_BLOCKERS.push({ x, z, r: r || 0.5 }); }
 
 function starShape(outer = 1, inner = 0.42, pts = 5) {
   const s = new THREE.Shape();
@@ -5514,6 +5540,7 @@ function addFir(x, z, h, opt) {
     }
   }
   if (!opt.noCollide) addCollider(x, z, Math.max(0.35, h * 0.13));
+  else addDecorBlocker(x, z, Math.max(0.45, h * 0.16));
 }
 
 /* ---------- 가로등 기둥 ---------- */
@@ -11821,6 +11848,7 @@ function updateActivityButtons(dt) {
     if (skateBtnShown) { skateBtnEl.classList.remove('show'); skateBtnShown = false; }
     if (mailBtnShown) { mailBtnEl.classList.remove('show'); mailBtnShown = false; }
     if (rollBtnShown) { rollBtnEl.classList.remove('show'); rollBtnShown = false; }
+    if (breakBtnShown) { breakBtnEl.classList.remove('show'); breakBtnShown = false; }
     return;
   }
   const plaza = ZONE.mode !== 'interior';
@@ -11871,10 +11899,13 @@ function updateActivityButtons(dt) {
   if (roastBtnEl.textContent !== roastLabel) roastBtnEl.textContent = roastLabel;
   roastBtnEl.classList.toggle('on', ROAST.active);
 
-  /* ⛄ 눈사람 변신 — 눈사람 3.5m 안에서, 변신 중에는 어디서든 복귀 */
+  /* ⛄ 눈사람 변신 — 눈사람 3.5m 안에서, 변신 중에는 어디서든 복귀
+     (내가 세운 눈사람 옆에서는 '부수기' 버튼과 헷갈리지 않게 변신 버튼을 감춘다) */
+  const builtNear = plaza && !PHOTO.active && !TRANS.busy && !SIT.active && !ROAST.active
+    && !SNOWMAN.active && !ROLL.active && nearBuiltSnowman();
   const snowShow = SNOWMAN.active
     ? plaza
-    : (plaza && !PHOTO.active && !TRANS.busy && !SIT.active && !ROAST.active && nearSnowman());
+    : (plaza && !PHOTO.active && !TRANS.busy && !SIT.active && !ROAST.active && !builtNear && nearSnowman());
   if (snowShow !== snowBtnShown) {
     snowBtnEl.classList.toggle('show', snowShow);
     snowBtnShown = snowShow;
@@ -11906,11 +11937,11 @@ function updateActivityButtons(dt) {
     if (mailNear) toast('📮 산타 우체국 — 따뜻한 한 줄 편지를 보내 보세요', 2600);
   }
 
-  /* ❄️ 눈 굴리기 — 눈사람 만들기 눈밭 */
+  /* ❄️ 눈 굴리기 — 눈밭 어디서나 */
   const rollNear = ROLL.active
     ? plaza
     : (plaza && !PHOTO.active && !TRANS.busy && !SIT.active && !SKATE.active && !SNOWMAN.active
-      && Math.hypot(playerPos.x - SNOW_PATCH.x, playerPos.z - SNOW_PATCH.z) < SNOW_PATCH.r + 1.4);
+      && onSnowField(playerPos.x, playerPos.z));
   if (rollNear !== rollBtnShown) {
     rollBtnEl.classList.toggle('show', rollNear);
     rollBtnShown = rollNear;
@@ -11919,6 +11950,15 @@ function updateActivityButtons(dt) {
   const rollLabel = ROLL.active ? (ROLL.phase === 'done' ? '❄️ 눈사람 완성!' : `❄️ 눈 굴리는 중… ${Math.round(ROLL.prog * 100)}%`) : '❄️ 눈 굴리기';
   if (rollBtnEl.textContent !== rollLabel) rollBtnEl.textContent = rollLabel;
   rollBtnEl.classList.toggle('on', ROLL.active);
+
+  /* ⛄ 눈사람 부수기 — 내가 세운 눈사람 2.7m 안 */
+  if (builtNear !== breakBtnShown) {
+    breakBtnEl.classList.toggle('show', builtNear);
+    breakBtnShown = builtNear;
+    if (builtNear) toast('⛄ 내가 세운 눈사람 — 부수면 눈이 흩날려요', 2400);
+  }
+  const breakLabel = '⛄ 눈사람 부수기';
+  if (breakBtnEl.textContent !== breakLabel) breakBtnEl.textContent = breakLabel;
 }
 
 function updateTreeEvent(dt) {
@@ -13357,37 +13397,110 @@ net.on('mail', (m) => {
 const ROLL = {
   active: false, phase: 'idle', t: 0, prog: 0, dur: 12.6,
   ball: null, body: null, head: null, gear: [], built: [], tmp: null,
-  push: 0,
+  push: 0, spot: null, lastReason: '',
 };
 const ROLL_SPOT = { x: SNOW_PATCH.x - 0.2, z: SNOW_PATCH.z + 1.35 };
+
+/* ---------- 눈사람을 세울 빈 자리 찾기 ----------
+   예전에는 늘 같은 자리(ROLL_SPOT)에만 세워서 연못 팻말·가로등·기존 눈사람과
+   겹쳤다. 이제는 내 캐릭터가 바라보는 앞쪽 눈밭에서, 소품과 최소 안전
+   간격(SNOW_GAP)을 둔 빈 자리를 골라 세운다. */
+const SNOW_GAP = 1.8;                 // 소품·가로등·팻말·기존 눈사람과의 최소 간격
+const SNOW_SNOWMAN_GAP = 1.9;         // 눈사람끼리
+function snowSpotFree(x, z, gap, ignore) {
+  if (ZONE.mode === 'interior') return false;
+  const g = gap === undefined ? SNOW_GAP : gap;
+  const r = Math.hypot(x, z);
+  if (r < COLLAR_IN + 1.5 || r > R_SNOW - 1.0) return false;    // 눈밭(눈둑 바깥 ~ 둑 안쪽)
+  if (!walkableAt(x, z)) return false;
+  if (onPondIce(x, z) || inPondRim(x, z)) return false;          // 얼음·연못 눈둘레는 제외
+  if (onFairyPath(x, z)) return false;                           // 사탕길은 비워 둔다
+  for (let i = 0; i < colliders.length; i++) {
+    const c = colliders[i];
+    if (Math.hypot(x - c.x, z - c.z) < c.r + g) return false;
+  }
+  for (let i = 0; i < DECOR_BLOCKERS.length; i++) {
+    const d = DECOR_BLOCKERS[i];
+    if (Math.hypot(x - d.x, z - d.z) < d.r + g) return false;
+  }
+  for (let i = 0; i < SNOW_OBJS.length; i++) {                   // 광장 고정 눈사람
+    if (Math.hypot(x - SNOW_OBJS[i].x, z - SNOW_OBJS[i].z) < SNOW_SNOWMAN_GAP + 0.4) return false;
+  }
+  for (let i = 0; i < ROLL.built.length; i++) {                   // 이미 서 있는 눈사람
+    const b = ROLL.built[i];
+    if (b === ignore) continue;
+    if (b && Math.hypot(x - b.x, z - b.z) < SNOW_SNOWMAN_GAP) return false;
+  }
+  return true;
+}
+/** 내 앞쪽 → 좌우 순서로 가장 좋은 빈 자리. 앞쪽이 다 막혔으면 눈밭에서 가장 가까운 자리. */
+function findSnowmanSpot(px, pz, yaw) {
+  const front = Number.isFinite(yaw) ? yaw : 0;
+  let best = null, bestScore = Infinity;
+  /* 앞쪽일수록, 2.2~2.6m 거리일수록 좋은 자리 — 팻말이 있어도 억지로 옆·뒤로 가지 않는다 */
+  for (let deg = 0; deg <= 150; deg += 10) {
+    const off = (deg * Math.PI) / 180;
+    const signs = deg === 0 ? [1] : [1, -1];
+    for (const sgn of signs) {
+      const a = front + off * sgn;
+      for (let rad = 1.9; rad <= 4.3; rad += 0.35) {
+        const x = px + Math.sin(a) * rad, z = pz + Math.cos(a) * rad;
+        if (!snowSpotFree(x, z)) continue;
+        const score = (off / Math.PI) * 2.4 + Math.abs(rad - 2.35) * 0.5;
+        if (score < bestScore) { bestScore = score; best = { x, z, ry: Math.atan2(px - x, pz - z) }; }
+      }
+    }
+  }
+  if (best) return best;
+  /* 앞·옆이 다 차 있으면 눈밭 어딘가 가장 가까운 빈 자리 */
+  let near = null, nearD = Infinity;
+  const lo = COLLAR_IN + 1.5, hi = R_SNOW - 1.0;
+  for (let i = 0; i < 320; i++) {
+    const a = rand(0, TAU), rr = lo + Math.random() * Math.max(0.1, hi - lo);
+    const x = Math.sin(a) * rr, z = Math.cos(a) * rr;
+    if (!snowSpotFree(x, z)) continue;
+    const d = Math.hypot(x - px, z - pz);
+    if (d < nearD && d < 16) { nearD = d; near = { x, z, ry: Math.atan2(px - x, pz - z) }; }
+  }
+  return near;
+}
+/** 서 있는 자리가 눈밭인가 — 눈 굴리기 가능 범위 */
+function onSnowField(x, z) {
+  const r = Math.hypot(x, z);
+  if (!Number.isFinite(r)) return false;
+  if (inPondFence(x, z)) return false;
+  return r >= R_PLAZA - 0.6 && r <= R_SNOW - 0.4;
+}
 
 function rollStoreKey() { return 'xmas-snowmen-v1:' + (state.room || 'main'); }
 function loadSnowmen() {
   let saved = null;
   try { saved = JSON.parse(localStorage.getItem(rollStoreKey()) || 'null'); } catch (_) {}
-  if (Array.isArray(saved)) saved.slice(0, 6).forEach((s) => addSnowmanFigure(s.x, s.z, s.scale || 0.72, s.seed || 0, true));
+  if (Array.isArray(saved)) saved.slice(0, 6).forEach((s) => addSnowmanFigure(s.x, s.z, s.scale || 0.72, s.seed || 0, true, s.ry));
 }
 function saveSnowmen() {
   try {
-    localStorage.setItem(rollStoreKey(), JSON.stringify(ROLL.built.slice(-6).map((s) => ({ x: +s.x.toFixed(2), z: +s.z.toFixed(2), scale: s.scale, seed: s.seed }))));
+    localStorage.setItem(rollStoreKey(), JSON.stringify(ROLL.built.slice(-6).map((s) => ({ x: +s.x.toFixed(2), z: +s.z.toFixed(2), scale: s.scale, seed: s.seed, ry: +(s.ry || 0).toFixed(2) }))));
   } catch (_) {}
 }
 
 const SNOWMAN_GEAR = { scarf: 0xc0392b };
 
 /** 눈밭에 세울 작은 눈사람 — makeSnowmanAvatar 를 그대로 줄여 쓴다 */
-function addSnowmanFigure(x, z, scale, seed, silent) {
+function addSnowmanFigure(x, z, scale, seed, silent, faceYaw) {
   const g = makeSnowmanAvatar();
   g.scale.setScalar(scale * (0.94 + (seed % 7) * 0.02));
   g.position.set(x, groundY(x, z), z);
-  g.rotation.y = (seed % 100) * 0.063 + 1.1;
+  /* 세운 사람 쪽을 바라보게 — 방향을 모르면 예전처럼 씨앗값으로 돌려 둔다 */
+  const ry = Number.isFinite(faceYaw) ? faceYaw : (seed % 100) * 0.063 + 1.1;
+  g.rotation.y = ry;
   if (g.userData.armL) g.userData.armL.rotation.z += 0.25;
   if (g.userData.armR) g.userData.armR.rotation.z -= 0.35;
   const sh = contactShadow(0.52 * scale * 1.6, 0.42);
   sh.position.y = 0.012;
   g.add(sh);
   scene.add(g);
-  const rec = { grp: g, x, z, scale, seed };
+  const rec = { grp: g, x, z, scale, seed, ry };
   ROLL.built.push(rec);
   if (ROLL.built.length > 6) {
     const old = ROLL.built.shift();
@@ -13400,7 +13513,8 @@ function addSnowmanFigure(x, z, scale, seed, silent) {
 function canRoll() {
   if (!state.joined || ZONE.mode !== 'plaza' || TRANS.busy || PHOTO.active) return false;
   if (SKATE.active || SNOWMAN.active) return false;
-  return Math.hypot(playerPos.x - SNOW_PATCH.x, playerPos.z - SNOW_PATCH.z) < SNOW_PATCH.r + 1.5;
+  /* 눈밭(광장 둘레 ~ 눈둑 안쪽)이면 어디서든 눈을 굴릴 수 있다 */
+  return onSnowField(playerPos.x, playerPos.z);
 }
 
 /* ---------- 굴리는 동안의 임시 눈덩이 ---------- */
@@ -13415,9 +13529,18 @@ function makeRollBall(r) {
 function startRoll() {
   if (ROLL.active) return false;
   if (!canRoll()) {
-    toast(SNOWMAN.active ? '⛄ 눈사람일 때는 눈을 굴릴 수 없어요' : '❄️ 눈사람 만들기 눈밭으로 가까이 가 주세요', 2400);
+    toast(SNOWMAN.active ? '⛄ 눈사람일 때는 눈을 굴릴 수 없어요' : '❄️ 눈밭으로 조금만 걸어가 주세요', 2400);
     return false;
   }
+  /* 세울 자리를 먼저 정한다 — 앞쪽 눈밭의 빈 곳, 소품과 1.8m 이상 떨어진 곳 */
+  const spot = findSnowmanSpot(playerPos.x, playerPos.z, playerYaw.v);
+  if (!spot) {
+    ROLL.lastReason = 'no-space';
+    toast('❄️ 여기엔 눈사람 자리가 없어요 — 눈밭 빈 곳으로 조금 움직여 주세요', 2600);
+    return false;
+  }
+  ROLL.lastReason = 'ok';
+  ROLL.spot = spot;
   if (SIT.active || SIT.enter > 0) standUp();
   ROLL.active = true;
   ROLL.phase = 'roll';
@@ -13448,7 +13571,11 @@ function updateRoll(dt) {
   ROLL.t += dt;
   ROLL.prog = clamp(ROLL.t / ROLL.dur, 0, 1);
   const t = ROLL.t;
-  const yaw0 = Math.atan2(ROLL_SPOT.x - playerPos.x, ROLL_SPOT.z - playerPos.z);
+  /* 세울 자리(굴리기 시작할 때 정한 앞쪽 빈 자리) — 없으면 예전 기본 자리 */
+  const sp = ROLL.spot || ROLL_SPOT;
+  const gy = groundY(sp.x, sp.z);
+  const toSpot = Math.hypot(sp.x - playerPos.x, sp.z - playerPos.z);
+  const yaw0 = Math.atan2(sp.x - playerPos.x, sp.z - playerPos.z);
 
   if (t < 4.4) {
     /* 1단계 — 앞에서 눈덩이가 굴러 커진다 */
@@ -13459,9 +13586,11 @@ function updateRoll(dt) {
       ROLL.ball.scale.setScalar(1);
       ROLL.ball.geometry.dispose();
       ROLL.ball.geometry = new THREE.SphereGeometry(r, 18, 14);
-      const px = playerPos.x + Math.sin(yaw0) * (0.75 + 0.55 * k);
-      const pz = playerPos.z + Math.cos(yaw0) * (0.75 + 0.55 * k);
-      ROLL.ball.position.set(px, POND.y + r * 0.98, pz);
+      /* 눈덩이는 발밑에서 출발해 정해 둔 자리까지 굴러간다 */
+      const reach = Math.max(1.0, toSpot - 0.5);
+      const px = playerPos.x + Math.sin(yaw0) * (0.75 + (reach - 0.75) * k);
+      const pz = playerPos.z + Math.cos(yaw0) * (0.75 + (reach - 0.75) * k);
+      ROLL.ball.position.set(px, groundY(px, pz) + r * 0.98, pz);
       ROLL.ball.rotation.x += dt * (0.6 + k * 2.4);
       if (Math.random() < 0.35) spawnSkateSpark(px, pz);
     }
@@ -13473,15 +13602,15 @@ function updateRoll(dt) {
       ROLL.push = 0.35;
       if (ROLL.ball) { scene.remove(ROLL.ball); ROLL.ball.geometry.dispose(); ROLL.ball.material.dispose(); ROLL.ball = null; }
       ROLL.body = makeRollBall(0.42);
-      ROLL.body.position.set(ROLL_SPOT.x, POND.y + 0.40, ROLL_SPOT.z);
-      spawnSnowBurst(ROLL_SPOT.x, POND.y + 0.4, ROLL_SPOT.z, 16);
+      ROLL.body.position.set(sp.x, gy + 0.40, sp.z);
+      spawnSnowBurst(sp.x, gy + 0.4, sp.z, 16);
       toast('❄️ 눈덩이를 몸통 자리에 놓았어요', 2200);
     }
     const k = smoothstep(0.15, 0.95, (t - 4.4) / 4.2);
     if (ROLL.head) ROLL.head.scale.setScalar(0.6 + 0.4 * k);
     else if (k > 0.25) {
       ROLL.head = makeRollBall(0.26);
-      ROLL.head.position.set(ROLL_SPOT.x, POND.y + 1.02, ROLL_SPOT.z);
+      ROLL.head.position.set(sp.x, gy + 1.02, sp.z);
       ROLL.head.scale.setScalar(0.3);
     }
   } else if (t < ROLL.dur) {
@@ -13496,39 +13625,39 @@ function updateRoll(dt) {
         scarf: new THREE.MeshStandardMaterial({ color: 0xc0392b, roughness: 0.86 }),
         branch: new THREE.MeshStandardMaterial({ color: 0x6b4a2f, roughness: 0.9 }),
       };
-      const headY = POND.y + 1.02;
+      const headY = gy + 1.02;
       const nose = new THREE.Mesh(new THREE.ConeGeometry(0.045, 0.30, 8), mat.carrot);
-      nose.position.set(ROLL_SPOT.x, headY + 0.02, ROLL_SPOT.z + 0.26);
+      nose.position.set(sp.x, headY + 0.02, sp.z + 0.26);
       nose.rotation.x = Math.PI / 2;
       scene.add(nose); ROLL.gear.push(nose);
       [-0.075, 0.075].forEach((ox) => {
         const e = new THREE.Mesh(new THREE.SphereGeometry(0.032, 8, 6), mat.coal);
-        e.position.set(ROLL_SPOT.x + ox, headY + 0.07, ROLL_SPOT.z + 0.22);
+        e.position.set(sp.x + ox, headY + 0.07, sp.z + 0.22);
         scene.add(e); ROLL.gear.push(e);
       });
       const brim = new THREE.Mesh(new THREE.CylinderGeometry(0.30, 0.30, 0.03, 16), mat.hat);
-      brim.position.set(ROLL_SPOT.x, headY + 0.24, ROLL_SPOT.z);
+      brim.position.set(sp.x, headY + 0.24, sp.z);
       brim.rotation.z = 0.05;
       scene.add(brim); ROLL.gear.push(brim);
       const crown = new THREE.Mesh(new THREE.CylinderGeometry(0.19, 0.21, 0.32, 16), mat.hat);
-      crown.position.set(ROLL_SPOT.x, headY + 0.42, ROLL_SPOT.z);
+      crown.position.set(sp.x, headY + 0.42, sp.z);
       crown.rotation.z = 0.05;
       scene.add(crown); ROLL.gear.push(crown);
       const band = new THREE.Mesh(new THREE.TorusGeometry(0.205, 0.030, 6, 16), mat.scarf);
-      band.position.set(ROLL_SPOT.x, headY + 0.32, ROLL_SPOT.z);
+      band.position.set(sp.x, headY + 0.32, sp.z);
       band.rotation.x = Math.PI / 2;
       scene.add(band); ROLL.gear.push(band);
       const scarf = new THREE.Mesh(new THREE.TorusGeometry(0.235, 0.062, 8, 18), mat.scarf);
-      scarf.position.set(ROLL_SPOT.x, POND.y + 0.78, ROLL_SPOT.z);
+      scarf.position.set(sp.x, gy + 0.78, sp.z);
       scarf.rotation.x = Math.PI / 2;
       scene.add(scarf); ROLL.gear.push(scarf);
       [-1, 1].forEach((sgn) => {
         const arm = new THREE.Mesh(new THREE.CylinderGeometry(0.018, 0.030, 0.46, 6), mat.branch);
-        arm.position.set(ROLL_SPOT.x + sgn * 0.40, POND.y + 0.76, ROLL_SPOT.z);
+        arm.position.set(sp.x + sgn * 0.40, gy + 0.76, sp.z);
         arm.rotation.z = sgn * 1.18;
         scene.add(arm); ROLL.gear.push(arm);
       });
-      spawnSnowBurst(ROLL_SPOT.x, POND.y + 1.1, ROLL_SPOT.z, 26);
+      spawnSnowBurst(sp.x, gy + 1.1, sp.z, 26);
       toast('🥕 당근 코와 모자를 얹었어요!', 2200);
     }
     /* 붙는 순간 살짝 통통 튀게 */
@@ -13546,8 +13675,8 @@ function updateRoll(dt) {
     if (ROLL.head) { scene.remove(ROLL.head); ROLL.head.geometry.dispose(); ROLL.head.material.dispose(); ROLL.head = null; }
     ROLL.gear.forEach((g) => scene.remove(g));
     ROLL.gear.length = 0;
-    const rec = addSnowmanFigure(ROLL_SPOT.x, ROLL_SPOT.z, 0.86, seed, false);
-    spawnSnowBurst(ROLL_SPOT.x, POND.y + 0.9, ROLL_SPOT.z, 30);
+    const rec = addSnowmanFigure(sp.x, sp.z, 0.86, seed, false, sp.ry);
+    spawnSnowBurst(sp.x, gy + 0.9, sp.z, 30);
     toast('⛄ 나만의 눈사람이 완성됐어요!', 3200);
     addChatLine('', `⛄ <b>${(state.profile && state.profile.nickname) || '엘프'}</b> 님이 눈밭에 눈사람을 세웠어요`, false, true);
     try { net.sendRollSnowman({ x: rec.x, z: rec.z, scale: rec.scale, seed }); } catch (_) {}
@@ -13562,9 +13691,71 @@ net.on('roll', (m) => {
   addChatLine('', '⛄ 친구가 눈밭에 눈사람을 세웠어요', false, true);
 });
 
+/* ---------- ⛄ 눈사람 부수기 ----------
+   내가 세운 눈사람 가까이에서 '눈사람 부수기' 버튼이 뜨고, 누르면 눈이
+   흩날리며 사라진다. 같은 방 친구 화면에서도 함께 치워진다. */
+function nearestBuiltSnowman() {
+  let best = null, bestD = Infinity;
+  for (let i = 0; i < ROLL.built.length; i++) {
+    const rec = ROLL.built[i];
+    if (!rec || !rec.grp || !rec.grp.parent) continue;
+    const d = Math.hypot(playerPos.x - rec.x, playerPos.z - rec.z);
+    if (d < bestD) { bestD = d; best = rec; }
+  }
+  return { rec: best, d: bestD };
+}
+function nearBuiltSnowman() {
+  const n = nearestBuiltSnowman();
+  return !!n.rec && n.d < 2.7;
+}
+function removeBuiltSnowman(rec) {
+  if (!rec) return false;
+  const i = ROLL.built.indexOf(rec);
+  if (i >= 0) ROLL.built.splice(i, 1);
+  const g = rec.grp;
+  if (g) {
+    spawnSnowBurst(rec.x, groundY(rec.x, rec.z) + 0.72, rec.z, 34);
+    scene.remove(g);
+    g.traverse((o) => { if (o.isMesh && o.geometry) o.geometry.dispose(); });
+  }
+  saveSnowmen();
+  return true;
+}
+function breakSnowman() {
+  const n = nearestBuiltSnowman();
+  if (!n.rec || n.d > 3.2) {
+    toast('⛄ 부술 눈사람 가까이로 다가가 주세요', 2200);
+    return false;
+  }
+  const { x, z } = n.rec;
+  removeBuiltSnowman(n.rec);
+  try { net.sendRemoveSnowman({ x, z }); } catch (_) {}
+  toast('⛄ 눈사람을 부쉈어요 — 눈이 흩날렸어요', 2600);
+  addChatLine('', `⛄ <b>${(state.profile && state.profile.nickname) || '엘프'}</b> 님이 눈사람을 치웠어요`, false, true);
+  return true;
+}
+/* 친구가 자기 눈사람을 치우면 이 화면에서도 같이 사라진다 */
+function onRemoteUnroll(m) {
+  if (!m) return false;
+  let best = null, bestD = 0.9;
+  for (let i = 0; i < ROLL.built.length; i++) {
+    const rec = ROLL.built[i];
+    const d = Math.hypot(rec.x - m.x, rec.z - m.z);
+    if (d < bestD) { bestD = d; best = rec; }
+  }
+  if (!best) return false;
+  removeBuiltSnowman(best);
+  addChatLine('', '⛄ 친구가 눈사람을 치웠어요', false, true);
+  return true;
+}
+net.on('unroll', onRemoteUnroll);
+
 const rollBtnEl = document.getElementById('rollBtn');
 let rollBtnShown = false;
 if (rollBtnEl) rollBtnEl.addEventListener('click', () => { if (ROLL.active) stopRoll(false); else startRoll(); });
+const breakBtnEl = document.getElementById('breakBtn');
+let breakBtnShown = false;
+if (breakBtnEl) breakBtnEl.addEventListener('click', () => { breakSnowman(); });
 /* 지난번에 세운 눈사람 되살리기 (방별 저장) */
 loadSnowmen();
 
@@ -13661,10 +13852,18 @@ function animateAvatar(p, dt) {
 
 /* 라벨 위치 갱신 */
 const proj = new THREE.Vector3();
+let labelFrame = 0;
 function updateLabels() {
   const w = window.innerWidth, h = window.innerHeight;
+  /* 상단 HUD(제목·배지 한 두 줄) 아래로 이름표를 묶어 둔다 — 모바일에서 화면 위로
+     벗어난 NPC 이름표가 '크리스마스 광장' 제목과 겹치던 문제 */
+  const hudEl = document.getElementById('hud');
+  const hudBottom = hudEl ? Math.max(0, hudEl.getBoundingClientRect().bottom) : 0;
+  const minY = hudBottom + 6;
+  const frame = ++labelFrame;
   for (const p of players.values()) {
     const el = p.label.el;
+    el.__seen = frame;
     if (!p.root.visible) { if (el.style.opacity !== '0') el.style.opacity = '0'; continue; }
     /* 이름표는 머리 바로 위에 — 문·창문과 덜 겹치게 조금 낮춘다 */
     proj.set(p.root.position.x, p.root.position.y + (p.pose === 'sit' ? 1.52 : lerp(1.86, 1.50, Math.min(1, ((p.root.userData && p.root.userData.snowW) || 0) * 1.2))), p.root.position.z);
@@ -13672,10 +13871,26 @@ function updateLabels() {
     proj.project(camera);
     const visible = proj.z < 1 && proj.x > -1.2 && proj.x < 1.2 && proj.y > -1.2 && proj.y < 1.2;
     if (!visible || dist > 40) { el.style.opacity = '0'; continue; }
-    el.style.opacity = String(clamp(1 - (dist - 26) / 14, 0.15, 1));
     const x = (proj.x * 0.5 + 0.5) * w;
-    const y = (-proj.y * 0.5 + 0.5) * h;
-    el.style.transform = `translate(-50%,-100%) translate(${x.toFixed(1)}px,${y.toFixed(1)}px)`;
+    const y0 = (-proj.y * 0.5 + 0.5) * h;
+    /* HUD 띠에 걸친 이름표는 HUD 아래로 클램프, 한참 위로 벗어난 것은 숨김.
+       클램프할 때는 이름표의 윗변을 HUD 아래에 붙인다(말풍선이 뜨고 져도 높이가 변하지 않게) */
+    let y = y0, op = clamp(1 - (dist - 26) / 14, 0.15, 1), pinTop = false;
+    if (y0 < minY) {
+      if (y0 < minY - 150) { el.style.opacity = '0'; continue; }
+      pinTop = true;
+      op = Math.min(op, 0.72);
+    }
+    el.style.opacity = String(op);
+    el.style.transform = pinTop
+      ? `translate(-50%,0) translate(${x.toFixed(1)}px,${minY.toFixed(1)}px)`
+      : `translate(-50%,-100%) translate(${x.toFixed(1)}px,${y.toFixed(1)}px)`;
+  }
+  /* 이번 프레임에 갱신되지 않은 이름표(떠난 사람이 남긴 것)는 지운다 — 남아 있으면
+     좌상단 (0,0)에 붙어 '크리스마스 광장' 제목과 겹쳤다 */
+  const kids = labelsRoot.children;
+  for (let i = kids.length - 1; i >= 0; i--) {
+    if (kids[i].__seen !== frame) kids[i].remove();
   }
 }
 
@@ -14550,8 +14765,70 @@ window.__plaza = {
       active: ROLL.active, phase: ROLL.phase, t: +ROLL.t.toFixed(2), prog: +ROLL.prog.toFixed(2),
       push: ROLL.push, built: ROLL.built.length, gear: ROLL.gear.length,
       ball: !!ROLL.ball, body: !!ROLL.body, head: !!ROLL.head,
+      spot: ROLL.spot ? { x: +ROLL.spot.x.toFixed(2), z: +ROLL.spot.z.toFixed(2), ry: +(ROLL.spot.ry || 0).toFixed(2) } : null,
+      reason: ROLL.lastReason, can: canRoll(),
       btn: rollBtnEl ? { shown: rollBtnEl.classList.contains('show'), label: rollBtnEl.textContent } : null,
-      near: Math.hypot(playerPos.x - SNOW_PATCH.x, playerPos.z - SNOW_PATCH.z) < SNOW_PATCH.r + 1.5,
+      breakBtn: breakBtnEl ? { shown: breakBtnEl.classList.contains('show'), label: breakBtnEl.textContent } : null,
+      near: onSnowField(playerPos.x, playerPos.z),
+    };
+  },
+  get builtSnowmen() {
+    return ROLL.built.map((b) => ({ x: +b.x.toFixed(2), z: +b.z.toFixed(2), ry: +(b.ry || 0).toFixed(2) }));
+  },
+  /* 세운 눈사람이 소품·가로등·팻말·연못·기존 눈사람과 얼마나 떨어져 있는지 실측 */
+  snowmanAudit() {
+    return ROLL.built.map((b) => {
+      let prop = { gap: Infinity, r: 0, x: 0, z: 0 };
+      colliders.forEach((c) => {
+        const gap = Math.hypot(b.x - c.x, b.z - c.z) - c.r;
+        if (gap < prop.gap) prop = { gap: +gap.toFixed(2), r: c.r, x: +c.x.toFixed(2), z: +c.z.toFixed(2) };
+      });
+      let decor = Infinity;
+      DECOR_BLOCKERS.forEach((d) => { decor = Math.min(decor, Math.hypot(b.x - d.x, b.z - d.z) - d.r); });
+      let fixed = Infinity;
+      SNOW_OBJS.forEach((s) => { fixed = Math.min(fixed, Math.hypot(b.x - s.x, b.z - s.z)); });
+      let other = Infinity;
+      ROLL.built.forEach((o) => { if (o !== b) other = Math.min(other, Math.hypot(b.x - o.x, b.z - o.z)); });
+      return {
+        x: +b.x.toFixed(2), z: +b.z.toFixed(2), ry: +(b.ry || 0).toFixed(2),
+        propGap: prop.gap, prop: prop, decorGap: +decor.toFixed(2), fixedSnowman: +fixed.toFixed(2),
+        otherSnowman: Number.isFinite(other) ? +other.toFixed(2) : null,
+        pondRimGap: +(Math.hypot(b.x - POND.x, b.z - POND.z) - POND.rim).toFixed(2),
+        onPath: onFairyPath(b.x, b.z), onIce: onPondIce(b.x, b.z),
+        gapFromPlayer: +Math.hypot(playerPos.x - b.x, playerPos.z - b.z).toFixed(2),
+        free: snowSpotFree(b.x, b.z, undefined, b),
+      };
+    });
+  },
+  gotoBuilt(i) {
+    const b = ROLL.built[i === undefined ? 0 : i];
+    if (!b) return null;
+    const a = Math.atan2(playerPos.x - b.x, playerPos.z - b.z);
+    const x = b.x + Math.sin(a) * 1.9, z = b.z + Math.cos(a) * 1.9;
+    playerPos.set(x, groundY(x, z), z);
+    const p = players.get('me'); if (p) p.root.position.copy(playerPos);
+    playerYaw.v = Math.atan2(b.x - x, b.z - z);
+    rig.lookAt.set(x, 1.45, z); rig.snap = true;
+    return [+playerPos.x.toFixed(2), +playerPos.z.toFixed(2)];
+  },
+  /* 눈밭의 임의 좌표로 이동 (검증용) — 바라보는 방향도 지정할 수 있다 */
+  gotoPoint(x, z, yaw) {
+    playerPos.set(x, groundY(x, z), z);
+    const p = players.get('me'); if (p) p.root.position.copy(playerPos);
+    if (Number.isFinite(yaw)) playerYaw.v = yaw;
+    rig.lookAt.set(x + Math.sin(playerYaw.v), 1.45, z + Math.cos(playerYaw.v));
+    rig.snap = true;
+    return [+playerPos.x.toFixed(2), +playerPos.z.toFixed(2)];
+  },
+  breakNearest() { const ok = breakSnowman(); return { ok, built: ROLL.built.length, spot: this.rollState.spot }; },
+  simUnroll(x, z) { const ok = onRemoteUnroll({ x, z }); return { ok, built: ROLL.built.length }; },
+  get breakState() {
+    const n = nearestBuiltSnowman();
+    return {
+      count: ROLL.built.length, near: nearBuiltSnowman(),
+      nearest: n.rec ? { x: +n.rec.x.toFixed(2), z: +n.rec.z.toFixed(2) } : null, d: +n.d.toFixed(2),
+      btn: breakBtnEl ? { shown: breakBtnEl.classList.contains('show'), label: breakBtnEl.textContent } : null,
+      popups: ROLL.built.map((b) => ({ x: +b.x.toFixed(2), z: +b.z.toFixed(2), inScene: !!(b.grp && b.grp.parent) })),
     };
   },
   gotoSnowPatch(d) {
