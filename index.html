@@ -13101,7 +13101,7 @@ function updateFireworks(dt) {
       }
       /* 끝맺음 — 마지막 발이 다 터지면 끝. 아주 느린 환경에서도 실제 시간 기준으로 끊어
          버튼이 '불꽃놀이 중…' 에 갈히지 않게 남은 발은 지금 터뜨려 피날레로 마무리 */
-      if (FW.t > FW.dur + 1.2) {
+      if (FW.t > FW.dur) {
         while (FW.queued < FW.plan.length) { fwLaunch(FW.plan[FW.queued]); FW.queued++; }
         for (const r of FW.rockets) { r.x = r.x0; r.y = r.targetY; r.z = r.z0; fwBurstAt(r); }
         FW.rockets.length = 0;
