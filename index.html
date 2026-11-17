@@ -958,6 +958,63 @@
   #wishPanel .wp-input::placeholder, #treeWishPanel .wp-input::placeholder{color:#8a9cb8}
   #wishPanel .wp-note, #treeWishPanel .wp-note{margin:0;font-size:10px;line-height:1.45;color:#93a6c4}
 
+  /* ---------- 🎆 밤하늘 불꽃놀이 · 🎁 숨은 선물상자 보물찾기 ---------- */
+  #fwBtn, #giftBtn{
+    display:none;align-items:center;justify-content:center;gap:7px;
+    padding:10px 16px;border-radius:15px;cursor:pointer;font-family:inherit;
+    font-size:13.5px;font-weight:800;letter-spacing:-.3px;white-space:nowrap;
+    transition:transform .12s ease, box-shadow .18s, background .18s, color .18s;
+  }
+  #fwBtn.show, #giftBtn.show{display:flex}
+  #fwBtn:hover, #giftBtn:hover{transform:translateY(-2px)}
+  #fwBtn:active, #giftBtn:active{transform:scale(.94)}
+  #fwBtn{
+    color:#2b1247;background:linear-gradient(180deg,#f0dcff,#b58bf0);
+    border:1px solid rgba(246,234,255,.95);
+    box-shadow:0 10px 26px rgba(150,95,235,.4), inset 0 1px 0 rgba(255,255,255,.72);
+  }
+  #fwBtn.on{
+    color:#2b1247;background:linear-gradient(180deg,#fff0cf,#ffbf6a);
+    box-shadow:0 10px 28px rgba(255,170,70,.5), inset 0 1px 0 rgba(255,255,255,.8);
+  }
+  #giftBtn{
+    color:#3d1008;background:linear-gradient(180deg,#ffd9c2,#f2705f);
+    border:1px solid rgba(255,238,224,.95);
+    box-shadow:0 10px 26px rgba(230,90,70,.42), inset 0 1px 0 rgba(255,255,255,.72);
+  }
+  #giftBtn b{font-size:12px;font-weight:800;color:#7c2a12;opacity:.85}
+  /* 보물찾기 진행도 — 트리 배지 아래 작은 뱃지 */
+  #treasureBadge{
+    position:fixed;z-index:28;top:calc(116px + var(--safe-t));left:16px;
+    height:34px;padding:0 13px;font-size:11.5px;border-radius:12px;
+    border-color:rgba(255,196,150,.34);cursor:pointer;
+    transition:border-color .3s, box-shadow .3s, opacity .3s;
+  }
+  #treasureBadge b{color:var(--gold);font-weight:800;letter-spacing:.2px}
+  #treasureBadge.done{
+    border-color:rgba(255,216,120,.72);
+    box-shadow:0 0 22px rgba(255,200,90,.26), inset 0 1px 0 rgba(255,255,255,.14);
+  }
+  #treasureBadge.pop{animation:tbPop .5s cubic-bezier(.2,.7,.3,1)}
+  @keyframes tbPop{0%{transform:scale(1)}38%{transform:scale(1.12)}100%{transform:scale(1)}}
+  /* 모든 선물을 찾았을 때의 축하 배너 */
+  #treasureBanner{
+    position:fixed;left:50%;top:26%;z-index:62;pointer-events:none;padding:16px 44px 18px;
+    width:max-content;max-width:calc(100vw - 26px);
+    background:radial-gradient(62% 72% at 50% 48%, rgba(12,8,26,.74), rgba(12,8,26,.34) 62%, rgba(12,8,26,0) 78%);
+    transform:translate(-50%,8px) scale(.92);opacity:0;text-align:center;
+    transition:opacity .55s ease, transform .9s cubic-bezier(.2,.7,.3,1);
+  }
+  #treasureBanner.show{opacity:1;transform:translate(-50%,-10px) scale(1)}
+  #treasureBanner b{
+    display:block;font-size:27px;font-weight:900;letter-spacing:-.6px;color:#fff7e0;
+    text-shadow:0 6px 30px rgba(255,168,60,.85), 0 2px 10px rgba(0,0,0,.75);
+  }
+  #treasureBanner span{
+    display:block;margin-top:7px;font-size:12.5px;font-weight:700;color:#ffe9bd;
+    text-shadow:0 2px 12px rgba(0,0,0,.8);
+  }
+
   /* ---------- 점등식 축하 배너 ---------- */
   #treeShowBanner{
     position:fixed;left:50%;top:23%;z-index:62;pointer-events:none;padding:16px 46px 18px;
@@ -992,6 +1049,10 @@
     #treeHud .th-bar{display:none}
     #treeHudText{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
     #treeBtn, #cocoaBtn, #wishBtn, #roastBtn, #snowBtn, #flyBtn{padding:10px 13px;font-size:12.5px;border-radius:13px}
+    #fwBtn, #giftBtn{padding:10px 13px;font-size:12.5px;border-radius:13px}
+    #treasureBanner{top:32%}
+    #treasureBanner b{font-size:20px}
+    #treasureBanner span{font-size:10.5px}
     #rollBtn, #breakBtn{padding:10px 13px;font-size:12.5px;border-radius:13px}
     #ornPicker, #wishPanel, #treeWishPanel{bottom:calc(178px + var(--safe-b));padding:11px 12px 12px;gap:7px}
     #flyHud{top:calc(96px + var(--safe-t));height:36px;padding:0 5px 0 10px;gap:6px;font-size:11.5px;max-width:calc(100vw - 20px)}
@@ -1046,7 +1107,7 @@
 #chatLog{top:auto;opacity:0;pointer-events:none;transition:opacity .25s;bottom:calc(84px + var(--safe-b))}
 body.chatting #chatLog,body.chat-peek #chatLog{opacity:1;pointer-events:auto}
 body:not(.chatting) #chatLog{max-height:100px}
-#walkCard{position:fixed;z-index:24;left:16px;top:calc(120px + var(--safe-t));width:240px;max-width:calc(100vw - 32px);padding:10px 12px;color:var(--txt);font-size:12px}
+#walkCard{position:fixed;z-index:24;left:16px;top:calc(158px + var(--safe-t));width:240px;max-width:calc(100vw - 32px);padding:10px 12px;color:var(--txt);font-size:12px}
 #walkCard summary{cursor:pointer;font-weight:800;color:var(--gold);padding:4px 0;list-style:none}
 #walkCard summary::after{content:'＋';float:right}#walkCard[open] summary::after{content:'−'}
 #walkCard p{font-size:11px;line-height:1.5;color:var(--txt-dim);margin:6px 0}
@@ -1070,12 +1131,13 @@ body.photomode #walkCard{display:none!important}
  #hud .brand{width:auto}.brand-mark{display:none}.brand h1{font-size:13px}
  #netStatus{position:fixed;top:calc(51px + var(--safe-t));right:10px;height:28px!important;font-size:10px!important}
  #treeHud{top:calc(51px + var(--safe-t));left:10px;height:28px;max-width:165px;font-size:10px}
- #walkCard{left:10px;top:calc(88px + var(--safe-t));width:210px;padding:8px 10px}
+ #walkCard{left:10px;top:calc(118px + var(--safe-t));width:210px;padding:8px 10px}
+ #treasureBadge{top:calc(84px + var(--safe-t));left:10px;height:26px;padding:0 9px;font-size:10px;border-radius:10px}
  #walkCard:not([open]){width:160px}
  #joinModal{padding:10px}#joinModal .card{max-height:calc(100dvh - 20px);padding:16px 14px}
  .char-card .thumb{height:118px}.char-card .ds{display:none}
  #chatForm.open{width:calc(100% - 24px);left:12px;transform:none}
- #chatLog{width:min(300px,calc(100vw - 24px));left:12px}
+ #chatLog{width:min(268px,calc(100vw - 132px));left:12px}
  aside.panel{max-height:calc(100dvh - 150px);overflow-y:auto;top:calc(88px + var(--safe-t))}
 }
 /* 터치 화면 — 조이스틱(좌하단)·도크와 채팅 로그가 겹치지 않게 위로 올린다.
@@ -1144,6 +1206,8 @@ body.photomode #walkCard{display:none!important}
   <p><b>✨ 소원 비행</b> · 트리 앞에서 <b>✨ 소원 빌고 하늘 날기</b>(장식을 달아도 바로 시작) → 30초 동안 빛무리와 함께 광장 하늘을 납니다 · <span class="k">W A S D</span> 이동 · <span class="k">Space</span>/<span class="k">E</span> 상승 · <span class="k">Q</span>/<span class="k">C</span> 하강 (모바일 <b>▲▼</b>) · <b>🪂 착지</b>로 일찍 내려올 수 있어요</p>
   <p><b>겨울 놀이</b> · 사탕길 끝 <b>얼음 연못</b>에서 <b>⛸️ 스케이트</b> · 산타 옆 <b>우체통</b>에서 <b>📮 편지 보내기</b> · 연못 옆 <b>눈밭</b>에서 <b>❄️ 눈사람</b></p>
   <p><b>함께 걷기</b> · 아래 <b>방 코드</b>를 같은 값으로 맞춘 사람끼리 같은 광장에서 만납니다 (최대 10명)</p>
+  <p><b>🎆 불꽃놀이</b> · 우측 하단 <b>🎆 불꽃놀이</b> 버튼 — 밤하늘에 폭죽이 연달아 터지고, 같은 방 친구 화면에도 함께 터집니다</p>
+  <p><b>🎁 보물찾기</b> · 광장 곳곳에 숨은 선물상자 5개 — 반짝이는 상자에 다가가 <b>🎁 선물 열기</b>(또는 <span class="k">E</span>) · 다 찾으면 보너스 불꽃놀이</p>
   <p style="margin:0"><b>BGM</b> · 우측 상단 🔇 버튼으로 캐롤 켜기/끄기 (외부 음원 없이 브라우저 신스로 연주)</p>
 </aside>
 
@@ -1178,6 +1242,8 @@ body.photomode #walkCard{display:none!important}
   <button id="flyBtn" type="button" aria-label="트리에 소원 빌고 하늘 날기">✨ 소원 빌고 하늘 날기</button>
   <button id="cocoaBtn" type="button" aria-label="코코아 마시기">☕ 코코아 마시기</button>
   <button id="wishBtn" type="button" aria-label="소원 쪽지 남기기">📝 소원 쪽지 남기기</button>
+  <button id="fwBtn" type="button" aria-label="밤하늘 불꽃놀이를 터뜨리기" title="같은 방 친구 화면에도 함께 터져요">🎆 불꽃놀이</button>
+  <button id="giftBtn" type="button" aria-label="숨은 선물상자 열기">🎁 선물 열기</button>
   <div id="emojiRow">
     <button class="emoji-btn" data-emoji="🎄" aria-label="트리 리액션">🎄</button>
     <button class="emoji-btn" data-emoji="❄️" aria-label="눈 리액션">❄️</button>
@@ -1195,6 +1261,15 @@ body.photomode #walkCard{display:none!important}
 
 <div id="hint">W A S D 이동 · 드래그 시점 · 휠 줌 · 코티지 문 앞에서 F</div>
 <div id="toast"></div>
+
+<!-- ================= 🎁 숨은 선물상자 보물찾기 ================= -->
+<div class="badge hidden" id="treasureBadge" role="button" tabindex="0" title="광장 곳곳에 숨은 선물상자를 찾아 보세요 · 다 찾으면 다시 찾기">
+  🎁 보물 <b id="treasureText">0 / 5</b>
+</div>
+<div id="treasureBanner" aria-hidden="true">
+  <b>🎉 광장의 모든 선물을 찾았어요!</b>
+  <span>산타의 보너스 불꽃놀이가 밤하늘을 채웁니다</span>
+</div>
 
 <!-- ================= ✨ 소원 비행 (30초 하늘 날기) ================= -->
 <div id="flyHud" aria-hidden="true">
@@ -1565,6 +1640,8 @@ class NetworkAdapter {
   connect() {} disconnect() {} update() {} sendChat() {} sendReaction() {}
   /* 2차 업그레이드 — 공동 트리 점등 상태 · 소원 쪽지 */
   sendTree() {} sendWish() {}
+  /* 🎆 밤하늘 불꽃놀이 — 같은 방 사람과 같은 시드로 함께 터뜨린다 */
+  sendFireworks() {}
 }
 
 const BOT_PROFILES = [
@@ -2124,6 +2201,14 @@ class LiveNetwork extends NetworkAdapter {
       return;
     }
 
+    /* 🎆 불꽃놀이 — 시드만 보내면 각자 같은 타임라인으로 터뜨린다 */
+    if (m.t === 'fw') {
+      const seed = (m.s | 0) >>> 0;
+      if (!seed) return;
+      this.emit('fw', { seed, nickname: String(m.n || '엘프').slice(0, 10) });
+      return;
+    }
+
     if (m.t === 'chat') {
       const peer = this._touchPeer(m.id, m.n, m.c, now);
       if (!peer) return;
@@ -2312,6 +2397,17 @@ class LiveNetwork extends NetworkAdapter {
     }));
   }
 
+  /* 🎆 밤하늘 불꽃놀이 — 시드만 보내면 같은 방 친구가 같은 폭죽을 함께 본다 */
+  sendFireworks(seed) {
+    const s = (seed | 0) >>> 0;
+    if (!s) return;
+    if (this.connected && this.mqtt) {
+      this.mqtt.publish(`${this.base}/e/${this.cid}`, JSON.stringify({
+        t: 'fw', id: this.cid, n: this.profile.nickname, s, ts: Date.now(),
+      }));
+    }
+  }
+
   disconnect() {
     this._closed = true;
     this._clearTimers();
@@ -2357,7 +2453,7 @@ class NetRouter extends NetworkAdapter {
     this.room = sanitizeRoom(this.room);
     const live = new LiveNetwork(this.room);
     this._adopt(live, 'live');
-    ['join', 'leave', 'state', 'chat', 'reaction', 'tree', 'wish', 'roll', 'unroll', 'mail'].forEach((ev) => {
+    ['join', 'leave', 'state', 'chat', 'reaction', 'tree', 'wish', 'roll', 'unroll', 'mail', 'fw'].forEach((ev) => {
       live.on(ev, (d) => { if (this.active === live) this.emit(ev, d); });
     });
     live.on('status', (s) => { if (this.active === live) this.emit('status', s); });
@@ -2398,6 +2494,7 @@ class NetRouter extends NetworkAdapter {
   sendWish(t) { if (this.active) this.active.sendWish(t); }
   sendRollSnowman(s) { if (this.active && this.active.sendRollSnowman) this.active.sendRollSnowman(s); }
   sendRemoveSnowman(s) { if (this.active && this.active.sendRemoveSnowman) this.active.sendRemoveSnowman(s); }
+  sendFireworks(s) { if (this.active && this.active.sendFireworks) this.active.sendFireworks(s); }
   disconnect() { if (this.active) this.active.disconnect(); }
 
   info() {
@@ -8400,6 +8497,15 @@ window.addEventListener('keydown', (e) => {
      · F — 문 (단, 앉아 있으면 일어서기)
      예전에는 자리 앞에서 E 를 눌러도 문으로 나가 버렸다. */
   if (e.code === 'KeyE' && (SIT.near || SIT.active)) return;
+  /* 🎁 E — 반짝이는 선물상자 2.5m 안에서는 상자를 연다 */
+  if (e.code === 'KeyE' && ZONE.mode !== 'interior' && !PHOTO.active && !TRANS.busy) {
+    const near = nearestGift();
+    if (near.i >= 0) {
+      e.preventDefault();
+      openGift(near.i);
+      return;
+    }
+  }
   if (e.code === 'KeyF' && SIT.active) return;
   if (e.code === 'KeyE' && SIT.near) return;
   /* ⛸️ E — 얼음 연못 앞에서는 스케이트를 신고/벗는다 (문·앉기와 자리가 겹치지 않는다) */
@@ -10357,6 +10463,7 @@ function finishEntry(nick) {
   warmOtherCharacters(state.profile.character);   // 나머지 엘프는 뒤에서 조용히
   startWalkCard();
   treeOnJoin();                                  // 같은 방의 트리 점등 상태·소원 쪽지 되살리기
+  treasureOnJoin();                              // 🎁 보물찾기 진행도 되살리기
 }
 
 joinForm.addEventListener('submit', (e) => {
@@ -12636,6 +12743,758 @@ class FireCrackle {
   }
 }
 const fireAudio = new FireCrackle();
+
+/* =================================================================
+   🎆 F. 밤하늘 불꽃놀이 · 🎁 숨은 선물상자 보물찾기
+   -----------------------------------------------------------------
+   · 불꽃놀이 — 광장 상공(y 14~26m)으로 폭죽이 솟구쳐 4~6발이 연달아 터진다.
+     모든 불티는 Points 풀 하나(드로우콜 1회)를 돌려쓰고, 시드만 MQTT 로 보내
+     같은 방 친구 화면에서도 같은 타임라인으로 함께 터지게 한다.
+   · 보물찾기 — 지면 위 안전한 자리에 숨은 선물상자 5개. 2.5m 안에 다가가면
+     🎁 선물 열기 버튼(또는 E)이 뜨고, 열면 뚜껑·리본 파티클·축하 토스트가 나온다.
+   ================================================================= */
+
+/* ---------- 불티 파티클 풀 ----------
+   가까이서 쓰는 작은 불티(NEAR)와 20m 밖 밤하늘에서 쓰는 폭죽(FAR)은 화면에서
+   보이는 크기가 10배 넘게 차이 난다. PointsMaterial 의 size 는 재질 하나에 하나뿐이라
+   크기가 다른 두 풀을 따로 두고(드로우콜 2) 각자 가장 알맞은 점 크기로 그린다. */
+const TEX_SPARK = canvasTexture(64, 64, (x, w) => {
+  const g = x.createRadialGradient(w / 2, w / 2, 0, w / 2, w / 2, w / 2);
+  g.addColorStop(0.00, 'rgba(255,255,255,1)');
+  g.addColorStop(0.42, 'rgba(255,255,255,0.98)');
+  g.addColorStop(0.62, 'rgba(255,255,255,0.42)');
+  g.addColorStop(1.00, 'rgba(255,255,255,0)');
+  x.fillStyle = g;
+  x.fillRect(0, 0, w, w);
+});
+
+function makeSparkPool(max, size, name) {
+  const pool = {
+    max, size,
+    pos: new Float32Array(max * 3), col: new Float32Array(max * 3), vel: new Float32Array(max * 3),
+    base: new Float32Array(max * 3), life: new Float32Array(max), dur: new Float32Array(max),
+    grav: new Float32Array(max), tw: new Uint8Array(max), free: new Uint32Array(max),
+    freeN: max, liveN: 0,
+  };
+  for (let i = 0; i < max; i++) { pool.pos[i * 3 + 1] = -999; pool.free[i] = i; }
+  pool.geo = new THREE.BufferGeometry();
+  pool.geo.setAttribute('position', new THREE.BufferAttribute(pool.pos, 3));
+  pool.geo.setAttribute('color', new THREE.BufferAttribute(pool.col, 3));
+  pool.mat = new THREE.PointsMaterial({
+    size, map: TEX_SPARK, vertexColors: true, transparent: true, opacity: 1,
+    depthWrite: false, blending: THREE.AdditiveBlending, sizeAttenuation: true, toneMapped: false, fog: false,
+  });
+  pool.points = new THREE.Points(pool.geo, pool.mat);
+  pool.points.frustumCulled = false;
+  pool.points.name = name;
+  scene.add(pool.points);
+  return pool;
+}
+
+/* 폭죽은 20m 밖 밤하늘이라 점 하나로 그린다. 선물·캐릭터의 잔불은 바로 눈앞이라
+   점 크기를 입자마다 다르게 줄 수 있는 스프라이트로 따로 그린다. */
+const FW_POOL = makeSparkPool(IS_TOUCH ? 1600 : 2900, IS_TOUCH ? 0.86 : 1.0, 'fireworks');
+
+/* 눈앞의 작은 불티 — 스프라이트 하나가 입자 하나 (개수는 많아야 20~30개) */
+const SPARK_SPRITES = [];
+function spawnSpark(x, y, z, color, size, life, vx, vy, vz, grav) {
+  if (SPARK_SPRITES.length > 90) return null;
+  const mat = new THREE.SpriteMaterial({
+    map: TEX_SPARK, color, transparent: true, opacity: 0.95,
+    depthWrite: false, blending: THREE.AdditiveBlending, toneMapped: false, fog: false,
+  });
+  const sp = new THREE.Sprite(mat);
+  sp.position.set(x, y, z);
+  sp.scale.set(size, size, 1);
+  scene.add(sp);
+  SPARK_SPRITES.push({ sp, vx, vy, vz, life: 0, dur: life, size, grav: grav === undefined ? 1.5 : grav });
+  return sp;
+}
+function updateSparkSprites(dt) {
+  for (let i = SPARK_SPRITES.length - 1; i >= 0; i--) {
+    const s = SPARK_SPRITES[i];
+    s.life += dt;
+    const k = s.life / s.dur;
+    s.vy -= s.grav * dt;
+    s.sp.position.x += s.vx * dt;
+    s.sp.position.y += s.vy * dt;
+    s.sp.position.z += s.vz * dt;
+    s.sp.scale.set(s.size * (1 + k * 0.5), s.size * (1 + k * 0.5), 1);
+    s.sp.material.opacity = 0.95 * (1 - k * k * 0.85);
+    if (k >= 1) {
+      scene.remove(s.sp);
+      s.sp.material.dispose();
+      SPARK_SPRITES.splice(i, 1);
+    }
+  }
+}
+
+function sparkEmit(pool, x, y, z, vx, vy, vz, r, g, b, life, grav, twinkle) {
+  if (pool.freeN <= 0) return -1;
+  const i = pool.free[--pool.freeN];
+  const i3 = i * 3;
+  const k = 1.15;                             // 밤하늘 불티는 조금 더 밝게
+  pool.pos[i3] = x; pool.pos[i3 + 1] = y; pool.pos[i3 + 2] = z;
+  pool.vel[i3] = vx; pool.vel[i3 + 1] = vy; pool.vel[i3 + 2] = vz;
+  pool.base[i3] = r * k; pool.base[i3 + 1] = g * k; pool.base[i3 + 2] = b * k;
+  pool.col[i3] = r * k; pool.col[i3 + 1] = g * k; pool.col[i3 + 2] = b * k;
+  pool.life[i] = life; pool.dur[i] = life; pool.grav[i] = grav; pool.tw[i] = twinkle ? 1 : 0;
+  pool.liveN++;
+  return i;
+}
+
+function sparkPoolUpdate(pool, dt) {
+  if (pool.liveN <= 0) return;
+  const drag = Math.pow(0.62, dt);
+  for (let i = 0; i < pool.max; i++) {
+    if (pool.dur[i] <= 0) continue;
+    pool.life[i] -= dt;
+    const i3 = i * 3;
+    if (pool.life[i] <= 0) {
+      pool.dur[i] = 0;
+      pool.pos[i3 + 1] = -999;
+      pool.col[i3] = 0; pool.col[i3 + 1] = 0; pool.col[i3 + 2] = 0;
+      pool.free[pool.freeN++] = i;
+      pool.liveN--;
+      continue;
+    }
+    pool.vel[i3] *= drag;
+    pool.vel[i3 + 2] *= drag;
+    pool.vel[i3 + 1] = pool.vel[i3 + 1] * drag - pool.grav[i] * dt;
+    pool.pos[i3] += pool.vel[i3] * dt;
+    pool.pos[i3 + 1] += pool.vel[i3 + 1] * dt;
+    pool.pos[i3 + 2] += pool.vel[i3 + 2] * dt;
+    const frac = pool.life[i] / pool.dur[i];
+    const fade = frac < 0.38 ? frac / 0.38 : 1;
+    const tw = pool.tw[i] ? 0.55 + 0.45 * Math.sin(pool.life[i] * 38 + i * 1.7) : 1;
+    const f = fade * tw;
+    pool.col[i3] = pool.base[i3] * f;
+    pool.col[i3 + 1] = pool.base[i3 + 1] * f;
+    pool.col[i3 + 2] = pool.base[i3 + 2] * f;
+  }
+  pool.geo.attributes.position.needsUpdate = true;
+  pool.geo.attributes.color.needsUpdate = true;
+}
+
+function sparkPoolClear(pool) {
+  for (let i = 0; i < pool.max; i++) {
+    if (pool.dur[i] <= 0) continue;
+    pool.dur[i] = 0;
+    pool.pos[i * 3 + 1] = -999;
+    pool.col[i * 3] = pool.col[i * 3 + 1] = pool.col[i * 3 + 2] = 0;
+    pool.free[pool.freeN++] = i;
+    pool.liveN--;
+  }
+  pool.geo.attributes.position.needsUpdate = true;
+  pool.geo.attributes.color.needsUpdate = true;
+}
+
+const FW_COLORS = [0xffd27a, 0xff6b6b, 0x6ef0a8, 0xa9d8ff, 0xffb3e6, 0xfff0b8, 0xc9a2ff, 0xff8f4a];
+const FW = {
+  active: false, t: 0, dur: 0, seed: 0, plan: [], queued: 0,
+  rockets: [], flashes: [], sfx: 1,
+  _r: ((Math.random() * 0xffffffff) >>> 0) || 0x9e3779b9,   // 불꽃 연출용 난수 상태
+};
+
+function fwSeedSet(s) { FW._r = ((s | 0) >>> 0) || 0x9e3779b9; }
+function fwRnd() {
+  let x = FW._r || 0x9e3779b9;
+  FW._r = x;
+  x ^= (x << 13); x >>>= 0;
+  x ^= (x >>> 17);
+  x ^= (x << 5); x >>>= 0;
+  FW._r = x;
+  return x / 4294967296;
+}
+const fwR = (a, b) => a + fwRnd() * (b - a);
+
+/* 시드 하나로 4~6발의 발사 타임라인을 만든다 — 같은 시드면 누구 화면에서나 같은 폭죽 */
+function fwPlanFor(seed) {
+  fwSeedSet(seed);
+  const n = 4 + Math.floor(fwRnd() * 3);
+  const plan = [];
+  const span = 4.3;                                  // 마지막 발까지 — 전체 6~8초
+  const gap = span / Math.max(1, n - 1);
+  let t = 0.22;
+  const baseA = fwR(0, TAU);
+  for (let i = 0; i < n; i++) {
+    const a = baseA + (i / n) * TAU + fwR(-0.5, 0.5);
+    const rad = fwR(2.5, 9.5);
+    const col1 = FW_COLORS[(fwRnd() * FW_COLORS.length) | 0];
+    let col2 = FW_COLORS[(fwRnd() * FW_COLORS.length) | 0];
+    if (col2 === col1) col2 = FW_COLORS[(fwRnd() * FW_COLORS.length) | 0];
+    plan.push({
+      at: t,
+      x: Math.sin(a) * rad, z: Math.cos(a) * rad,
+      y: fwR(14.5, 24.0),
+      color: col1, color2: col2,
+      sparks: IS_TOUCH ? 84 : 112,
+      kind: fwRnd() < 0.3 ? 'ring' : 'sphere',
+      spin: fwR(-1, 1), tilt: fwR(-0.9, 0.9),
+      speed: fwR(7.4, 11.2),
+      rise: fwR(0.55, 0.85),
+    });
+    t += gap * fwR(0.9, 1.1);
+  }
+  return { plan, dur: t + 1.9 };
+}
+
+function fwSoundLaunch(dist) {
+  if (!carol.playing || !carol.ctx || !carol.master) return;
+  const ctx = carol.ctx, t = ctx.currentTime;
+  const lvl = 0.11 * FW.sfx * clamp(1 - dist / 46, 0.22, 1);
+  const g = ctx.createGain();
+  g.gain.setValueAtTime(0.0001, t);
+  g.gain.exponentialRampToValueAtTime(lvl, t + 0.04);
+  g.gain.exponentialRampToValueAtTime(0.0001, t + 0.44);
+  g.connect(carol.master);
+  const o = ctx.createOscillator();
+  o.type = 'sine';
+  o.frequency.setValueAtTime(200, t);
+  o.frequency.exponentialRampToValueAtTime(960, t + 0.4);
+  o.connect(g); o.start(t); o.stop(t + 0.46);
+  fwNoise(t, 0.34, lvl * 0.55, 900, 2600, carol.master);
+}
+
+function fwSoundBurst(dist) {
+  if (!carol.playing || !carol.ctx || !carol.master) return;
+  const ctx = carol.ctx, t = ctx.currentTime;
+  const lvl = 0.16 * FW.sfx * clamp(1 - dist / 60, 0.3, 1);
+  /* 낮게 울리는 통 울림 — 사방으로 퍼지는 폭죽의 몸통 */
+  const g = ctx.createGain();
+  g.gain.setValueAtTime(0.0001, t);
+  g.gain.exponentialRampToValueAtTime(lvl, t + 0.012);
+  g.gain.exponentialRampToValueAtTime(0.0001, t + 0.36);
+  g.connect(carol.master);
+  const o = ctx.createOscillator();
+  o.type = 'sine';
+  o.frequency.setValueAtTime(112, t);
+  o.frequency.exponentialRampToValueAtTime(48, t + 0.3);
+  o.connect(g); o.start(t); o.stop(t + 0.38);
+  /* 터지며 흩날리는 잔불 — 부드러운 화이트노이즈 두 갈래 */
+  fwNoise(t + 0.01, 0.85, lvl * 0.62, 1600, 5200, carol.master);
+  fwNoise(t + 0.02, 1.15, lvl * 0.3, 420, 1500, carol.master);
+}
+
+let fwNoiseBuf = null;
+function fwNoise(t, dur, lvl, f0, f1, dest) {
+  const ctx = carol.ctx;
+  if (!fwNoiseBuf) {
+    const len = Math.floor(ctx.sampleRate * 1.4);
+    fwNoiseBuf = ctx.createBuffer(1, len, ctx.sampleRate);
+    const d = fwNoiseBuf.getChannelData(0);
+    for (let i = 0; i < len; i++) d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / len, 1.6);
+  }
+  const src = ctx.createBufferSource();
+  src.buffer = fwNoiseBuf;
+  const bp = ctx.createBiquadFilter();
+  bp.type = 'bandpass';
+  bp.frequency.setValueAtTime(f0, t);
+  bp.frequency.exponentialRampToValueAtTime(f1, t + dur * 0.7);
+  bp.Q.value = 0.7;
+  const g = ctx.createGain();
+  g.gain.setValueAtTime(0.0001, t);
+  g.gain.exponentialRampToValueAtTime(lvl, t + 0.02);
+  g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+  src.connect(bp); bp.connect(g); g.connect(dest);
+  src.start(t); src.stop(t + dur + 0.05);
+}
+
+function fwBurstAt(rk) {
+  const b = rk.burst;
+  const c1 = new THREE.Color(b.color);
+  const c2 = new THREE.Color(b.color2);
+  const cw = new THREE.Color(0xfff6e2);
+  const n = b.sparks;
+  const cs = Math.cos(b.tilt), sn = Math.sin(b.tilt);
+  for (let i = 0; i < n; i++) {
+    let ux, uy, uz;
+    if (b.kind === 'ring') {
+      const a = (i / n) * TAU + b.spin;
+      ux = Math.cos(a); uz = Math.sin(a); uy = 0;
+      const ty = uy * cs - uz * sn;          // 고리를 살짝 기울인다
+      uz = uy * sn + uz * cs; uy = ty;
+    } else {
+      const u = fwRnd() * 2 - 1, ph = fwRnd() * TAU;
+      const rr = Math.sqrt(Math.max(0, 1 - u * u));
+      ux = rr * Math.cos(ph); uy = u; uz = rr * Math.sin(ph);
+    }
+    const sp = b.speed * (b.kind === 'ring' ? 1 : 0.5 + Math.pow(fwRnd(), 0.55) * 0.72);
+    const roll = fwRnd();
+    const col = roll < 0.62 ? c1 : (roll < 0.86 ? c2 : cw);
+    sparkEmit(FW_POOL,
+      b.x, b.y, b.z,
+      ux * sp + fwR(-0.35, 0.35), uy * sp + fwR(-0.3, 0.3), uz * sp + fwR(-0.35, 0.35),
+      col.r, col.g, col.b,
+      fwR(1.35, 2.25), 3.1, fwRnd() < 0.55
+    );
+  }
+  /* 터지는 순간의 섬광 — 블룸이 이 한 점을 크게 번지게 한다 */
+  const fl = glowSprite(0xfff4d6, 4.6, 1);
+  fl.position.set(b.x, b.y, b.z);
+  scene.add(fl);
+  FW.flashes.push({ sp: fl, t: 0, dur: 0.42 });
+  fwSoundBurst(Math.hypot(playerPos.x - b.x, playerPos.z - b.z));
+}
+
+function fwLaunch(b) {
+  const y0 = Math.max(0.5, groundY(b.x, b.z) + 1.0);
+  FW.rockets.push({
+    x: b.x, y: y0, z: b.z, targetY: b.y, vy: (b.y - y0) / b.rise,
+    t: 0, ph: fwR(0, TAU), burst: b,
+  });
+  fwSoundLaunch(Math.hypot(playerPos.x - b.x, playerPos.z - b.z));
+}
+
+function startFireworks(opts = {}) {
+  if (!state.joined) return false;
+  if (ZONE.mode === 'interior') return false;       // 실내에서는 밤하늘을 볼 수 없다
+  const seed = ((opts.seed | 0) >>> 0) || ((Math.random() * 0x7fffffff) | 0) || 20261225;
+  const { plan, dur } = fwPlanFor(seed);
+  FW.seed = seed;
+  FW.plan = plan;
+  FW.dur = dur;
+  FW.t = 0;
+  FW.queued = 0;
+  FW.active = true;
+  FW.sfx = opts.remote ? 0.85 : 1;
+  if (opts.broadcast !== false) net.sendFireworks(seed);
+  return seed;
+}
+
+function updateFireworks(dt) {
+  if (FW.active) {
+    FW.t += dt;
+    while (FW.queued < FW.plan.length && FW.t >= FW.plan[FW.queued].at) {
+      fwLaunch(FW.plan[FW.queued]);
+      FW.queued++;
+    }
+    if (FW.queued >= FW.plan.length && !FW.rockets.length) FW.active = false;
+  }
+  /* 솟아오르는 폭죽 — 꼬리를 남기며 목표 고도에 닿으면 터진다 */
+  for (let i = FW.rockets.length - 1; i >= 0; i--) {
+    const r = FW.rockets[i];
+    r.t += dt;
+    r.y += r.vy * dt;
+    r.x += Math.sin(r.t * 7.5 + r.ph) * 0.55 * dt;
+    r.z += Math.cos(r.t * 6.1 + r.ph) * 0.45 * dt;
+    sparkEmit(FW_POOL, r.x, r.y, r.z, fwR(-0.2, 0.2), fwR(-1.5, -0.5), fwR(-0.2, 0.2),
+      1, 0.88, 0.56, fwR(0.16, 0.3), 0.5, 0);
+    if (r.y >= r.targetY) {
+      fwBurstAt(r);
+      FW.rockets.splice(i, 1);
+    }
+  }
+  /* 섬광 페이드 */
+  for (let i = FW.flashes.length - 1; i >= 0; i--) {
+    const f = FW.flashes[i];
+    f.t += dt;
+    const k = clamp(f.t / f.dur, 0, 1);
+    f.sp.material.opacity = 0.95 * (1 - k) * (1 - k);
+    const s = 4.6 + k * 4.4;
+    f.sp.scale.set(s, s, 1);
+    if (k >= 1) {
+      scene.remove(f.sp);
+      f.sp.material.dispose();
+      FW.flashes.splice(i, 1);
+    }
+  }
+  sparkPoolUpdate(FW_POOL, dt);
+}
+
+/* ---------- 🎁 숨은 선물상자 ---------- */
+const GIFT_TOTAL = 5;
+const GIFT_SPOTS = [
+  { id: 'snow',   x: 2.40,  z: -27.60, where: '눈밭' },
+  { id: 'pond',   x: -14.60, z: -21.60, where: '얼음 연못 옆' },
+  { id: 'house',  x: 18.60, z: 19.20,  where: '오두막 뒤' },
+  { id: 'forest', x: 0.40, z: 29.20, where: '소나무 숲 가장자리' },
+  { id: 'post',   x: 8.60,  z: -9.00,  where: '산타 우체국 옆' },
+];
+const GIFT_PALETTE = [
+  { box: 0xd8333f, ribbon: 0xffd479 },
+  { box: 0x1f7a4d, ribbon: 0xffe6a8 },
+  { box: 0x2f5fa8, ribbon: 0xf7e2b0 },
+  { box: 0x8a3fa8, ribbon: 0xffcf7a },
+  { box: 0xc4562a, ribbon: 0xfff0c2 },
+];
+const GIFT_REACH = 2.5;
+const TREASURE = {
+  found: [], gifts: [], celebrateT: 0, celebrated: false,
+  glowT: 0, sparkAcc: 0, hintT: 0, openFxTotal: 0,
+};
+const TREASURE_KEY = () => 'xmas-treasure-v1:' + (state.room || 'main');
+
+/* 자리 검증 — 콜라이더·장식·문 앞·다른 상자와 겹치면 안 된다 */
+function giftSpotClear(x, z, self) {
+  if (!walkableAt(x, z)) return false;
+  if (Math.hypot(x, z) > R_SNOW - 0.5) return false;
+  if (inPondFence && inPondFence(x, z)) return false;
+  for (let i = 0; i < colliders.length; i++) {
+    const c = colliders[i];
+    if (Math.hypot(x - c.x, z - c.z) < c.r + 1.05) return false;
+  }
+  for (let i = 0; i < DECOR_BLOCKERS.length; i++) {
+    const d = DECOR_BLOCKERS[i];
+    if (Math.hypot(x - d.x, z - d.z) < d.r + 0.8) return false;
+  }
+  for (let i = 0; i < HOUSE_DOORS.length; i++) {
+    const d = HOUSE_DOORS[i];
+    if (Math.hypot(x - d.door.x, z - d.door.z) < 1.8) return false;
+    if (Math.hypot(x - d.stand.x, z - d.stand.z) < 1.5) return false;
+  }
+  for (const g of TREASURE.gifts) {
+    if (g.spot === self || !g.placed) continue;
+    if (Math.hypot(x - g.spot.x, z - g.spot.z) < 4.0) return false;
+  }
+  return true;
+}
+
+/* 주변에서 가장 넉넉한 빈 자리까지의 여유 (콜라이더·장식) */
+function giftGap(x, z) {
+  let gap = 99;
+  for (let i = 0; i < colliders.length; i++) {
+    const c = colliders[i];
+    gap = Math.min(gap, Math.hypot(x - c.x, z - c.z) - c.r);
+  }
+  for (let i = 0; i < DECOR_BLOCKERS.length; i++) {
+    const d = DECOR_BLOCKERS[i];
+    gap = Math.min(gap, Math.hypot(x - d.x, z - d.z) - d.r);
+  }
+  return +gap.toFixed(2);
+}
+
+/* 지정한 자리에서 가장 가까운 안전한 지점을 찾는다 (0.35m 고리 탐색) */
+function findGiftSpot(spot) {
+  for (let ring = 0; ring <= 10; ring++) {
+    const rad = ring * 0.35;
+    const n = ring === 0 ? 1 : 16;
+    const hits = [];
+    for (let k = 0; k < n; k++) {
+      const a = (k / n) * TAU + ring * 0.37;
+      const x = spot.x + Math.sin(a) * rad, z = spot.z + Math.cos(a) * rad;
+      if (giftSpotClear(x, z, spot)) hits.push({ x, z, gap: giftGap(x, z) });
+    }
+    if (hits.length) {
+      hits.sort((a, b) => b.gap - a.gap);
+      return hits[0];
+    }
+  }
+  return null;
+}
+
+function makeGiftProp(spot, idx) {
+  const pal = GIFT_PALETTE[idx % GIFT_PALETTE.length];
+  const s = 0.66, h = 0.46;
+  const boxMat = new THREE.MeshStandardMaterial({
+    color: pal.box, roughness: 0.56, metalness: 0.06, envMapIntensity: 0.65,
+  });
+  const ribMat = new THREE.MeshStandardMaterial({
+    color: pal.ribbon, roughness: 0.34, metalness: 0.5, envMapIntensity: 1.05,
+    emissive: new THREE.Color(pal.ribbon), emissiveIntensity: 0.22,
+  });
+  const g = new THREE.Group();
+  g.name = 'gift-' + spot.id;
+  const body = new THREE.Mesh(new THREE.BoxGeometry(s, h, s), boxMat);
+  body.position.y = h / 2;
+  g.add(body);
+  const rw = 0.115;
+  const ribA = new THREE.Mesh(new THREE.BoxGeometry(s + 0.015, h + 0.01, rw), ribMat);
+  ribA.position.y = h / 2; g.add(ribA);
+  const ribB = new THREE.Mesh(new THREE.BoxGeometry(rw, h + 0.01, s + 0.015), ribMat);
+  ribB.position.y = h / 2; g.add(ribB);
+  /* 뚜껑 — 뒤쪽 모서리를 축으로 열린다 */
+  const lid = new THREE.Group();
+  lid.position.set(0, h, -s / 2);
+  const lidBox = new THREE.Mesh(new THREE.BoxGeometry(s + 0.07, 0.12, s + 0.07), boxMat);
+  lidBox.position.set(0, 0.06, s / 2);
+  lid.add(lidBox);
+  const lidRibA = new THREE.Mesh(new THREE.BoxGeometry(s + 0.09, 0.14, rw), ribMat);
+  lidRibA.position.set(0, 0.06, s / 2); lid.add(lidRibA);
+  const lidRibB = new THREE.Mesh(new THREE.BoxGeometry(rw, 0.14, s + 0.09), ribMat);
+  lidRibB.position.set(0, 0.06, s / 2); lid.add(lidRibB);
+  /* 리본 매듭 — 작은 고리 두 개 */
+  const knotGeo = new THREE.TorusGeometry(0.105, 0.032, 5, 12);
+  for (const sgn of [-1, 1]) {
+    const loop = new THREE.Mesh(knotGeo, ribMat);
+    loop.position.set(sgn * 0.09, 0.2, s / 2 + 0.02);
+    loop.rotation.set(Math.PI / 2, 0, sgn * 0.55);
+    loop.scale.set(1, 1, 0.62);
+    lid.add(loop);
+  }
+  const knob = new THREE.Mesh(new THREE.SphereGeometry(0.058, 8, 6), ribMat);
+  knob.position.set(0, 0.185, s / 2 + 0.02);
+  lid.add(knob);
+  g.add(lid);
+  /* 은은한 반짝임 — 가까이 가면 확실히 보이고, 멀리서는 작은 빛으로만 */
+  const glow = glowSprite(0xffe3a8, 1.15, 0.13);
+  glow.position.set(0, h + 0.62, 0);
+  g.add(glow);
+  g.position.set(spot.x, groundY(spot.x, spot.z), spot.z);
+  g.rotation.y = rand(0, TAU);
+  VILLAGE_ROOT.add(g);
+  return { spot, group: g, lid, glow, open: 0, opening: false, boxMat, ribMat, placed: true };
+}
+
+function buildTreasure() {
+  GIFT_SPOTS.forEach((spot, idx) => {
+    const found = findGiftSpot(spot);
+    if (found) {
+      spot.x = +found.x.toFixed(2);
+      spot.z = +found.z.toFixed(2);
+    } else {
+      console.warn('[treasure] 자리를 찾지 못함:', spot.id);
+    }
+    TREASURE.gifts.push(makeGiftProp(spot, idx));
+  });
+}
+buildTreasure();
+
+const treasureBadgeEl = document.getElementById('treasureBadge');
+const treasureTextEl = document.getElementById('treasureText');
+const treasureBannerEl = document.getElementById('treasureBanner');
+const fwBtnEl = document.getElementById('fwBtn');
+const giftBtnEl = document.getElementById('giftBtn');
+let giftBtnShown = false;
+
+function treasureLoad() {
+  let list = [];
+  try { list = JSON.parse(localStorage.getItem(TREASURE_KEY()) || '[]') || []; } catch (_) { list = []; }
+  TREASURE.found = GIFT_SPOTS.map((s) => s.id).filter((id) => list.indexOf(id) >= 0);
+  TREASURE.celebrated = TREASURE.found.length >= GIFT_TOTAL;
+  for (const g of TREASURE.gifts) {
+    const open = TREASURE.found.indexOf(g.spot.id) >= 0;
+    g.open = open ? 1 : 0;
+    g.opening = false;
+    g.lid.rotation.x = open ? -1.28 : 0;
+    g.lid.position.y = 0.46 + (open ? 0.02 : 0);
+    g.glow.material.opacity = open ? 0.03 : 0.13;
+  }
+  updateTreasureBadge(false);
+}
+
+function treasureSave() {
+  try { localStorage.setItem(TREASURE_KEY(), JSON.stringify(TREASURE.found)); } catch (_) {}
+}
+
+function updateTreasureBadge(pop) {
+  const n = TREASURE.found.length;
+  if (treasureTextEl) treasureTextEl.textContent = n + ' / ' + GIFT_TOTAL;
+  if (treasureBadgeEl) {
+    treasureBadgeEl.classList.toggle('done', n >= GIFT_TOTAL);
+    treasureBadgeEl.title = n >= GIFT_TOTAL
+      ? '🎉 모든 선물을 찾았어요 — 누르면 다시 찾기를 시작합니다'
+      : '광장 곳곳에 숨은 선물상자 ' + n + ' / ' + GIFT_TOTAL + ' · 반짝이는 상자를 찾아 보세요';
+    if (pop) {
+      treasureBadgeEl.classList.remove('pop');
+      void treasureBadgeEl.offsetWidth;
+      treasureBadgeEl.classList.add('pop');
+    }
+  }
+}
+
+function treasureVisible() {
+  return state.joined && ZONE.mode === 'plaza';
+}
+
+function nearestGift() {
+  let best = -1, bd = GIFT_REACH;
+  for (let i = 0; i < TREASURE.gifts.length; i++) {
+    const g = TREASURE.gifts[i];
+    if (g.open > 0.5 || g.opening || TREASURE.found.indexOf(g.spot.id) >= 0) continue;
+    const d = Math.hypot(playerPos.x - g.spot.x, playerPos.z - g.spot.z);
+    if (d < bd) { bd = d; best = i; }
+  }
+  return { i: best, d: +bd.toFixed(2) };
+}
+
+function giftSparkleBurst(g, big) {
+  const n = big ? 34 : 26;
+  const colors = [0xffe08a, 0xfff6dc, 0xffb3d4, 0xffd27a];
+  const gy = groundY(g.spot.x, g.spot.z);
+  for (let i = 0; i < n; i++) {
+    const a = fwR(0, TAU), rr = fwR(0.04, 0.36);
+    spawnSpark(
+      g.spot.x + Math.cos(a) * rr, gy + fwR(0.62, 0.95), g.spot.z + Math.sin(a) * rr,
+      colors[(fwRnd() * colors.length) | 0],
+      fwR(0.2, 0.38), fwR(1.2, 2.0),
+      Math.cos(a) * fwR(0.5, 1.5), fwR(2.1, 4.0), Math.sin(a) * fwR(0.5, 1.5), 2.4
+    );
+  }
+  const fl = glowSprite(0xfff0c0, 1.15, 0.55);
+  fl.position.set(g.spot.x, gy + 0.95, g.spot.z);
+  scene.add(fl);
+  FW.flashes.push({ sp: fl, t: 0, dur: 0.34 });
+}
+
+const GIFT_WORDS = [
+  '🎄 따뜻한 코코아 한 잔과 포근한 밤!',
+  '🔔 산타의 종이 울렸어요 — 오늘은 좋은 일만!',
+  '🧦 벽난로에 걸린 양말 속엔 작은 행운이!',
+  '⭐ 올해 마지막 소원이 이루어질 것 같아요!',
+  '🍪 진저브레드 쿠키 한 봉지, 마음껏 드세요!',
+  '🦌 루돌프가 코를 반짝이며 축하한다고 해요!',
+  '🧣 따뜻한 목도리 한 장 — 겨울이 더 포근해져요',
+  '🕯 창가의 촛불 같은 작은 기쁨을 드려요',
+  '☃️ 눈사람 친구가 손을 흔들어요!',
+  '🍬 사탕 지팡이 하나, 달콤한 하루 되세요!',
+];
+
+function treasureCelebrate() {
+  if (TREASURE.celebrated) return;
+  TREASURE.celebrated = true;
+  TREASURE.celebrateT = 7.5;
+  TREASURE.glowT = 7.5;
+  if (treasureBannerEl) {
+    treasureBannerEl.classList.add('show');
+    clearTimeout(TREASURE.bannerTimer);
+    TREASURE.bannerTimer = setTimeout(() => treasureBannerEl.classList.remove('show'), 6200);
+  }
+  toast('🎉 광장의 모든 선물을 찾았어요! 보너스 불꽃놀이!', 5200);
+  spawnFloater('me', '🎁');
+  startFireworks({ seed: (Date.now() & 0xffffff) + 7 });
+}
+
+function openGift(i, opts = {}) {
+  const g = TREASURE.gifts[i];
+  if (!g) return false;
+  const id = g.spot.id;
+  if (g.opening || g.open > 0.5 || TREASURE.found.indexOf(id) >= 0) return false;
+  g.opening = true;
+  g.open = Math.max(g.open, 0.001);
+  TREASURE.found.push(id);
+  treasureSave();
+  updateTreasureBadge(true);
+  giftSparkleBurst(g, TREASURE.found.length >= GIFT_TOTAL);
+  const n = TREASURE.found.length;
+  if (!opts.silent) {
+    const word = GIFT_WORDS[(Math.random() * GIFT_WORDS.length) | 0];
+    toast('🎁 보물 발견! (' + n + '/' + GIFT_TOTAL + ') ' + word, 3600);
+    spawnFloater('me', '🎁');
+  }
+  if (n >= GIFT_TOTAL) treasureCelebrate();
+  return true;
+}
+
+function treasureReset(quiet) {
+  TREASURE.found = [];
+  TREASURE.celebrated = false;
+  TREASURE.celebrateT = 0;
+  TREASURE.glowT = 0;
+  for (const g of TREASURE.gifts) {
+    g.open = 0; g.opening = false;
+    g.lid.rotation.x = 0;
+    g.lid.position.y = 0.46;
+    g.glow.material.opacity = 0.13;
+  }
+  treasureSave();
+  updateTreasureBadge(false);
+  if (treasureBannerEl) treasureBannerEl.classList.remove('show');
+  if (!quiet) toast('🎁 다시 찾기 시작! 광장 곳곳의 반짝이는 선물상자를 찾아 보세요', 3000);
+  return TREASURE.found.length;
+}
+
+function treasureOnJoin() {
+  treasureLoad();
+  if (treasureBadgeEl) treasureBadgeEl.classList.remove('hidden');
+}
+
+function updateTreasure(dt) {
+  const plaza = ZONE.mode !== 'interior';
+  /* 🎆 불꽃놀이 버튼 — 광장에서 언제든 */
+  if (fwBtnEl) {
+    const showFw = state.joined && plaza && !PHOTO.active && !TRANS.busy && !FLY.active;
+    if (showFw !== fwBtnEl.classList.contains('show')) fwBtnEl.classList.toggle('show', showFw);
+    fwBtnEl.classList.toggle('on', FW.active);
+    const fwLabel = FW.active ? '🎆 불꽃놀이 중…' : '🎆 불꽃놀이';
+    if (fwBtnEl.textContent !== fwLabel) fwBtnEl.textContent = fwLabel;
+  }
+  /* 🎁 선물 열기 — 2.5m 안에 아직 열지 않은 상자가 있을 때 */
+  const near = (state.joined && plaza && !PHOTO.active && !TRANS.busy && !FLY.active) ? nearestGift() : { i: -1, d: 0 };
+  const showGift = near.i >= 0;
+  if (showGift !== giftBtnShown) {
+    giftBtnShown = showGift;
+    if (giftBtnEl) giftBtnEl.classList.toggle('show', showGift);
+    if (showGift && !TREASURE.hintT) {
+      TREASURE.hintT = 1;
+      hintToast('🎁 반짝이는 선물상자를 발견했어요 — 열어 보세요!', 2600);
+    }
+  }
+  if (giftBtnEl) {
+    const label = '🎁 선물 열기';
+    if (giftBtnEl.textContent !== label) giftBtnEl.textContent = label;
+  }
+
+  /* 뚜껑 열림 */
+  for (const g of TREASURE.gifts) {
+    if (!g.opening) continue;
+    g.open = Math.min(1, g.open + dt / 0.55);
+    const k = g.open, e = 1 - Math.pow(1 - k, 3);
+    g.lid.rotation.x = -1.28 * e;
+    g.lid.position.y = 0.46 + 0.02 * e;
+    g.glow.material.opacity = 0.13 * (1 - k);
+    if (k >= 1) g.opening = false;
+  }
+
+  /* 은은한 반짝임 — 아직 열지 않은 상자에서 가끔 금빛 불티 */
+  TREASURE.sparkAcc += dt;
+  if (plaza && TREASURE.sparkAcc > 0.42) {
+    TREASURE.sparkAcc = 0;
+    for (const g of TREASURE.gifts) {
+      if (g.open > 0.4) continue;
+      const d = Math.hypot(playerPos.x - g.spot.x, playerPos.z - g.spot.z);
+      if (d > 34) continue;
+      /* 가장 가까운 상자 하나에서만 잔불이 떠오른다 (먼 상자까지 그리면 산만하다) */
+      if (d > 16) continue;
+      const a = fwR(0, TAU), rr = fwR(0.1, 0.32);
+      spawnSpark(g.spot.x + Math.cos(a) * rr, groundY(g.spot.x, g.spot.z) + 0.58,
+        g.spot.z + Math.sin(a) * rr, 0xffe3a8, fwR(0.13, 0.2), fwR(1.0, 1.7),
+        fwR(-0.1, 0.1), fwR(0.4, 0.8), fwR(-0.1, 0.1), -0.1);
+      g.glow.material.opacity = 0.09 + Math.sin(elapsed * 2.2 + g.spot.x) * 0.04;
+    }
+  }
+
+  /* 모두 찾은 뒤 캐릭터 반짝이 */
+  if (TREASURE.glowT > 0) {
+    TREASURE.glowT -= dt;
+    TREASURE.openFxTotal += dt;
+    if (TREASURE.openFxTotal > 0.07) {
+      TREASURE.openFxTotal = 0;
+      const a = fwR(0, TAU), rr = fwR(0.25, 0.75);
+      spawnSpark(playerPos.x + Math.cos(a) * rr, playerPos.y + fwR(0.2, 1.9), playerPos.z + Math.sin(a) * rr,
+        fwRnd() < 0.6 ? 0xffe08a : 0xfff6dc, fwR(0.14, 0.24), fwR(0.9, 1.6),
+        fwR(-0.2, 0.2), fwR(0.5, 1.3), fwR(-0.2, 0.2), -0.2);
+    }
+  }
+  updateSparkSprites(dt);
+}
+
+/* 버튼 · 배지 조작 */
+if (fwBtnEl) fwBtnEl.addEventListener('click', () => {
+  const seed = startFireworks({});
+  if (seed) toast('🎆 밤하늘에 불꽃이 터집니다!', 1600);
+});
+if (giftBtnEl) giftBtnEl.addEventListener('click', () => {
+  const near = nearestGift();
+  if (near.i >= 0) openGift(near.i);
+});
+if (treasureBadgeEl) {
+  const onBadge = () => {
+    if (TREASURE.found.length >= GIFT_TOTAL) treasureReset(false);
+    else toast('🎁 보물 ' + TREASURE.found.length + ' / ' + GIFT_TOTAL + ' — 광장 곳곳의 반짝이는 선물상자를 찾아 보세요', 3000);
+  };
+  treasureBadgeEl.addEventListener('click', onBadge);
+  treasureBadgeEl.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onBadge(); } });
+}
+
+/* 같은 방 친구의 불꽃놀이 */
+net.on('fw', (m) => {
+  if (!m || !m.seed) return;
+  if (!state.joined) return;
+  if (ZONE.mode === 'interior') return;
+  startFireworks({ seed: m.seed, remote: true, broadcast: false });
+  toast('🎆 ' + (m.nickname || '친구') + ' 님이 불꽃놀이를 터뜨렸어요!', 2200);
+});
 
 /* =================================================================
    🧭 E. 장소 버튼 · 매 프레임 갱신
@@ -15100,6 +15959,8 @@ function tick(dt) {
   updateSkate(dt);
   updateRoll(dt);
   updateBursts(dt);
+  updateFireworks(dt);
+  updateTreasure(dt);
   updateSecondWave(dt);
   updateLabels();
   updateWalkGuide(dt);
@@ -15706,6 +16567,129 @@ window.__plaza = {
   netFlightRoundTrip(fy, fl) { return window.__plazaAudit.netFlightRoundTrip(fy, fl); },
   flyOpenPanel() { return window.__plazaAudit.flyOpenPanel(); },
   flySubmitWish(t) { return window.__plazaAudit.flySubmitWish(t); },
+  /* --- 🎆 불꽃놀이 · 🎁 보물찾기 진단 --- */
+  get fireworks() {
+    return {
+      active: FW.active, t: +FW.t.toFixed(2), seed: FW.seed, queued: FW.queued,
+      bursts: FW.plan.length, rockets: FW.rockets.length, flashes: FW.flashes.length,
+      live: FW_POOL.liveN, free: FW_POOL.freeN, max: FW_POOL.max,
+      nearLive: SPARK_SPRITES.length,
+      btn: fwBtnEl ? { shown: fwBtnEl.classList.contains('show'), label: fwBtnEl.textContent } : null,
+      plan: FW.plan.map((b) => ({ at: +b.at.toFixed(2), y: +b.y.toFixed(1), x: +b.x.toFixed(1), z: +b.z.toFixed(1), kind: b.kind, sparks: b.sparks, rise: +b.rise.toFixed(2), color: b.color })),
+    };
+  },
+  fireworksStart(seed) { return startFireworks({ seed: seed }); },
+  showToast(msg, ms) { toast(String(msg || ''), ms || 6000); return true; },
+  sparkSample(n) {
+    return SPARK_SPRITES.slice(0, n || 5).map((s) => {
+      const v = s.sp.position.clone().project(camera);
+      return { p: s.sp.position.toArray().map((x) => +x.toFixed(2)),
+        ndc: [+v.x.toFixed(2), +v.y.toFixed(2)], scale: +s.sp.scale.x.toFixed(2),
+        opacity: +s.sp.material.opacity.toFixed(2), visible: s.sp.visible,
+        life: +s.life.toFixed(2), dur: +s.dur.toFixed(2), parent: !!s.sp.parent };
+    });
+  },
+  project(x, y, z) {
+    const v = new THREE.Vector3(x, y, z).project(camera);
+    return [+v.x.toFixed(2), +v.y.toFixed(2), +v.z.toFixed(3)];
+  },
+  fwSample(n) {
+    const out = [];
+    const v = new THREE.Vector3();
+    for (let i = 0; i < FW_POOL.max && out.length < (n || 6); i++) {
+      if (FW_POOL.dur[i] <= 0) continue;
+      v.set(FW_POOL.pos[i * 3], FW_POOL.pos[i * 3 + 1], FW_POOL.pos[i * 3 + 2]).project(camera);
+      out.push({
+        p: [+FW_POOL.pos[i * 3].toFixed(1), +FW_POOL.pos[i * 3 + 1].toFixed(1), +FW_POOL.pos[i * 3 + 2].toFixed(1)],
+        ndc: [+v.x.toFixed(2), +v.y.toFixed(2), +v.z.toFixed(3)],
+        c: [+FW_POOL.col[i * 3].toFixed(2), +FW_POOL.col[i * 3 + 1].toFixed(2), +FW_POOL.col[i * 3 + 2].toFixed(2)],
+        life: +FW_POOL.life[i].toFixed(2), dur: +FW_POOL.dur[i].toFixed(2),
+      });
+    }
+    return { live: FW_POOL.liveN, samples: out, cam: camera.position.toArray().map((x) => +x.toFixed(1)) };
+  },
+  fireworksStop() {
+    FW.active = false; FW.plan = []; FW.queued = 0; FW.rockets.length = 0;
+    for (const f of FW.flashes) { scene.remove(f.sp); f.sp.material.dispose(); }
+    FW.flashes.length = 0;
+    sparkPoolClear(FW_POOL);
+    for (const sp of SPARK_SPRITES) { scene.remove(sp.sp); sp.sp.material.dispose(); }
+    SPARK_SPRITES.length = 0;
+    return true;
+  },
+  /* 검증용: 네트워크 메시지를 실제 파서에 그대로 태워 친구 화면 반응을 본다 */
+  netFireworksRoundTrip(seed) {
+    if (!this._fwrt) { this._fwrt = { a: new LiveNetwork(state.room || 'main'), b: new LiveNetwork(state.room || 'main') }; }
+    const { a, b } = this._fwrt;
+    a.cid = 'fw-sender'; b.cid = 'fw-receiver';
+    let packet = null;
+    a.connected = true; a.mqtt = { publish: (t, p) => { packet = p; } };
+    a.sendFireworks(seed === undefined ? 123456789 : seed);
+    const seen = [];
+    const prev = b._h.get('fw');
+    b._h.set('fw', [(d) => seen.push(d)]);
+    b.connected = true;
+    b._onMessage(`eyun/xmas-plaza/v1/${b.room}/e/fw-sender`, packet, false);
+    b._h.set('fw', prev || []);
+    return { packet: packet ? JSON.parse(packet) : null, seen: seen[0] || null };
+  },
+  get treasure() {
+    const left = TREASURE.gifts.filter((g) => g.open < 0.5).length;
+    return {
+      total: GIFT_TOTAL, found: TREASURE.found.slice(), left, celebrated: TREASURE.celebrated,
+      glowT: +TREASURE.glowT.toFixed(1), bannerT: treasureBannerEl ? treasureBannerEl.classList.contains('show') : false,
+      badge: treasureBadgeEl ? {
+        shown: !treasureBadgeEl.classList.contains('hidden'), text: treasureTextEl.textContent,
+        done: treasureBadgeEl.classList.contains('done'),
+      } : null,
+      btn: giftBtnEl ? { shown: giftBtnEl.classList.contains('show'), label: giftBtnEl.textContent } : null,
+      near: nearestGift(),
+      spots: TREASURE.gifts.map((g) => {
+        let gap = 99, who = null;
+        colliders.forEach((c) => {
+          const gg = Math.hypot(g.spot.x - c.x, g.spot.z - c.z) - c.r;
+          if (gg < gap) { gap = gg; who = { x: +c.x.toFixed(1), z: +c.z.toFixed(1), r: +c.r.toFixed(2) }; }
+        });
+        let decor = 99;
+        DECOR_BLOCKERS.forEach((d) => { decor = Math.min(decor, Math.hypot(g.spot.x - d.x, g.spot.z - d.z) - d.r); });
+        return {
+          id: g.spot.id, where: g.spot.where, x: g.spot.x, z: g.spot.z,
+          r: +Math.hypot(g.spot.x, g.spot.z).toFixed(2),
+          walk: walkableAt(g.spot.x, g.spot.z), ground: +groundY(g.spot.x, g.spot.z).toFixed(2),
+          colliderGap: +gap.toFixed(2), nearCollider: who, decorGap: +decor.toFixed(2),
+          open: +g.open.toFixed(2), dist: +Math.hypot(playerPos.x - g.spot.x, playerPos.z - g.spot.z).toFixed(2),
+          mesh: { x: +g.group.position.x.toFixed(2), y: +g.group.position.y.toFixed(2), z: +g.group.position.z.toFixed(2), visible: g.group.visible },
+          lidAngle: +g.lid.rotation.x.toFixed(2),
+        };
+      }),
+    };
+  },
+  gotoGift(i, back) {
+    const g = TREASURE.gifts[i === undefined ? 0 : i];
+    if (!g) return null;
+    const a = Math.atan2(g.spot.x, g.spot.z);
+    const d = back === undefined ? 1.7 : back;
+    const tx = g.spot.x - Math.sin(a) * d, tz = g.spot.z - Math.cos(a) * d;
+    playerPos.set(tx, groundY(tx, tz), tz);
+    playerYaw.v = Math.atan2(g.spot.x - tx, g.spot.z - tz);
+    const p = players.get('me');
+    if (p) p.root.position.copy(playerPos);
+    rig.lookAt.set(g.spot.x, 0.6, g.spot.z);
+    rig.snap = true;
+    updateTreasure(0.016);
+    return { i, spot: [g.spot.x, g.spot.z], at: [+tx.toFixed(2), +tz.toFixed(2)], near: nearestGift() };
+  },
+  openGift(i) { return openGift(i === undefined ? nearestGift().i : i); },
+  giftCheck(x, z) {
+    return {
+      walk: walkableAt(x, z), r: +Math.hypot(x, z).toFixed(2), ground: +groundY(x, z).toFixed(2),
+      fence: inPondFence(x, z), gap: giftGap(x, z),
+      doorGap: +Math.min(...HOUSE_DOORS.map((d) => Math.min(
+        Math.hypot(x - d.door.x, z - d.door.z), Math.hypot(x - d.stand.x, z - d.stand.z)))).toFixed(2),
+    };
+  },
+  treasureReset() { return treasureReset(true); },
+  lootAll() { for (let i = 0; i < TREASURE.gifts.length; i++) openGift(i, { silent: true }); return this.treasure; },
   gotoTreeWish() { return window.__plazaAudit.gotoTreeWish(); },
   audioToggle(on) { return audioToggle(on); },
   /* --- 3차: 🍡 마시멜로 굽기 · ⛄ 눈사람 변신 진단 --- */
