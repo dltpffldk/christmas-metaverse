@@ -12672,6 +12672,20 @@ function updateActivityButtons(dt) {
     return;
   }
   const plaza = ZONE.mode !== 'interior';
+  /* ✨ 소원 비행 중에는 장소 활동 버튼을 모두 숨긴다 (하늘에서는 소용없는 동작들) */
+  if (FLY.active) {
+    if (treeBtnShown) { treeBtnEl.classList.remove('show'); treeBtnShown = false; }
+    if (flyBtnShown && flyBtnEl) { flyBtnEl.classList.remove('show'); flyBtnShown = false; }
+    if (cocoaBtnShown) { cocoaBtnEl.classList.remove('show'); cocoaBtnShown = false; }
+    if (wishBtnShown) { wishBtnEl.classList.remove('show'); wishBtnShown = false; }
+    if (roastBtnShown) { roastBtnEl.classList.remove('show'); roastBtnShown = false; }
+    if (snowBtnShown) { snowBtnEl.classList.remove('show'); snowBtnShown = false; }
+    if (skateBtnShown) { skateBtnEl.classList.remove('show'); skateBtnShown = false; }
+    if (mailBtnShown) { mailBtnEl.classList.remove('show'); mailBtnShown = false; }
+    if (rollBtnShown) { rollBtnEl.classList.remove('show'); rollBtnShown = false; }
+    if (breakBtnShown) { breakBtnEl.classList.remove('show'); breakBtnShown = false; }
+    return;
+  }
   const treeNear = plaza && !PHOTO.active && !TRANS.busy
     && Math.hypot(playerPos.x - TREE_STAND.x, playerPos.z - TREE_STAND.z) < 3.15;
   if (treeNear !== treeBtnShown) {
@@ -13474,7 +13488,8 @@ const SIT_AIM_KIND = {
 function updateSeatButton() {
   let near = false;
   if (state.joined) {
-    if (SNOWMAN.active) near = false;          // 눈사람은 앉기 전에 엘프로
+    if (FLY.active) near = false;              // ✨ 비행 중에는 앉기 버튼도 숨긴다
+    else if (SNOWMAN.active) near = false;     // 눈사람은 앉기 전에 엘프로
     else if (SIT.active || SIT.enter > 0) near = true;
     else if (ZONE.mode === 'interior') near = nearestSeatInZone('i').d < 2.6;
     else near = Math.hypot(playerPos.x - CAMPFIRE.x, playerPos.z - CAMPFIRE.z) < 4.8;
