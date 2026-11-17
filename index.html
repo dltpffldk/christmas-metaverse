@@ -1024,6 +1024,12 @@ body.photomode #walkCard{display:none!important}
  #chatLog{width:min(300px,calc(100vw - 24px));left:12px}
  aside.panel{max-height:calc(100dvh - 150px);overflow-y:auto;top:calc(88px + var(--safe-t))}
 }
+/* 터치 화면 — 조이스틱(좌하단)·도크와 채팅 로그가 겹치지 않게 위로 올린다.
+   (2026-11-17 점검: 412px 폭 기기에서 채팅 로그가 조이스틱 위를 덮고 있었다) */
+@media (pointer: coarse) and (max-width: 640px){
+ #chatLog{bottom:calc(152px + var(--safe-b))}
+ body.chatting #chatLog{bottom:calc(300px + var(--safe-b))}
+}
 @media(prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;transition-duration:.01ms!important}}
 
 </style>
@@ -1385,6 +1391,10 @@ const POND = {
   x: -9.75, z: -26.78,        // a = 200°, r = 28.5 — 코티지가 없는 북서쪽 빈 외곽
   r: 4.6,                     // 얼음 반지름
   rim: 5.75,                  // 눈둑 · 나무 펜스 반지름
+  /* 울타리 입구 반각(rad). 울타리 모델·눈둑·걷기 판정이 모두 이 하나의 값을 쓴다.
+     개구부 폭 ≈ 2 × rim × sin(gate) ≈ 6.6m — 사탕길에서 두 사람이 나란히 들어가도
+     걸리지 않을 만큼 넓다. */
+  gate: 0.62,
   y: -0.02,                   // 얼음면 높이 (눈밭 -0.04 보다 살짝 높다)
   door: 0,                    // 울타리 입구 방향 — 아래에서 사탕길 쪽으로 정한다
 };
@@ -4979,13 +4989,16 @@ function inPond(x, z) { return Math.hypot(x - POND.x, z - POND.z) <= POND.r + 0.
 function onPondIce(x, z) { return Math.hypot(x - POND.x, z - POND.z) <= POND.r + 0.25; }
 /** 연못 눈둘레(울타리 안쪽 띠)인가 — 얼음에서 눈으로 발을 딛는 자리 */
 function inPondRim(x, z) { return Math.hypot(x - POND.x, z - POND.z) <= POND.rim + 0.6; }
-/** 연못 나무 울타리 띠인가 — 입구(개구부)를 뺀 둘레는 막는다 */
+/** 연못 나무 울타리 띠인가 — 입구(개구부)를 뺀 둘레는 막는다.
+    개구부 각도는 POND.gate 하나로 울타리 모델과 같은 값을 쓴다.
+    (예전에는 모델 0.42 / 걷기 0.36 으로 따로 놀아, 울타리가 없는 자리에서
+     막히거나 울타리를 통과하는 '보이지 않는 벽'이 생겼다.) */
 function inPondFence(x, z) {
   const dx = x - POND.x, dz = z - POND.z;
   const d = Math.hypot(dx, dz);
   if (Math.abs(d - POND.rim) > 0.34) return false;
   const da = Math.abs(((Math.atan2(dx, dz) - POND.door + Math.PI) % TAU + TAU) % TAU - Math.PI);
-  return da > 0.36;                       // 입구 폭 약 4m 만 열어 둔다
+  return da > POND.gate;
 }
 /** 사탕·쿠키 동화 길 위인가 */
 function onFairyPath(x, z) {
@@ -6402,56 +6415,114 @@ function buildPond() {
   FAIRY_ROOT.add(sheen);
   POND_OBJ.sheen = sheen;
 
-  /* 눈둑 — 입구 쪽만 비워 둔다 */
+  /* 눈둑 — 입구 개구부만 비워 둔다 (울타리와 같은 각도) */
   const N = 34;
   for (let i = 0; i < N; i++) {
     const a = (i / N) * TAU + rand(-0.02, 0.02);
     const da = Math.abs(((a - POND.door + Math.PI) % TAU + TAU) % TAU - Math.PI);
-    if (da < 0.30) continue;                        // 입구
+    if (da < POND.gate) continue;                   // 입구
     const rr = POND.rim - 0.35 + rand(-0.12, 0.2);
     const x = POND.x + Math.sin(a) * rr, z = POND.z + Math.cos(a) * rr;
     const s = rand(0.30, 0.60);
     vPush(VG.ico2, VMAT.drift, vMtx(null, x, groundY(x, z) + rand(0.0, 0.06), z, 0, a, 0, s * 1.8, s * 0.42, s * 1.3));
   }
 
-  /* 작은 나무 펜스 — 입구는 열어 둔다 */
-  const FP = 14;
+  /* 작은 나무 펜스 — 입구는 POND.gate 만큼 정확히 열어 둔다.
+     기둥을 입구 각도에서부터 같은 간격으로 세워, 모델의 개구부와 걷기 판정이
+     한 치도 어긋나지 않게 한다. 입구 양쪽 기둥은 조금 높이 세우고 따뜻한 등불을
+     달아 '여기가 문'임을 한눈에 보이게 했다. */
+  const ux = Math.sin(POND.door), uz = Math.cos(POND.door);
+  const vlx = uz, vlz = -ux;                          // 길 폭 방향
+  const fencePt = (a) => {
+    const x = POND.x + Math.sin(a) * POND.rim, z = POND.z + Math.cos(a) * POND.rim;
+    return { x, z, y: groundY(x, z) };
+  };
+  const SPAN = TAU - POND.gate * 2;
+  const FP = Math.max(10, Math.round(SPAN / 0.30));
+  const STEP = SPAN / FP;
+  const gatePost = (p, sgn) => {
+    const hh = 0.80;
+    vPost(null, VMAT.wood, 0.075, hh, p.x, p.y - 0.02, p.z, VG.cyl6);
+    vBall(null, VMAT.snow, 0.10, p.x, p.y + hh - 0.03, p.z, 1, 0.62, 1, VG.ball8);
+    /* 문기둥 등불 — 따뜻한 작은 빛 두 개가 입구를 표시한다 */
+    vBall(null, FAIRY_M.glassWarm, 0.055, p.x + vlx * 0.10 * sgn, p.y + hh + 0.10, p.z + vlz * 0.10 * sgn, 1, 1.15, 1, VG.ball8);
+  };
   for (let i = 0; i < FP; i++) {
-    const a0 = (i / FP) * TAU, a1 = ((i + 1) / FP) * TAU;
-    const da = Math.abs(((a0 - POND.door + Math.PI) % TAU + TAU) % TAU - Math.PI);
-    if (da < 0.42) continue;
-    const p0 = { x: POND.x + Math.sin(a0) * POND.rim, z: POND.z + Math.cos(a0) * POND.rim };
-    const p1 = { x: POND.x + Math.sin(a1) * POND.rim, z: POND.z + Math.cos(a1) * POND.rim };
-    const y0 = groundY(p0.x, p0.z), y1 = groundY(p1.x, p1.z);
-    const hh = 0.62;
-    vPost(null, VMAT.wood, 0.055, hh, p0.x, y0 - 0.02, p0.z, VG.cyl6);
-    vBall(null, VMAT.snow, 0.075, p0.x, y0 + hh - 0.02, p0.z, 1, 0.7, 1, VG.ball8);
+    const a0 = POND.door + POND.gate + STEP * i, a1 = a0 + STEP;
+    const p0 = fencePt(a0), p1 = fencePt(a1);
+    const edge = i === 0;                 // 문 양쪽 기둥은 루프 시작(한쪽) + 마지막(반대쪽)
+    if (edge) gatePost(p0, i === 0 ? 1 : -1);
+    else {
+      const hh = 0.62;
+      vPost(null, VMAT.wood, 0.055, hh, p0.x, p0.y - 0.02, p0.z, VG.cyl6);
+      vBall(null, VMAT.snow, 0.075, p0.x, p0.y + hh - 0.02, p0.z, 1, 0.7, 1, VG.ball8);
+    }
     /* 가로대 두 줄 */
-    const mx = (p0.x + p1.x) / 2, mz = (p0.z + p1.z) / 2, my = (y0 + y1) / 2;
+    const mx = (p0.x + p1.x) / 2, mz = (p0.z + p1.z) / 2, my = (p0.y + p1.y) / 2;
     const len = Math.hypot(p1.x - p0.x, p1.z - p0.z);
     const ry = Math.atan2(p1.x - p0.x, p1.z - p0.z);
-    [0.30, 0.50].forEach((hy) => vBox(null, VMAT.wood, 0.05, 0.06, len, mx, my + hy, mz, 0, ry, 0));
+    [0.30, 0.50].forEach((hy) => vBox(null, VMAT.wood, 0.05, 0.06, len * 1.02, mx, my + hy, mz, 0, ry, 0));
+  }
+  /* 마지막 구간 끝(반대쪽 문기둥) */
+  gatePost(fencePt(POND.door - POND.gate), -1);
+
+  /* 입구 발판 — 사탕길 마지막 디딤돌에서 얼음까지 나무 판자를 이어 깐다.
+     길이 울타리 앞에서 끊기지 않고 얼음까지 이어지도록, 바닥에 눈빛 표시를
+     두 줄로 놓아 진입 방향이 한눈에 보이게 한다. */
+  const DECK = [
+    [6.05, 0.46, 2.45], [5.62, 0.46, 2.30], [5.19, 0.46, 2.14],
+    [4.76, 0.46, 1.98], [4.33, 0.46, 1.82], [3.92, 0.44, 1.66],
+  ];
+  DECK.forEach(([rad, depth, wide], i) => {
+    const x = POND.x + ux * rad, z = POND.z + uz * rad;
+    const y = groundY(x, z);
+    const ry = Math.atan2(ux, uz) + (i % 2 ? 0.03 : -0.028);
+    vBox(null, i % 2 ? VMAT.wood : VMAT.woodDk, wide, 0.05, depth, x, y + 0.026, z, 0, ry, 0);
+    /* 판자 한쪽에 앉은 눈 */
+    vBox(null, VMAT.snow, wide * 0.92, 0.022, depth * 0.22,
+      x + vlx * wide * 0.30, y + 0.052, z + vlz * wide * 0.30, 0, ry, 0);
+  });
+  /* 발판 둘레 다져진 길 — 눈 위에 밟은 자국을 깔아 길·문·얼음이 한 줄로 이어져 보이게 */
+  for (let i = 0; i < 26; i++) {
+    const rad = 6.55 - i * 0.065;
+    const side = (i % 2 ? 1 : -1) * rand(1.1, 1.45);
+    const x = POND.x + ux * rad + vlx * side, z = POND.z + uz * rad + vlz * side;
+    addTrampled(x, z, rand(0, TAU), rand(0.55, 0.86));
+  }
+  /* 길 양옆 눈빛 표시 — 판자 옆으로 작은 따뜻한 등이 길을 안내한다 */
+  for (let i = 0; i < 6; i++) {
+    const rad = 6.30 - i * 0.46;
+    [-1, 1].forEach((s) => {
+      const x = POND.x + ux * rad + vlx * s * (1.42 - i * 0.06), z = POND.z + uz * rad + vlz * s * (1.42 - i * 0.06);
+      vBall(null, FAIRY_M.glassWarm, 0.05, x, groundY(x, z) + 0.06, z, 1, 0.55, 1, VG.ball8);
+    });
   }
 
-  /* 따뜻한 가로등 두 개 · 벤치 두 개 */
-  const lampA = POND.door + 0.95, lampB = POND.door - 1.05;
+  /* 따뜻한 가로등 두 개 · 벤치 두 개 — 개구부 바깥으로 물려 입구를 가리지 않게 */
+  const lampA = POND.door + POND.gate + 0.55, lampB = POND.door - POND.gate - 0.50;
   [[lampA, true], [lampB, false]].forEach(([a, lit]) => {
     const x = POND.x + Math.sin(a) * (POND.rim + 0.5), z = POND.z + Math.cos(a) * (POND.rim + 0.5);
     addLanternPost(x, z, 3.1, { light: lit, ry: Math.atan2(POND.x - x, POND.z - z) });
   });
-  [[POND.door + 1.85], [POND.door - 1.95]].forEach(([a]) => {
+  [[POND.door + POND.gate + 1.15], [POND.door - POND.gate - 1.20]].forEach(([a]) => {
     const x = POND.x + Math.sin(a) * (POND.rim + 0.65), z = POND.z + Math.cos(a) * (POND.rim + 0.65);
     addBench(x, z, Math.atan2(POND.x - x, POND.z - z), {});
   });
 
-  /* 스케이트장 팻말 — 입구 옆 */
-  const sx = POND.x + Math.sin(POND.door - 0.42) * (POND.rim + 1.35);
-  const sz = POND.z + Math.cos(POND.door - 0.42) * (POND.rim + 1.35);
+  /* 스케이트장 팻말 — 입구 각도 밖, 길가에 비스듬히 (입구를 막지 않는다) */
+  const sx = POND.x + Math.sin(POND.door - POND.gate - 0.38) * (POND.rim + 1.70);
+  const sz = POND.z + Math.cos(POND.door - POND.gate - 0.38) * (POND.rim + 1.70);
   const sy = groundY(sx, sz);
   vPost(null, VMAT.woodDk, 0.07, 1.05, sx - 0.42, sy, sz, VG.cyl6);
   vPost(null, VMAT.woodDk, 0.07, 1.05, sx + 0.42, sy, sz, VG.cyl6);
   signBoard(sx, sz - 0.06, Math.atan2(POND.x - sx, POND.z - sz), 1.15, 0.62, sy + 0.78, '⛸️ 얼음 연못', '스케이트 타기');
   addCollider(sx, sz, 0.5);
+  /* 입구 안내 빛 — ⛸️ 버튼을 눌렀을 때 잠깐 밝혀 '이쪽으로 들어가세요'를 보여 준다 */
+  const glow = glowSprite(0xffd9a0, 3.4, 0.0);
+  glow.position.set(POND.x + ux * (POND.rim + 0.15), POND.y + 0.9, POND.z + uz * (POND.rim + 0.15));
+  glow.visible = false;
+  FAIRY_ROOT.add(glow);
+  POND_OBJ.gateGlow = glow;
 }
 
 /* ---------- 동화 길 ---------- */
@@ -6561,7 +6632,10 @@ function buildFairyPath() {
     const z = a.z + (b.z - a.z) * lt + nz * (FAIRY_HALF + 1.05 + rand(0, 0.5)) * sgn;
     if (inFairyGround(x, z)) continue;
     if (Math.hypot(x - SIGN.x, z - SIGN.z) < 2.9) continue;      // 팻말을 가리지 않게
-    if (Math.hypot(x - POND.x, z - POND.z) < POND.rim + 2.4) continue;
+    if (Math.hypot(x - POND.x, z - POND.z) < POND.rim + 2.6) continue;
+    /* 입구 진입로(개구부 각도)는 비원 둔다 — 사탕길 끝에서 얼음까지 시야가 트이게 */
+    const pa = Math.abs(((Math.atan2(x - POND.x, z - POND.z) - POND.door + Math.PI) % TAU + TAU) % TAU - Math.PI);
+    if (pa < POND.gate + 0.14 && Math.hypot(x - POND.x, z - POND.z) < POND.rim + 6.5) continue;
     if (Math.hypot(x - SNOW_PATCH.x, z - SNOW_PATCH.z) < SNOW_PATCH.r + 1.2) continue;
     addFir(x, z, rand(1.6, 2.6), { tiers: 3, bulbs: true, noCollide: true, y: groundY(x, z) });
   }
@@ -9356,7 +9430,16 @@ const vel = new THREE.Vector2(0, 0);
 const input = { keys: new Set(), joy: { x: 0, y: 0, active: false }, dragging: false };
 
 const dom = renderer.domElement;
+/** 입력창·편집기 안에서 온 키인가 — 이때는 이동 키로 잡지 않는다 */
+function typingInField(t) {
+  if (!t) return false;
+  const tag = t.tagName;
+  return tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT' || t.isContentEditable === true;
+}
 window.addEventListener('keydown', (e) => {
+  /* 채팅·편지 입력 중에 W/A/S/D 를 치면 글자가 들어가야 한다 — 이동 키로 잡지 않는다.
+     (붙잡으면 채팅 창에 'wasd' 를 쓰는 동안 캐릭터가 같이 걸어가 버렸다) */
+  if (typingInField(e.target)) return;
   if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Space'].includes(e.code)) e.preventDefault();
   input.keys.add(e.code);
 }, { passive: false });
@@ -10267,9 +10350,27 @@ function setChatOpen(open) {
 }
 
 document.addEventListener('keydown', (e) => {
+  /* Esc — 입력 중에 눌러도 즉시 포커스를 놓는다. 예전에는 아래 가드에 걸려
+     (e.target 이 INPUT) 아무 일도 하지 않아, 채팅 창에 커서가 남은 채로
+     W/A/S/D 가 먹지 않는 것처럼 보였다. */
+  if (e.code === 'Escape' && typingInField(e.target)) {
+    e.target.blur();
+    if (chatForm.classList.contains('open')) setChatOpen(false);
+    return;
+  }
   if (!state.joined || PHOTO.active || /INPUT|TEXTAREA|SELECT/.test(e.target.tagName)) return;
   if (e.code === 'Enter') { e.preventDefault(); setChatOpen(true); }
   if (e.code === 'Escape') setChatOpen(false);
+});
+/* 3D 화면(캔버스)을 클릭하거나 터치하면 채팅 입력 포커스를 즉시 놓는다.
+   모바일에서는 키보드도 같이 내리고 채팅 창을 닫아 화면을 가리지 않게 한다. */
+dom.addEventListener('pointerdown', () => {
+  const ae = document.activeElement;
+  if (ae && typingInField(ae)) ae.blur();
+  if (chatForm.classList.contains('open')) {
+    if (IS_TOUCH) setChatOpen(false);
+    else chatInput.blur();
+  }
 });
 /* 리액션 */
 document.querySelectorAll('.emoji-btn').forEach((b) => {
@@ -13243,12 +13344,18 @@ snowBtnEl.addEventListener('click', () => { if (SNOWMAN.active) revertToElf(fals
      친구 화면에도 같은 자세가 보인다.
    · 연못 밖으로 나가거나 🥾 스케이트 벗기를 누르면 해제된다.
    ================================================================= */
-const SKATE = { active: false, near: false, phase: 0, outT: 0, trailT: 0, sparkT: 0, lean: 0, wakeT: 0 };
+const SKATE = { active: false, near: false, phase: 0, outT: 0, trailT: 0, sparkT: 0, lean: 0, wakeT: 0, hintT: 0 };
 const skateBtnEl = document.getElementById('skateBtn');
 let skateBtnShown = false;
 
 function pondDist() { return Math.hypot(playerPos.x - POND.x, playerPos.z - POND.z); }
 function nearPond() { return pondDist() < POND.r + 3.0; }
+/** 입구 쪽 빛을 잠깐 밝혀 '이쪽으로 들어가면 얼음'임을 보여 준다 */
+function flashGateHint(sec) {
+  SKATE.hintT = sec || 3.2;
+  const g = POND_OBJ.gateGlow;
+  if (g) { g.visible = true; g.material.opacity = 0.42; }
+}
 function canSkate() {
   if (!state.joined || PHOTO.active || TRANS.busy) return false;
   if (ZONE.mode === 'interior') return false;
@@ -13258,7 +13365,11 @@ function canSkate() {
 function startSkate() {
   if (SKATE.active) return false;
   if (!canSkate()) {
-    toast(SNOWMAN.active ? '⛄ 눈사람일 때는 스케이트를 신을 수 없어요' : '⛸️ 얼음 연못 가까이에서 스케이트를 신을 수 있어요', 2400);
+    if (SNOWMAN.active) toast('⛄ 눈사람일 때는 스케이트를 신을 수 없어요', 2400);
+    else {
+      toast('⛸️ 얼음 연못은 사탕길 끝 — 눈빛이 이어지는 입구로 들어가요', 3000);
+      flashGateHint(3.6);
+    }
     return false;
   }
   if (SIT.active || SIT.enter > 0) standUp();
@@ -13267,7 +13378,13 @@ function startSkate() {
   const me = players.get('me');
   if (me) me.tf = 'sk';
   spawnSnowBurst(playerPos.x, playerPos.y + 0.10, playerPos.z, 12);
-  toast('⛸️ 스케이트를 신었어요 — 얼음 위를 미끄러져 보세요!', 2600);
+  /* 연못 경계(얼음) 밖에서 신었으면 입구 쪽으로 안내한다 */
+  if (onPondIce(playerPos.x, playerPos.z)) {
+    toast('⛸️ 스케이트를 신었어요 — 얼음 위를 미끄러져 보세요!', 2600);
+  } else {
+    toast('⛸️ 스케이트를 신었어요 — 눈빛이 이어지는 입구로 들어가면 얼음이에요!', 3600);
+    flashGateHint(4.0);
+  }
   return true;
 }
 function stopSkate(silent) {
@@ -13353,6 +13470,18 @@ function spawnSkateSpark(x, z) {
 
 /* ---------- 매 프레임 — 궤적·반짝이·자동 해제 ---------- */
 function updateSkate(dt) {
+  /* 입구 안내 빛 — 잠깐 밝았다 잦아든다 */
+  if (SKATE.hintT > 0) {
+    SKATE.hintT = Math.max(0, SKATE.hintT - dt);
+    const g = POND_OBJ.gateGlow;
+    if (g) {
+      const t = performance.now();
+      g.visible = SKATE.hintT > 0;
+      g.material.opacity = Math.min(0.5, 0.10 + SKATE.hintT * 0.14) * (0.82 + 0.18 * Math.sin(t * 0.006));
+      const s = 3.3 + 0.30 * Math.sin(t * 0.0045);
+      g.scale.set(s, s, 1);
+    }
+  }
   /* 궤적 페이드 */
   for (const p of TRAIL.pool) {
     if (!p.on) continue;
@@ -13536,7 +13665,9 @@ const ROLL = {
   active: false, phase: 'idle', t: 0, prog: 0, dur: 12.6,
   ball: null, body: null, head: null, gear: [], built: [], tmp: null,
   push: 0, spot: null, lastReason: '',
+  bx: undefined, bz: undefined, r: 0.20,                 // 굴리는 눈덩이의 현재 자리·반지름
 };
+const _rollAxis = new THREE.Vector3();                  // 눈덩이 구르는 축
 const ROLL_SPOT = { x: SNOW_PATCH.x - 0.2, z: SNOW_PATCH.z + 1.35 };
 
 /* ---------- 눈사람을 세울 빈 자리 찾기 ----------
@@ -13655,6 +13786,45 @@ function canRoll() {
   return onSnowField(playerPos.x, playerPos.z);
 }
 
+/** 굴리는 눈덩이가 그 자리에 들어갈 수 있는가 — 걷기 경계·소품과 부딪히면 막힘 */
+function rollBallBlocked(x, z, r) {
+  if (!walkableAt(x, z)) return true;
+  for (let i = 0; i < colliders.length; i++) {
+    const c = colliders[i];
+    if (Math.hypot(x - c.x, z - c.z) < c.r + Math.max(0.16, r * 0.85)) return true;
+  }
+  return false;
+}
+/** 완성된 눈사람을 세울 자리 — 굴린 눈덩이 자리에서 가장 가까운 안전한 곳
+    (눈덩이 자리 자체가 비어 있으면 그대로, 막혔으면 주변을 가까운 순서로 훑는다) */
+function nearestSnowSpot(x, z, yaw) {
+  if (!Number.isFinite(x) || !Number.isFinite(z)) return null;
+  const front = Number.isFinite(yaw) ? yaw : 0;
+  /* 1) 눈덩이 자리 그대로 → 2) 주변을 가까운 순서로. 기준 간격(SNOW_GAP)을 먼저
+     지키고, 그래도 자리가 없으면 조금 좁혀(1.45m) 다시 찾는다. */
+  for (const gap of [SNOW_GAP, 1.45]) {
+    if (snowSpotFree(x, z, gap)) return { x, z, ry: Math.atan2(playerPos.x - x, playerPos.z - z) };
+    let best = null, bestScore = Infinity;
+    for (let deg = 0; deg <= 180; deg += 15) {
+      const off = (deg * Math.PI) / 180;
+      for (const sgn of (deg === 0 ? [1] : [1, -1])) {
+        const a = front + off * sgn;
+        for (let rad = 0.5; rad <= 3.4; rad += 0.25) {
+          const px = x + Math.sin(a) * rad, pz = z + Math.cos(a) * rad;
+          if (!snowSpotFree(px, pz, gap)) continue;
+          const score = rad + off * 0.9;               // 가까운 자리 우선, 같으면 바라보는 앞쪽
+          if (score < bestScore) {
+            bestScore = score;
+            best = { x: px, z: pz, ry: Math.atan2(playerPos.x - px, playerPos.z - pz) };
+          }
+        }
+      }
+    }
+    if (best) return best;
+  }
+  return null;
+}
+
 /* ---------- 굴리는 동안의 임시 눈덩이 ---------- */
 function makeRollBall(r) {
   const m = new THREE.Mesh(new THREE.SphereGeometry(r, 18, 14), new THREE.MeshStandardMaterial({
@@ -13686,7 +13856,10 @@ function startRoll() {
   ROLL.prog = 0;
   const yaw = playerYaw.v;
   ROLL.ball = makeRollBall(0.20);
-  ROLL.ball.position.set(playerPos.x + Math.sin(yaw) * 0.75, POND.y + 0.2, playerPos.z + Math.cos(yaw) * 0.75);
+  ROLL.r = 0.20;
+  ROLL.bx = playerPos.x + Math.sin(playerYaw.v) * (0.50 + 0.19);
+  ROLL.bz = playerPos.z + Math.cos(playerYaw.v) * (0.50 + 0.19);
+  ROLL.ball.position.set(ROLL.bx, groundY(ROLL.bx, ROLL.bz) + 0.20 * 0.98, ROLL.bz);
   ROLL.body = null; ROLL.head = null; ROLL.gear = [];
   toast('❄️ 눈덩이를 굴려 볼게요 — 앞으로 밀면서 커져요', 2600);
   return true;
@@ -13695,6 +13868,7 @@ function stopRoll(silent) {
   if (!ROLL.active) return false;
   ROLL.active = false;
   ROLL.phase = 'idle';
+  ROLL.bx = undefined; ROLL.bz = undefined;
   if (ROLL.ball) { scene.remove(ROLL.ball); ROLL.ball.geometry.dispose(); ROLL.ball.material.dispose(); ROLL.ball = null; }
   if (ROLL.body) { scene.remove(ROLL.body); ROLL.body = null; }
   if (ROLL.head) { scene.remove(ROLL.head); ROLL.head = null; }
@@ -13709,27 +13883,54 @@ function updateRoll(dt) {
   ROLL.t += dt;
   ROLL.prog = clamp(ROLL.t / ROLL.dur, 0, 1);
   const t = ROLL.t;
-  /* 세울 자리(굴리기 시작할 때 정한 앞쪽 빈 자리) — 없으면 예전 기본 자리 */
+  /* 굴리기가 끝나는 순간 — 눈덩이가 있던 자리 주변에서 가장 가까운 안전한 자리를 잡는다
+     (소품·다른 눈사람과 겹치면 그 주변으로 살짝 밀어 세운다) */
+  if (ROLL.phase === 'roll' && t >= 4.4) {
+    ROLL.spot = nearestSnowSpot(finiteOr(ROLL.bx, playerPos.x), finiteOr(ROLL.bz, playerPos.z), playerYaw.v)
+      || findSnowmanSpot(playerPos.x, playerPos.z, playerYaw.v)
+      || ROLL.spot || ROLL_SPOT;
+  }
+  /* 세울 자리 — 없으면 예전 기본 자리 */
   const sp = ROLL.spot || ROLL_SPOT;
   const gy = groundY(sp.x, sp.z);
-  const toSpot = Math.hypot(sp.x - playerPos.x, sp.z - playerPos.z);
-  const yaw0 = Math.atan2(sp.x - playerPos.x, sp.z - playerPos.z);
 
   if (t < 4.4) {
-    /* 1단계 — 앞에서 눈덩이가 굴러 커진다 */
+    /* 1단계 — 눈덩이가 캐릭터 손 바로 앞에서 굴러 커진다.
+       예전에는 시작할 때 정한 한 방향(yaw0)으로만 굴러가서, 캐릭터가 방향을
+       바꾸거나 뒤돌면 눈덩이가 등 뒤에 남아 손과 따로 놀았다. 이제는 매 프레임
+       현재 바라보는 방향(playerYaw)과 눈덩이 반지름으로 위치를 다시 잡는다. */
     ROLL.phase = 'roll';
     const k = t / 4.4;
     const r = 0.20 + 0.34 * smoothstep(0, 1, k);
+    ROLL.r = r;
     if (ROLL.ball) {
       ROLL.ball.scale.setScalar(1);
-      ROLL.ball.geometry.dispose();
-      ROLL.ball.geometry = new THREE.SphereGeometry(r, 18, 14);
-      /* 눈덩이는 발밑에서 출발해 정해 둔 자리까지 굴러간다 */
-      const reach = Math.max(1.0, toSpot - 0.5);
-      const px = playerPos.x + Math.sin(yaw0) * (0.75 + (reach - 0.75) * k);
-      const pz = playerPos.z + Math.cos(yaw0) * (0.75 + (reach - 0.75) * k);
+      if (ROLL.ball.geometry.parameters.radius !== r) {
+        ROLL.ball.geometry.dispose();
+        ROLL.ball.geometry = new THREE.SphereGeometry(r, 18, 14);
+      }
+      /* 손 앞 거리 — 눈덩이가 커질수록 반지름만큼 더 멀어져 표면이 손에 닿는다 */
+      const yaw = playerYaw.v;
+      let dist = 0.50 + r * 0.95;
+      let px = playerPos.x + Math.sin(yaw) * dist;
+      let pz = playerPos.z + Math.cos(yaw) * dist;
+      /* 소품·경계에 막히면 눈덩이를 손 쪽으로 당겨 둔다 */
+      for (let s = 0; s < 4 && rollBallBlocked(px, pz, r); s++) {
+        dist = Math.max(r + 0.30, dist * 0.82);
+        px = playerPos.x + Math.sin(yaw) * dist;
+        pz = playerPos.z + Math.cos(yaw) * dist;
+      }
       ROLL.ball.position.set(px, groundY(px, pz) + r * 0.98, pz);
-      ROLL.ball.rotation.x += dt * (0.6 + k * 2.4);
+      /* 굴러간 거리만큼 바닥과 맞물려 구른다 */
+      if (ROLL.bx !== undefined && ROLL.bz !== undefined) {
+        const ddx = px - ROLL.bx, ddz = pz - ROLL.bz;
+        const moved = Math.hypot(ddx, ddz);
+        if (moved > 0.0005) {
+          _rollAxis.set(ddz, 0, -ddx).normalize();
+          ROLL.ball.rotateOnWorldAxis(_rollAxis, moved / Math.max(0.08, r));
+        }
+      }
+      ROLL.bx = px; ROLL.bz = pz;
       if (Math.random() < 0.35) spawnSkateSpark(px, pz);
     }
     ROLL.push = 1;
@@ -14358,7 +14559,7 @@ window.__plaza = {
     const gl0 = renderer.getContext();
     return { quality, composerBroken, lost: !!(gl0 && gl0.isContextLost && gl0.isContextLost()), post: USE_POST, bloom: !!(bloomPass && bloomPass.enabled), strength: bloomPass ? +bloomPass.strength.toFixed(2) : 0, threshold: bloomPass ? +bloomPass.threshold.toFixed(2) : 0, calls: renderer.info.render.calls, tris: renderer.info.render.triangles, programs: renderer.info.programs.length };
   },
-  get players() { return [...players.values()].map((p) => ({ id: p.id, nickname: p.nickname, character: p.character, x: +p.root.position.x.toFixed(2), z: +p.root.position.z.toFixed(2), moving: !!p.moving, tx: +p.tx.toFixed(2), tz: +p.tz.toFixed(2) })); },
+  get players() { return [...players.values()].map((p) => ({ id: p.id, nickname: p.nickname, character: p.character, x: +p.root.position.x.toFixed(2), z: +p.root.position.z.toFixed(2), moving: !!p.moving, tx: +p.tx.toFixed(2), tz: +p.tz.toFixed(2), pp: p.photoPose || 'stand', pw: +(p.root.userData && p.root.userData.photoW || 0).toFixed(2) })); },
   get net() { return net.info(); },
   get floaters() { return floaters.length; },
   get bubbles() { return [...players.values()].filter((p) => p.label.bubble.classList.contains('show')).map((p) => ({ id: p.id, text: p.label.bubble.textContent })); },
@@ -14891,6 +15092,35 @@ window.__plaza = {
       vel: +Math.hypot(vel.x, vel.y).toFixed(2),
     };
   },
+  /* 연못 입구 진단 — 울타리 모델과 걷기 판정이 같은 각도(POND.gate)를 쓰는지 확인 */
+  get pondGate() {
+    const ux = Math.sin(POND.door), uz = Math.cos(POND.door);
+    const probe = (da) => {
+      const a = POND.door + da;
+      const x = POND.x + Math.sin(a) * POND.rim, z = POND.z + Math.cos(a) * POND.rim;
+      return { da: +da.toFixed(2), walkable: walkableAt(x, z), fence: inPondFence(x, z) };
+    };
+    return {
+      door: +POND.door.toFixed(3), gate: POND.gate,
+      width: +(2 * POND.rim * Math.sin(POND.gate)).toFixed(2),
+      mouth: [+(POND.x + ux * POND.rim).toFixed(2), +(POND.z + uz * POND.rim).toFixed(2)],
+      onIce: onPondIce(playerPos.x, playerPos.z), dist: +pondDist().toFixed(2),
+      glow: !!(POND_OBJ.gateGlow && POND_OBJ.gateGlow.visible),
+      probes: [-0.9, -0.62, -0.4, 0, 0.4, 0.62, 0.9].map(probe),
+    };
+  },
+  /* 사탕길 끝 → 입구 → 얼음까지 직선상 걷기 가능 여부 (검증용) */
+  gateLane(step) {
+    const st = step || 0.2;
+    const ax = FAIRY_PATH[FAIRY_PATH.length - 1].x, az = FAIRY_PATH[FAIRY_PATH.length - 1].z;
+    const out = [];
+    const len = Math.hypot(POND.x - ax, POND.z - az);
+    for (let d = 0; d <= len + 0.001; d += st) {
+      const x = ax + (POND.x - ax) / len * d, z = az + (POND.z - az) / len * d;
+      if (!walkableAt(x, z)) out.push([+x.toFixed(2), +z.toFixed(2), +d.toFixed(2)]);
+    }
+    return { blocked: out, samples: Math.ceil(len / st) + 1 };
+  },
   gotoPond(a) {
     const ang = a === undefined ? POND.door : a;
     const x = POND.x + Math.sin(ang) * (POND.r - 0.6), z = POND.z + Math.cos(ang) * (POND.r - 0.6);
@@ -14965,6 +15195,17 @@ window.__plaza = {
       active: ROLL.active, phase: ROLL.phase, t: +ROLL.t.toFixed(2), prog: +ROLL.prog.toFixed(2),
       push: ROLL.push, built: ROLL.built.length, gear: ROLL.gear.length,
       ball: !!ROLL.ball, body: !!ROLL.body, head: !!ROLL.head,
+      /* 굴리는 눈덩이의 실제 자리 — 캐릭터 손 앞(바라보는 방향)에 있는지 검증용 */
+      ballPos: ROLL.ball ? [+ROLL.ball.position.x.toFixed(2), +ROLL.ball.position.y.toFixed(2), +ROLL.ball.position.z.toFixed(2)] : null,
+      ballR: +((ROLL.ball && ROLL.ball.geometry.parameters && ROLL.ball.geometry.parameters.radius) || 0).toFixed(2),
+      front: ROLL.ball ? {
+        ahead: +((ROLL.ball.position.x - playerPos.x) * Math.sin(playerYaw.v)
+               + (ROLL.ball.position.z - playerPos.z) * Math.cos(playerYaw.v)).toFixed(2),
+        side: +((ROLL.ball.position.x - playerPos.x) * Math.cos(playerYaw.v)
+               - (ROLL.ball.position.z - playerPos.z) * Math.sin(playerYaw.v)).toFixed(2),
+        dist: +Math.hypot(ROLL.ball.position.x - playerPos.x, ROLL.ball.position.z - playerPos.z).toFixed(2),
+      } : null,
+      playerYaw: +playerYaw.v.toFixed(2),
       spot: ROLL.spot ? { x: +ROLL.spot.x.toFixed(2), z: +ROLL.spot.z.toFixed(2), ry: +(ROLL.spot.ry || 0).toFixed(2) } : null,
       reason: ROLL.lastReason, can: canRoll(),
       btn: rollBtnEl ? { shown: rollBtnEl.classList.contains('show'), label: rollBtnEl.textContent } : null,
