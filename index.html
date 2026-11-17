@@ -13069,6 +13069,10 @@ function startFireworks(opts = {}) {
   FW.queued = 0;
   FW.active = true;
   FW.sfx = opts.remote ? 0.85 : 1;
+  /* 클릭 직전에 화면이 멈춰 있던 시간이 첫 프레임 간격으로 들어오지 않게 시계를 리셋한다
+     (에셋 로딩 직후처럼 프레임이 한참 멈춘 뒤 누르면, 그 간격이 '오래 멈춘 탭' 으로 보여
+     쇼가 시작하자마자 끝나 버렸다) */
+  clock.getDelta();
   if (opts.broadcast !== false) net.sendFireworks(seed);
   return seed;
 }
@@ -13086,8 +13090,8 @@ function updateFireworks(dt) {
   const tl = fwClock(dt);            // 시퀀스 시간 — 실제 경과 시간
   const sdt = Math.min(tl, 0.25);    // 불티·섬광 애니메이션은 한 프레임에 0.25초까지만
   if (FW.active) {
-    if (tl > 3) {
-      /* 탭이 오래 멈춰 있다 돌아온 경우 — 지나간 쇼는 그냥 끝낸다 */
+    if (tl > 8) {
+      /* 탭이 오래(8초 넘게) 멈춰 있다 돌아온 경우 — 지나간 쇼는 그냥 끝낸다 */
       FW.queued = FW.plan.length; FW.rockets.length = 0; FW.active = false;
     } else {
       FW.t += tl;
