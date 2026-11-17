@@ -1277,6 +1277,10 @@ const MAP = 1.5;
 const R_PLAZA = 20.0;            // 석조 광장 반지름 (m)
 const R_WALK = 18.7;             // 걸을 수 있는 반경 — 광장 안쪽
 const R_FLAT = 31.0;             // 마을 바닥이 평평한 반경 (코티지 10채가 모두 이 안)
+/* 흰 눈이 쌓인 마을 바닥 전체를 걸을 수 있게 넓힌 이동 경계.
+   광장(20m) 밖 눈밭 → 코티지 사이 → 눈 굴리기 눈밭 · 얼음 연못까지 막힘없이 다니고,
+   평평한 바닥이 끝나 눈 언덕이 시작되는 R_FLAT 직전에서 멈춘다(그 너머는 소나무 숲). */
+const R_SNOW = R_FLAT - 0.7;
 const GROUND_DROP = 0.04;        // 눈밭을 광장면보다 살짝 낮춰 턱을 만든다
 const IS_TOUCH = matchMedia('(pointer: coarse)').matches || 'ontouchstart' in window;
 const TAU = Math.PI * 2;
@@ -1306,15 +1310,20 @@ const POND = {
   r: 4.6,                     // 얼음 반지름
   rim: 5.75,                  // 눈둑 · 나무 펜스 반지름
   y: -0.02,                   // 얼음면 높이 (눈밭 -0.04 보다 살짝 높다)
-  door: Math.atan2(-9.75, -26.78),   // 광장 쪽 입구 방향 (a = 200°)
+  door: 0,                    // 울타리 입구 방향 — 아래에서 사탕길 쪽으로 정한다
 };
 /* 동화 길 — 광장 가장자리에서 연못 입구까지 완만하게 휘는 사탕·쿠키 길 */
 const FAIRY_PATH = [
   { x: -1.60, z: -18.33 },
   { x: -4.37, z: -20.54 },
-  { x: -8.18, z: -22.50 },
+  { x: -7.35, z: -21.75 },   // 연못 울타리 입구 바로 앞
 ];
 const FAIRY_HALF = 1.75;      // 길 반폭 (걸을 수 있는 폭)
+/* 연못 입구(울타리 개구부) 방향 — 사탕길이 닿는 쪽을 향해야 길에서 그대로 들어간다.
+   예전에는 '광장 중심 → 연못' 방향(200°)에 입구를 냈는데, 사탕길은 연못의 반대편
+   (약 25°)에서 닿아서 길 끝이 울타리로 막히고 문은 반대쪽에 나 있었다. */
+POND.door = Math.atan2(FAIRY_PATH[FAIRY_PATH.length - 1].x - POND.x,
+                       FAIRY_PATH[FAIRY_PATH.length - 1].z - POND.z);
 /* 눈사람 만들기 눈밭 — 연못 동쪽 옆 */
 const SNOW_PATCH = { x: -3.10, z: -26.00, r: 3.0 };
 /* 산타 우체통 · 우체국 팻말 — 광장 산타(7.7, -5.0) 옆 */
@@ -2207,8 +2216,9 @@ renderer.setSize(window.innerWidth, window.innerHeight);
 renderer.shadowMap.enabled = true;
 renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 renderer.toneMapping = THREE.ACESFilmicToneMapping;
-/* 모바일은 블룸·그레이딩 없이 직접 렌더하므로 노출을 조금 올려 화사하게 맞춘다 */
-renderer.toneMappingExposure = IS_TOUCH ? 1.06 : 0.96;
+/* 모바일은 블룸·그레이딩 없이 직접 렌더하므로 노출을 조금 올려 화사하게 맞춘다.
+   다만 눈밭이 하얗게 날아가지 않을 만큼만 — 예전 1.06 은 순백 눈에서 포화됐다. */
+renderer.toneMappingExposure = IS_TOUCH ? 0.99 : 0.93;
 sceneRoot.appendChild(renderer.domElement);
 renderer.domElement.style.touchAction = 'none';
 
@@ -2330,9 +2340,9 @@ if (USE_POST) {
 
   bloomPass = new UnrealBloomPass(
     new THREE.Vector2(window.innerWidth, window.innerHeight),
-    0.5,            // strength — 과하면 눈밭이 하얗게 떠 버린다
-    0.55,           // radius
-    0.78            // threshold — 이 밝기 이상만 번진다
+    0.34,           // strength — 과하면 눈밭이 하얗게 떠 버린다
+    0.45,           // radius
+    0.9             // threshold — 이 밝기 이상만 번진다
   );
   composer.addPass(bloomPass);
 }
@@ -2409,14 +2419,14 @@ function applyQuality() {
   if (!USE_POST || !composer) return;
   if (tier >= 2) {
     bloomPass.enabled = true;
-    bloomPass.strength = 0.5;
-    bloomPass.radius = 0.55;
-    bloomPass.threshold = 0.8;
+    bloomPass.strength = 0.34;
+    bloomPass.radius = 0.45;
+    bloomPass.threshold = 0.9;
     gradePass.uniforms.uVignette.value = 0.44;
   } else if (tier === 1) {
     bloomPass.enabled = true;
-    bloomPass.strength = 0.3;
-    bloomPass.threshold = 0.85;
+    bloomPass.strength = 0.2;
+    bloomPass.threshold = 0.94;
     gradePass.uniforms.uVignette.value = 0.4;
   } else {
     bloomPass.enabled = false;
@@ -2998,15 +3008,16 @@ function drawSnowflake(x, cx, cy, r, color, lw) {
 
 /* ---------- 눈밭 표면 텍스처 (타일) ---------- */
 const TEX_SNOWGROUND = canvasTexture(512, 512, (c, w, h) => {
-  c.fillStyle = '#fbfdff';
+  c.fillStyle = '#f1f7ff';
   c.fillRect(0, 0, w, h);
-  /* 성긴 설면의 음영 — 아주 옅은 파란 회색 얼룩 (눈둑보다 어두워 보이지 않게 옅게) */
-  for (let i = 0; i < 260; i++) {
+  /* 성긴 설면의 음영 — 아주 옅은 파란 회색 얼룩 (눈둑보다 어두워 보이지 않게 옅게)
+     바닥이 하얗게 날아가지 않도록 얼룩을 조금 진하게 깔아 눈 결이 읽히게 한다. */
+  for (let i = 0; i < 320; i++) {
     const x = Math.random() * w, y = Math.random() * h, r = 8 + Math.random() * 46;
     const g = c.createRadialGradient(x, y, 0, x, y, r);
-    const a = 0.02 + Math.random() * 0.035;
-    g.addColorStop(0, `rgba(206,222,244,${a.toFixed(3)})`);
-    g.addColorStop(1, 'rgba(206,222,244,0)');
+    const a = 0.05 + Math.random() * 0.075;
+    g.addColorStop(0, `rgba(178,201,232,${a.toFixed(3)})`);
+    g.addColorStop(1, 'rgba(178,201,232,0)');
     c.fillStyle = g;
     c.beginPath(); c.arc(x, y, r, 0, Math.PI * 2); c.fill();
   }
@@ -3242,10 +3253,10 @@ function buildGround() {
   gGeo.setIndex(idx);
   gGeo.computeVertexNormals();
   const snowMat = new THREE.MeshStandardMaterial({
-    color: 0xffffff, roughness: 0.92, metalness: 0.0, envMapIntensity: 0.4,
-    /* 눈둑·눈더미와 같은 밝은 순백 — 하늘광이 파랗게 들어와도 회보라로 죽지 않게
-       아주 옅게 스스로 밝기를 띈다(너무 높이면 블룸에 타버려 눈이 하얗게 날아간다) */
-    emissive: 0xffffff, emissiveIntensity: 0.08,
+    /* ⛸️ 눈부심 완화 — 순백 + 자체 발광으로 바닥이 하얗게 날아가 눈 결·쿠키 길이
+       사라지던 것을, 살짝 푸른 기 돈 눈색으로 낮추고 발광은 거의 끈다. */
+    color: 0xeef4fd, roughness: 0.95, metalness: 0.0, envMapIntensity: 0.3,
+    emissive: 0xffffff, emissiveIntensity: 0.015,
     map: TEX_SNOWGROUND, vertexColors: true,
   });
   const snowField = new THREE.Mesh(gGeo, snowMat);
@@ -3287,9 +3298,9 @@ function buildGround() {
   }
   cGeo.computeVertexNormals();
   const collar = new THREE.Mesh(cGeo, new THREE.MeshStandardMaterial({
-    color: 0xfbfdff, roughness: 0.92, metalness: 0.0, envMapIntensity: 0.4,
-    /* 눈밭(snowField)과 같은 순백 — 이음매에서 색이 갈리지 않게 같은 발광값을 쓴다 */
-    emissive: 0xffffff, emissiveIntensity: 0.08,
+    color: 0xf3f8ff, roughness: 0.95, metalness: 0.0, envMapIntensity: 0.3,
+    /* 눈밭(snowField)과 같은 눈색 — 이음매에서 색이 갈리지 않게 같은 발광값을 쓴다 */
+    emissive: 0xffffff, emissiveIntensity: 0.015,
   }));
   collar.receiveShadow = true;
   group.add(collar);
@@ -4850,6 +4861,16 @@ function groundY(x, z) {
 function inPond(x, z) { return Math.hypot(x - POND.x, z - POND.z) <= POND.r + 0.9; }
 /** 얼음면 위인가 — 스케이트가 유지되는 범위 */
 function onPondIce(x, z) { return Math.hypot(x - POND.x, z - POND.z) <= POND.r + 0.25; }
+/** 연못 눈둘레(울타리 안쪽 띠)인가 — 얼음에서 눈으로 발을 딛는 자리 */
+function inPondRim(x, z) { return Math.hypot(x - POND.x, z - POND.z) <= POND.rim + 0.6; }
+/** 연못 나무 울타리 띠인가 — 입구(개구부)를 뺀 둘레는 막는다 */
+function inPondFence(x, z) {
+  const dx = x - POND.x, dz = z - POND.z;
+  const d = Math.hypot(dx, dz);
+  if (Math.abs(d - POND.rim) > 0.34) return false;
+  const da = Math.abs(((Math.atan2(dx, dz) - POND.door + Math.PI) % TAU + TAU) % TAU - Math.PI);
+  return da > 0.36;                       // 입구 폭 약 4m 만 열어 둔다
+}
 /** 사탕·쿠키 동화 길 위인가 */
 function onFairyPath(x, z) {
   for (let i = 0; i < FAIRY_PATH.length - 1; i++) {
@@ -4862,7 +4883,7 @@ function inSnowPatch(x, z) { return Math.hypot(x - SNOW_PATCH.x, z - SNOW_PATCH.
 function inFairyGround(x, z) {
   /* 광장 근처가 아니면 비싼 계산을 건너뛴다 */
   if (x > 6 || z > -14) return false;
-  return onPondIce(x, z) || onFairyPath(x, z) || inSnowPatch(x, z);
+  return inPondRim(x, z) || onFairyPath(x, z) || inSnowPatch(x, z);
 }
 function fairyGroundY(x, z) {
   if (onPondIce(x, z)) return POND.y;
@@ -4871,12 +4892,15 @@ function fairyGroundY(x, z) {
   return -GROUND_DROP;
 }
 
-/** 걸을 수 있는가 — 석조 광장 안쪽 + 각 코티지 문 앞 현관길 + 동화 길·얼음 연못 (건물·소품은 콜라이더가 막는다) */
+/** 걸을 수 있는가 — 눈밭 전체 + 동화 길·얼음 연못 (건물·소품·울타리는 콜라이더가 막는다) */
 function walkableAt(x, z) {
   if (ZONE.mode === 'interior') return interiorWalkableAt(x, z);
-  if (Math.hypot(x, z) <= R_WALK) return true;
-  if (inFairyGround(x, z)) return true;
-  return inDoorApproach(x, z);
+  /* 광장 안쪽 + 그 둘레 흰 눈밭 전체 — 마을 바닥이 평평한 끝(R_SNOW)까지 걷는다.
+     그 밖은 동화 길·연못 둘레(울타리 안쪽)와 코티지 문 앞 현관길만. */
+  const inside = Math.hypot(x, z) <= R_SNOW;
+  if (!inside && !inFairyGround(x, z)) return inDoorApproach(x, z);
+  if (inPondFence(x, z)) return false;             // 연못 울타리는 입구로만
+  return true;
 }
 
 /** 카메라가 파고들 구조물의 꼭대기 — 평지 광장이라 0 */
@@ -4886,7 +4910,7 @@ function obstacleTopY() {
 
 /** 걸을 수 있는 임의 좌표 (NPC 배회용) */
 function randomWalkablePoint(minR = 0, maxR = 99) {
-  const lim = Math.min(maxR, R_WALK - 0.7);
+  const lim = Math.min(maxR, R_SNOW - 0.7);
   for (let t = 0; t < 60; t++) {
     const a = rand(0, TAU);
     const r = Math.sqrt(Math.random()) * lim;
@@ -6017,6 +6041,19 @@ function buildVillage() {
     addFir(x, z, rand(3.2, 7.2), { tiers: 4, noCollide: true });
   }
 
+  /* ---------- 눈밭 바깥 경계 — 눈더미 둑 ----------
+     걸을 수 있는 눈밭이 마을 바닥 끝(R_SNOW)까지 넓어진 만큼, 그 끝을 한 줄 눈더미로
+     부드럽게 막고 뒤로는 소나무 숲이 이어진다. (보이지 않는 벽처럼 멈추지 않게) */
+  const RB = R_SNOW + 0.75;
+  for (let i = 0; i < 104; i++) {
+    const a = (i / 104) * TAU + rand(-0.012, 0.012);
+    const R = RB + rand(-0.18, 0.42);
+    const x = Math.sin(a) * R, z = Math.cos(a) * R;
+    if (Math.hypot(x - POND.x, z - POND.z) < POND.rim + 1.2) continue;
+    const s = rand(1.25, 2.05);
+    vPush(VG.ico2, VMAT.drift, vMtx(null, x, -GROUND_DROP - 0.06, z, 0, a, 0, s * 1.7, s * 0.52, s * 1.25));
+  }
+
   buildCampfire();
 
   const meshCount = vFlush(VILLAGE_ROOT);
@@ -6302,6 +6339,18 @@ function buildPond() {
 
 /* ---------- 동화 길 ---------- */
 function buildFairyPath() {
+  /* 길 어귀 기준값 — 아치·팻말 위치를 먼저 정해 두고, 사탕 지팡이·사탕 나무를 놓을 때
+     팻말 앞을 가리지 않도록 거리를 잰다. */
+  const E0 = FAIRY_PATH[0], E1 = FAIRY_PATH[1];
+  const ED = Math.hypot(E1.x - E0.x, E1.z - E0.z);
+  const EUX = (E1.x - E0.x) / ED, EUZ = (E1.z - E0.z) / ED;
+  const ENX = EUZ, ENZ = -EUX;
+  const EAX = E0.x + EUX * 1.0, EAZ = E0.z + EUZ * 1.0;
+  const ARCH_W = FAIRY_HALF + 0.5;                 // 아치 반폭
+  const SIGN = { x: EAX + ENX * -(ARCH_W + 0.85), z: EAZ + ENZ * -(ARCH_W + 0.85) };
+  /* 팻말 앞 시야 — 팻말이 향한 쪽(길 쪽)으로 이만큼은 비워 둔다 */
+  const signClear = (x, z) => Math.hypot(x - SIGN.x, z - SIGN.z) < 1.55;
+
   /* 길을 따라 바닥을 밟아 다진 자국 — 눈둑 위를 자연스럽게 잇는다 */
   for (let i = 0; i < FAIRY_PATH.length - 1; i++) {
     const a = FAIRY_PATH[i], b = FAIRY_PATH[i + 1];
@@ -6341,18 +6390,16 @@ function buildFairyPath() {
       const sgn = k % 2 ? 1 : -1;
       const x = a.x + ux * len * t + nx * (FAIRY_HALF + 0.45) * sgn;
       const z = a.z + uz * len * t + nz * (FAIRY_HALF + 0.45) * sgn;
+      if (signClear(x, z)) continue;                 // 팻말 앞을 가리지 않게
       const lit = (i === 0 && k === 0) || (i === 1 && k === n - 1);
       addCandyCane(x, z, 2.45 + (k % 2) * 0.15, Math.atan2(-nx * sgn, -nz * sgn), { light: lit });
       addCollider(x, z, 0.24);
     }
   }
   /* 길 어귀 — 사탕 아치 (두 기둥 + 반원 아치) */
-  const e0 = FAIRY_PATH[0], e1 = FAIRY_PATH[1];
-  const dl = Math.hypot(e1.x - e0.x, e1.z - e0.z);
-  const ux = (e1.x - e0.x) / dl, uz = (e1.z - e0.z) / dl;
-  const nx = uz, nz = -ux;
-  const ax = e0.x + ux * 1.0, az = e0.z + uz * 1.0;
-  const gw = FAIRY_HALF + 0.5;               // 아치 반폭
+  const ax = EAX, az = EAZ;
+  const nx = ENX, nz = ENZ;
+  const gw = ARCH_W;                          // 아치 반폭
   const AH = 2.30;                            // 기둥 높이
   [-1, 1].forEach((s) => {
     const px = ax + nx * gw * s, pz = az + nz * gw * s;
@@ -6379,8 +6426,8 @@ function buildFairyPath() {
   vBall(null, FAIRY_M.gumdrop, 0.10, topPt.x, topPt.y - 0.16, topPt.z, 1, 1.2, 1, VG.ball8);
   vBall(null, FAIRY_M.mint, 0.075, topPt.x + nx * 0.5, topPt.y - 0.10, topPt.z + nz * 0.5, 1, 1.2, 1, VG.ball8);
   vBall(null, FAIRY_M.gumdrop, 0.07, topPt.x - nx * 0.5, topPt.y - 0.10, topPt.z - nz * 0.5, 1, 1.2, 1, VG.ball8);
-  /* 입구 팻말 */
-  const sx = ax + nx * -(gw + 0.85), sz = az + nz * -(gw + 0.85);
+  /* 입구 팻말 — 아치 옆, 가로등·작은 소나무와 겹치지 않는 자리 */
+  const sx = SIGN.x, sz = SIGN.z;
   const sy = groundY(sx, sz);
   vPost(null, VMAT.woodDk, 0.065, 0.95, sx, sy, sz, VG.cyl6);
   signBoard(sx, sz, Math.atan2(nx, nz) + Math.PI, 1.02, 0.5, sy + 0.72, '🍬 사탕길', '얼음 연못으로');
@@ -6396,6 +6443,7 @@ function buildFairyPath() {
     const x = a.x + (b.x - a.x) * lt + nx * (FAIRY_HALF + 1.05 + rand(0, 0.5)) * sgn;
     const z = a.z + (b.z - a.z) * lt + nz * (FAIRY_HALF + 1.05 + rand(0, 0.5)) * sgn;
     if (inFairyGround(x, z)) continue;
+    if (Math.hypot(x - SIGN.x, z - SIGN.z) < 2.9) continue;      // 팻말을 가리지 않게
     if (Math.hypot(x - POND.x, z - POND.z) < POND.rim + 2.4) continue;
     if (Math.hypot(x - SNOW_PATCH.x, z - SNOW_PATCH.z) < SNOW_PATCH.r + 1.2) continue;
     addFir(x, z, rand(1.6, 2.6), { tiers: 3, bulbs: true, noCollide: true, y: groundY(x, z) });
@@ -7861,7 +7909,7 @@ function setExteriorLights(inside) {
     l.intensity = EXT_BASE.get(l) * (inside ? 0.07 : 1);
   });
   sunLight.castShadow = !inside;
-  renderer.toneMappingExposure = inside ? (IS_TOUCH ? 1.22 : 1.14) : (IS_TOUCH ? 1.06 : 0.96);
+  renderer.toneMappingExposure = inside ? (IS_TOUCH ? 1.14 : 1.06) : (IS_TOUCH ? 0.99 : 0.93);
 }
 /** 광장 ↔ 실내 렌더 경계 — 한 쪽만 그려 모바일 부하를 나눈다 */
 const hiddenExterior = [];
@@ -8076,6 +8124,13 @@ window.addEventListener('keydown', (e) => {
   if (e.code === 'KeyE' && (SIT.near || SIT.active)) return;
   if (e.code === 'KeyF' && SIT.active) return;
   if (e.code === 'KeyE' && SIT.near) return;
+  /* ⛸️ E — 얼음 연못 앞에서는 스케이트를 신고/벗는다 (문·앉기와 자리가 겹치지 않는다) */
+  if (e.code === 'KeyE' && ZONE.mode !== 'interior' && nearDoorIdx < 0
+    && (SKATE.active || canSkate())) {
+    e.preventDefault();
+    toggleSkate();
+    return;
+  }
   if (ZONE.mode === 'interior') { e.preventDefault(); doorTravel('out'); }
   else if (nearDoorIdx >= 0) { e.preventDefault(); doorTravel('in'); }
 });
@@ -13046,6 +13101,12 @@ function stopSkate(silent) {
   if (!silent) toast('🥾 스케이트를 벗었어요', 1800);
   return true;
 }
+/* ⛸️ 버튼·E 키 — 예전에는 버튼에 클릭 핸들러가 없어서 눌러도 아무 일이 없었다 */
+function toggleSkate() {
+  if (SKATE.active) return stopSkate(false);
+  return startSkate();
+}
+if (skateBtnEl) skateBtnEl.addEventListener('click', toggleSkate);
 
 /* ---------- 얼음 궤적 ---------- */
 const TRAIL = { pool: [], idx: 0, spawned: 0 };
@@ -13123,9 +13184,12 @@ function updateSkate(dt) {
     p.m.material.opacity = 0.5 * Math.pow(1 - k, 1.4);
   }
   if (!SKATE.active) return;
-  /* 얼음 밖으로 나가면 잠시 뒤 자동으로 벗는다 */
+  /* 얼음 밖으로 나가면 잠시 뒤 자동으로 벗는다.
+     단, 울타리 입구·눈둘레(연못 반경 +2.6m)까지는 신은 채로 걸어 다닐 수 있게 둔다
+     — 예전에는 얼음면을 벗어나는 순간 0.45초 뒤 바로 벗겨져서
+     입구에 서서 ⛸️ 를 눌러도 켜졌다 꺼지는 것처럼 보였다. */
   const onIce = onPondIce(playerPos.x, playerPos.z);
-  if (!onIce) {
+  if (!onIce && pondDist() > POND.r + 2.6) {
     SKATE.outT += dt;
     if (SKATE.outT > 0.45) {
       stopSkate(false);
