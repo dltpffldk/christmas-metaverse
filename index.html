@@ -825,6 +825,43 @@
   #treeHud.lit .th-ico{filter:drop-shadow(0 0 8px rgba(255,214,120,.95))}
   #treeHud.lit .th-bar i{background:linear-gradient(90deg,#ffd479,#fff8e2)}
 
+  /* ---------- ✨ 소원 비행 뱃지 (남은 시간 · 고도 · 착지) ---------- */
+  #flyHud{
+    position:fixed;left:50%;top:calc(66px + var(--safe-t));transform:translate(-50%,-8px);z-index:57;
+    display:none;align-items:center;gap:8px;height:40px;padding:0 7px 0 13px;border-radius:14px;
+    background:rgba(86,54,12,.84);border:1px solid rgba(255,230,158,.92);
+    box-shadow:0 0 26px rgba(255,190,80,.5), inset 0 1px 0 rgba(255,255,255,.22);
+    backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);
+    color:#fff6de;font-size:12.5px;font-weight:900;letter-spacing:-.2px;white-space:nowrap;
+  }
+  #flyHud.show{display:flex;animation:flyHudIn .45s cubic-bezier(.2,.7,.3,1)}
+  @keyframes flyHudIn{from{opacity:0;transform:translate(-50%,-16px) scale(.94)}to{opacity:1;transform:translate(-50%,-8px) scale(1)}}
+  #flyHud .fh-ico{font-size:15px;line-height:1;filter:drop-shadow(0 0 9px rgba(255,214,120,.95))}
+  #flyHud .fh-bar{width:52px;height:5px;border-radius:99px;background:rgba(255,255,255,.2);overflow:hidden}
+  #flyHud .fh-bar i{display:block;height:100%;width:100%;border-radius:99px;
+    background:linear-gradient(90deg,#ffd479,#fff8e2);transition:width .25s linear}
+  #flyHud .fh-alt{font-size:10.5px;font-weight:800;color:#ffe2a8;min-width:38px;text-align:right}
+  #flyHud button{
+    height:30px;padding:0 11px;margin-left:2px;border-radius:10px;cursor:pointer;font-family:inherit;
+    font-size:11px;font-weight:900;color:#3a2109;background:linear-gradient(180deg,#ffeeb8,#ffc247);
+    border:1px solid rgba(255,242,204,.95);box-shadow:0 6px 14px rgba(255,170,40,.38);
+  }
+  #flyHud button:active{transform:scale(.94)}
+
+  /* 비행 중에는 산책 카드를 잠시 닫어 하늘을 깨끗이 보여 준다 */
+  body.flying #walkCard{display:none}
+
+  /* 비행 중 상승·하강 (모바일·마우스 공용) */
+  #flyPad{position:fixed;right:14px;bottom:calc(178px + var(--safe-b));z-index:56;display:none;flex-direction:column;gap:7px}
+  body.flying #flyPad{display:flex}
+  #flyPad button{
+    width:46px;height:46px;border-radius:14px;cursor:pointer;font-family:inherit;font-size:15px;
+    font-weight:900;color:#ffeec4;background:rgba(74,48,12,.72);border:1px solid rgba(255,226,150,.7);
+    box-shadow:0 8px 20px rgba(0,0,0,.35), inset 0 1px 0 rgba(255,255,255,.16);
+    backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);touch-action:none;user-select:none;
+  }
+  #flyPad button:active,#flyPad button.on{background:rgba(255,205,110,.85);color:#3a2109;transform:scale(.95)}
+
   /* ---------- 장소 활동 버튼 (우측 하단 독) ---------- */
   #treeBtn, #cocoaBtn, #wishBtn{
     display:none;align-items:center;justify-content:center;gap:7px;
@@ -857,9 +894,22 @@
     box-shadow:0 10px 26px rgba(110,150,220,.3), inset 0 1px 0 rgba(255,255,255,.7);
   }
   #wishBtn:hover{transform:translateY(-2px)}
+  /* ✨ 소원 비행 — 트리 앞에서 소원을 빌고 날아오른다 */
+  #flyBtn{
+    display:none;align-items:center;justify-content:center;gap:7px;
+    padding:11px 17px;border-radius:15px;cursor:pointer;font-family:inherit;
+    font-size:14px;font-weight:800;letter-spacing:-.3px;white-space:nowrap;
+    color:#3a2109;background:linear-gradient(180deg,#fff4cd,#ffc659);
+    border:1px solid rgba(255,246,212,.95);
+    box-shadow:0 10px 28px rgba(255,168,40,.45), inset 0 1px 0 rgba(255,255,255,.72);
+    transition:transform .12s ease, box-shadow .18s;
+  }
+  #flyBtn.show{display:flex}
+  #flyBtn:hover{transform:translateY(-2px)}
+  #flyBtn:active{transform:scale(.94)}
 
   /* ---------- 장식 고르기 · 소원 쪽지 (미니 패널) ---------- */
-  #ornPicker, #wishPanel{
+  #ornPicker, #wishPanel, #treeWishPanel{
     position:fixed;left:50%;bottom:calc(86px + var(--safe-b));transform:translate(-50%,14px);
     z-index:58;display:none;flex-direction:column;gap:9px;padding:13px 15px 14px;border-radius:18px;
     background:rgba(13,19,38,.94);border:1px solid rgba(255,212,121,.45);
@@ -867,16 +917,16 @@
     backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
     width:min(366px, calc(100vw - 26px));
   }
-  #ornPicker.show, #wishPanel.show{display:flex;animation:miniIn .2s ease-out}
+  #ornPicker.show, #wishPanel.show, #treeWishPanel.show{display:flex;animation:miniIn .2s ease-out}
   @keyframes miniIn{
     from{transform:translate(-50%,18px)}
     to{transform:translate(-50%,0)}
   }
-  #ornPicker .mp-title, #wishPanel .mp-title{
+  #ornPicker .mp-title, #wishPanel .mp-title, #treeWishPanel .mp-title{
     margin:0;font-size:12.5px;font-weight:900;letter-spacing:-.2px;color:#ffe6b3;
     display:flex;justify-content:space-between;align-items:center;gap:8px;
   }
-  #ornPicker .mp-title small, #wishPanel .mp-title small{
+  #ornPicker .mp-title small, #wishPanel .mp-title small, #treeWishPanel .mp-title small{
     font-size:10px;font-weight:600;color:#9fb0cc;letter-spacing:0;
   }
   #ornPicker .op-row{display:grid;grid-template-columns:repeat(4,1fr);gap:7px}
@@ -889,24 +939,24 @@
   #ornPicker .op-row button b{font-size:20px;line-height:1}
   #ornPicker .op-row button:hover{background:rgba(255,212,121,.18);border-color:rgba(255,212,121,.6);color:#ffe9bd}
   #ornPicker .op-row button:active{transform:scale(.95)}
-  #ornPicker .mp-foot, #wishPanel .mp-foot{display:flex;gap:7px}
-  #ornPicker .mp-foot button, #wishPanel .mp-foot button{
+  #ornPicker .mp-foot, #wishPanel .mp-foot, #treeWishPanel .mp-foot{display:flex;gap:7px}
+  #ornPicker .mp-foot button, #wishPanel .mp-foot button, #treeWishPanel .mp-foot button{
     flex:1;height:35px;border-radius:10px;cursor:pointer;font-family:inherit;
     font-size:11.5px;font-weight:800;color:#ffe6b3;
     background:rgba(255,212,121,.16);border:1px solid rgba(255,212,121,.42);
     transition:background .14s, transform .12s;
   }
-  #ornPicker .mp-foot button:hover, #wishPanel .mp-foot button:hover{background:rgba(255,212,121,.28)}
-  #ornPicker .mp-foot #ornCancel, #wishPanel .mp-foot #wishCancel{
+  #ornPicker .mp-foot button:hover, #wishPanel .mp-foot button:hover, #treeWishPanel .mp-foot button:hover{background:rgba(255,212,121,.28)}
+  #ornPicker .mp-foot #ornCancel, #wishPanel .mp-foot #wishCancel, #treeWishPanel .mp-foot #treeWishCancel{
     color:#b9c8de;background:rgba(255,255,255,.06);border-color:rgba(255,255,255,.14);
   }
-  #wishPanel .wp-input{
+  #wishPanel .wp-input, #treeWishPanel .wp-input{
     width:100%;height:42px;padding:0 12px;border-radius:11px;outline:none;
     font-family:inherit;font-size:12.5px;font-weight:600;color:#101a2e;
     background:#f6fbff;border:1px solid rgba(255,212,121,.6);
   }
-  #wishPanel .wp-input::placeholder{color:#8a9cb8}
-  #wishPanel .wp-note{margin:0;font-size:10px;line-height:1.45;color:#93a6c4}
+  #wishPanel .wp-input::placeholder, #treeWishPanel .wp-input::placeholder{color:#8a9cb8}
+  #wishPanel .wp-note, #treeWishPanel .wp-note{margin:0;font-size:10px;line-height:1.45;color:#93a6c4}
 
   /* ---------- 점등식 축하 배너 ---------- */
   #treeShowBanner{
@@ -941,12 +991,16 @@
     #treeHud .th-ico{font-size:12px}
     #treeHud .th-bar{display:none}
     #treeHudText{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-    #treeBtn, #cocoaBtn, #wishBtn, #roastBtn, #snowBtn{padding:10px 13px;font-size:12.5px;border-radius:13px}
+    #treeBtn, #cocoaBtn, #wishBtn, #roastBtn, #snowBtn, #flyBtn{padding:10px 13px;font-size:12.5px;border-radius:13px}
     #rollBtn, #breakBtn{padding:10px 13px;font-size:12.5px;border-radius:13px}
-    #ornPicker, #wishPanel{bottom:calc(178px + var(--safe-b));padding:11px 12px 12px;gap:7px}
+    #ornPicker, #wishPanel, #treeWishPanel{bottom:calc(178px + var(--safe-b));padding:11px 12px 12px;gap:7px}
+    #flyHud{top:calc(96px + var(--safe-t));height:36px;padding:0 5px 0 10px;gap:6px;font-size:11.5px;max-width:calc(100vw - 20px)}
+    #flyHud .fh-bar{display:none}
+    #flyHud button{height:26px;padding:0 9px;font-size:10px}
+    #flyPad{bottom:calc(196px + var(--safe-b))}
     #ornPicker .op-row button{padding:7px 2px 5px;font-size:9px}
     #ornPicker .op-row button b{font-size:17px}
-    #ornPicker .mp-foot button, #wishPanel .mp-foot button{height:32px;font-size:11px}
+    #ornPicker .mp-foot button, #wishPanel .mp-foot button, #treeWishPanel .mp-foot button{height:32px;font-size:11px}
     #treeShowBanner{top:34%}
     #treeShowBanner b{font-size:22px}
     #treeShowBanner span{font-size:11px}
@@ -1087,6 +1141,7 @@ body.photomode #walkCard{display:none!important}
   <p><b>코코아 라운지</b> · 어느 코티지 문 앞에서든 <span class="k">F</span> 또는 <span class="k">E</span> (모바일은 <b>🚪 라운지로</b> 버튼) — 모든 문이 하나의 따뜻한 실내로 이어집니다 · 안에서 <span class="k">F</span> 로 다시 나옵니다</p>
   <p><b>라운지 안</b> · 카운터 앞에서 <b>☕ 코코아 마시기</b> · 게시판 앞에서 <b>📝 소원 쪽지</b></p>
   <p><b>트리 점등식</b> · 광장 트리 옆 장식대에서 <b>🎄 트리 장식 달기</b> — 다 함께 달면 트리에 불이 들어옵니다</p>
+  <p><b>✨ 소원 비행</b> · 트리 앞에서 <b>✨ 소원 빌고 하늘 날기</b>(장식을 달아도 바로 시작) → 30초 동안 빛무리와 함께 광장 하늘을 납니다 · <span class="k">W A S D</span> 이동 · <span class="k">Space</span>/<span class="k">E</span> 상승 · <span class="k">Q</span>/<span class="k">C</span> 하강 (모바일 <b>▲▼</b>) · <b>🪂 착지</b>로 일찍 내려올 수 있어요</p>
   <p><b>겨울 놀이</b> · 사탕길 끝 <b>얼음 연못</b>에서 <b>⛸️ 스케이트</b> · 산타 옆 <b>우체통</b>에서 <b>📮 편지 보내기</b> · 연못 옆 <b>눈밭</b>에서 <b>❄️ 눈사람</b></p>
   <p><b>함께 걷기</b> · 아래 <b>방 코드</b>를 같은 값으로 맞춘 사람끼리 같은 광장에서 만납니다 (최대 10명)</p>
   <p style="margin:0"><b>BGM</b> · 우측 상단 🔇 버튼으로 캐롤 켜기/끄기 (외부 음원 없이 브라우저 신스로 연주)</p>
@@ -1120,6 +1175,7 @@ body.photomode #walkCard{display:none!important}
   <button id="rollBtn" type="button" aria-label="눈 굴리기">❄️ 눈 굴리기</button>
   <button id="breakBtn" type="button" aria-label="눈사람 부수기">⛄ 눈사람 부수기</button>
   <button id="treeBtn" type="button" aria-label="트리에 장식 달기">🎄 트리 장식 달기</button>
+  <button id="flyBtn" type="button" aria-label="트리에 소원 빌고 하늘 날기">✨ 소원 빌고 하늘 날기</button>
   <button id="cocoaBtn" type="button" aria-label="코코아 마시기">☕ 코코아 마시기</button>
   <button id="wishBtn" type="button" aria-label="소원 쪽지 남기기">📝 소원 쪽지 남기기</button>
   <div id="emojiRow">
@@ -1139,6 +1195,19 @@ body.photomode #walkCard{display:none!important}
 
 <div id="hint">W A S D 이동 · 드래그 시점 · 휠 줌 · 코티지 문 앞에서 F</div>
 <div id="toast"></div>
+
+<!-- ================= ✨ 소원 비행 (30초 하늘 날기) ================= -->
+<div id="flyHud" aria-hidden="true">
+  <span class="fh-ico">✨</span>
+  <span id="flyHudText">소원 비행 30초</span>
+  <span class="fh-bar"><i id="flyHudBar"></i></span>
+  <span class="fh-alt" id="flyHudAlt">0.0m</span>
+  <button type="button" id="flyLand" aria-label="착지하기">🪂 착지</button>
+</div>
+<div id="flyPad">
+  <button type="button" id="flyUp" aria-label="상승">▲</button>
+  <button type="button" id="flyDown" aria-label="하강">▼</button>
+</div>
 
 <!-- ================= 공동 트리 장식 고르기 ================= -->
 <div id="ornPicker" role="dialog" aria-label="트리 장식 고르기">
@@ -1163,6 +1232,18 @@ body.photomode #walkCard{display:none!important}
   <div class="mp-foot">
     <button type="button" id="wishSubmit">쪽지 걸기</button>
     <button type="button" id="wishCancel">닫기</button>
+  </div>
+</div>
+
+<!-- ================= ✨ 트리에 소원 빌기 (하늘 날기) ================= -->
+<div id="treeWishPanel" role="dialog" aria-label="트리에 소원 빌고 하늘 날기">
+  <p class="mp-title">✨ 트리에 소원 빌기 <small>30초 동안 하늘을 날아요</small></p>
+  <input id="treeWishInput" class="wp-input" maxlength="30" placeholder="이루고 싶은 소원을 적어 주세요 (30자)" autocomplete="off" />
+  <p class="wp-note">쪽지는 라운지 게시판에 걸려요 · 소원을 빌면 30초 비행이 시작돼요</p>
+  <div class="mp-foot">
+    <button type="button" id="treeWishGo">🌠 소원 빌고 날기</button>
+    <button type="button" id="treeWishSkip">그냥 날기</button>
+    <button type="button" id="treeWishCancel">닫기</button>
   </div>
 </div>
 
@@ -1892,7 +1973,7 @@ class LiveNetwork extends NetworkAdapter {
     this.broker = '';
     this.seq = 0;
     this._pending = null;
-    this._lastState = { x: 1e9, z: 1e9, yaw: 0, moving: null, pose: 'stand', seat: -1, tf: '', rs: 0 };
+    this._lastState = { x: 1e9, z: 1e9, yaw: 0, moving: null, pose: 'stand', seat: -1, tf: '', rs: 0, fy: 0, fl: 0 };
     this._lastPubAt = 0;
     this._timers = [];
     this._closed = false;
@@ -2070,11 +2151,13 @@ class LiveNetwork extends NetworkAdapter {
         peer.pose = m.p === 'sit' ? 'sit' : 'stand';
         peer.seat = m.si === undefined ? -1 : (+m.si || -1);
         peer.zone = m.zn === 'i' ? 'i' : 'p';
-        /* 3차 — 눈사람 변신(tf) · 마시멜로 굽기 진행률(rs) */
+        /* 3차 — 눈사람 변신(tf) · 마시멜로 굽기 진행률(rs) · ✨ 소원 비행(y 고도 fy/비행 여부 fl) */
         peer.tf = m.tf === 'sn' ? 'sn' : (m.tf === 'sk' ? 'sk' : '');
         peer.roast = clamp(Math.round(+m.rs || 0), 0, 100);
+        peer.fy = clamp(+m.fy || 0, 0, 40);
+        peer.fl = m.fl ? 1 : 0;
         peer.photoPose = validPhotoPose(m.pp);
-        this.emit('state', { players: [{ id: m.id, x: peer.x, z: peer.z, yaw: peer.yaw, moving: peer.moving, pose: peer.pose, seat: peer.seat, zone: peer.zone, tf: peer.tf, roast: peer.roast, photoPose: peer.photoPose }] });
+        this.emit('state', { players: [{ id: m.id, x: peer.x, z: peer.z, yaw: peer.yaw, moving: peer.moving, pose: peer.pose, seat: peer.seat, zone: peer.zone, tf: peer.tf, roast: peer.roast, fy: peer.fy, fl: peer.fl, photoPose: peer.photoPose }] });
       }
     }
   }
@@ -2094,7 +2177,7 @@ class LiveNetwork extends NetworkAdapter {
       nickname: String(n || '엘프').slice(0, 10),
       character: charById(c).id,
       x: SPAWN.x, z: SPAWN.z, yaw: Math.PI, moving: false, pose: 'stand', seat: -1, zone: 'p', lastSeen: now,
-      tf: '', roast: 0,
+      tf: '', roast: 0, fy: 0, fl: 0,
     };
     this.peers.set(id, peer);
     this.emit('join', {
@@ -2126,7 +2209,7 @@ class LiveNetwork extends NetworkAdapter {
     const s = this._pending;
     this._lastPhotoPose = validPhotoPose(s.pp);
     this._lastPubAt = performance.now();
-    this._lastState = { x: s.x, z: s.z, yaw: s.yaw, moving: !!s.moving, pose: s.pose || 'stand', seat: s.seat === undefined ? -1 : s.seat, zone: s.zone || 'p', tf: s.tf === 'sn' ? 'sn' : '', rs: clamp(Math.round(+s.rs || 0), 0, 100) };
+    this._lastState = { x: s.x, z: s.z, yaw: s.yaw, moving: !!s.moving, pose: s.pose || 'stand', seat: s.seat === undefined ? -1 : s.seat, zone: s.zone || 'p', tf: s.tf === 'sn' ? 'sn' : '', rs: clamp(Math.round(+s.rs || 0), 0, 100), fy: clamp(+s.fy || 0, 0, 40), fl: s.fl ? 1 : 0 };
     this.seq = (this.seq + 1) % 100000;
     this.mqtt.publish(`${this.base}/s/${this.cid}`, JSON.stringify({
       t: 'pos', id: this.cid, n: this.profile.nickname, c: this.profile.character,
@@ -2134,6 +2217,7 @@ class LiveNetwork extends NetworkAdapter {
       mv: s.moving ? 1 : 0, p: s.pose || 'stand', si: s.seat === undefined ? -1 : s.seat,
       zn: s.zone === 'i' ? 'i' : 'p', q: this.seq, pp: validPhotoPose(s.pp),
       tf: s.tf === 'sn' ? 'sn' : (s.tf === 'sk' ? 'sk' : ''), rs: clamp(Math.round(+s.rs || 0), 0, 100),
+      fy: +clamp(+s.fy || 0, 0, 40).toFixed(2), fl: s.fl ? 1 : 0,
     }));
   }
 
@@ -2148,6 +2232,8 @@ class LiveNetwork extends NetworkAdapter {
       || (s.zone || 'p') !== (L.zone || 'p')
       || (s.tf === 'sn' ? 'sn' : (s.tf === 'sk' ? 'sk' : '')) !== (L.tf || '')
       || clamp(Math.round(+s.rs || 0), 0, 100) !== (L.rs || 0)
+      || Math.abs((+s.fy || 0) - (+L.fy || 0)) > 0.03
+      || (s.fl ? 1 : 0) !== (L.fl || 0)
       || Math.abs(s.x - L.x) > 0.02 || Math.abs(s.z - L.z) > 0.02
       || Math.abs(s.yaw - L.yaw) > 0.04;
     if (!moved || now - this._lastPubAt < 110) return;
@@ -8295,7 +8381,7 @@ function updateDoorUI() {
     }
     nearDoorIdx = best;
   }
-  const showDoor = !inside && nearDoorIdx >= 0 && !SIT.active && !TRANS.busy;
+  const showDoor = !inside && nearDoorIdx >= 0 && !SIT.active && !TRANS.busy && !FLY.active;
   const showExit = inside && !TRANS.busy;
   doorBtnEl.classList.toggle('show', showDoor);
   exitBtnEl.classList.toggle('show', showExit);
@@ -8307,6 +8393,7 @@ window.addEventListener('keydown', (e) => {
   if (e.repeat || !state.joined) return;
   const tag = (e.target && e.target.tagName) || '';
   if (tag === 'INPUT' || tag === 'TEXTAREA') return;
+  if (FLY.active) return;                 // ✨ 비행 중에는 문·앉기 키를 잡지 않는다
   if (e.code !== 'KeyF' && e.code !== 'KeyE') return;
   /* 키 역할을 겹치지 않게 나눈다.
      · E — 앉을 자리 앞에서 앉기/일어서기 (그 외에는 문)
@@ -9270,8 +9357,11 @@ function updateAvatarPose(ud, root, speed, dt) {
 
   const target = clamp(speed / 0.75, 0, 1);
   ud.walk = lerp(ud.walk, target, Math.min(1, dt * 9));
+  /* ✨ 소원 비행 — 공중에 떠 있는 동안은 걷기 스윙을 완전히 덜어낸다 */
+  ud.fly = lerp(ud.fly || 0, ud.flyWant ? 1 : 0, Math.min(1, dt * (ud.flyWant ? 3.2 : 4.2)));
+  const flyW = ud.fly;
   /* 스케이트 자세일 때는 걷기 스윙을 덜어낸다 */
-  const w = ud.walk * (1 - clamp((ud.skateW || 0) * 1.2, 0, 1));
+  const w = ud.walk * (1 - clamp((ud.skateW || 0) * 1.2, 0, 1)) * (1 - clamp(flyW * 1.6, 0, 1));
   ud.speed = speed;
   const sitW = ud.sit || 0;
 
@@ -9291,7 +9381,7 @@ function updateAvatarPose(ud, root, speed, dt) {
   }
 
   /* 서기 — 아주 느린 호흡과 체중 이동 (idle 클립 대신 코드로) */
-  if (w < 0.02 && sitW < 0.02) {
+  if (w < 0.02 && sitW < 0.02 && flyW < 0.02) {
     const br = Math.sin(elapsed * 1.15 + ud.phase * 0.1);
     const sway = Math.sin(elapsed * 0.43 + ud.phase);
     boneRot(ud, 'Spine01', br * 0.012);
@@ -9374,6 +9464,32 @@ function updateAvatarPose(ud, root, speed, dt) {
   /* ---------- ⛸️ 스케이트 자세 · ❄️ 눈덩이 밀기 ---------- */
   if ((ud.skateW > 0.004 || ud.skateWant) && sitW < 0.5) updateSkatePose(ud, root, dt, !!ud.skateWant);
   if (ud.pushW > 0.004 || ud.pushWant > 0.004) updateRollPose(ud, root, dt, ud.pushWant || 0);
+
+  /* ---------- ✨ 소원 비행 자세 ----------
+     옆으로 팔을 쭉 편 활공 자세 — 다리는 뒤로 흘리고 살짝 올려다본다.
+     앉기와 같은 월드 방향 조준 방식을 쓰므로 세 캐릭터 모두 같은 자세가 나온다. */
+  if (flyW > 0.002) {
+    const yaw = root.rotation.y;
+    const fx = Math.sin(yaw), fz = Math.cos(yaw);
+    const lx = Math.cos(yaw), lz = -Math.sin(yaw);
+    const V = (x, y, z) => new THREE.Vector3(x, y, z);
+    const flap = Math.sin((ud.flyT = (ud.flyT || 0) + dt) * 2.6) * 0.09;   // 아주 느린 날갯짓
+    /* 어깨 — 옆으로 넓게, 살짝 뒤로 */
+    aimBoneBlend(ud, 'L_Upperarm', V(fx * 0.10 + lx, 0.12 + flap, fz * 0.10 + lz), flyW);
+    aimBoneBlend(ud, 'R_Upperarm', V(fx * 0.10 - lx, 0.12 + flap, fz * 0.10 - lz), flyW);
+    /* 팔꿈치 — 살짝 굽혀 손을 앞으로 */
+    aimBoneBlend(ud, 'L_Forearm', V(fx * 0.42 + lx * 0.9, 0.18 + flap, fz * 0.42 + lz * 0.9), flyW);
+    aimBoneBlend(ud, 'R_Forearm', V(fx * 0.42 - lx * 0.9, 0.18 + flap, fz * 0.42 - lz * 0.9), flyW);
+    /* 다리 — 뒤로 흘려 발끝이 아래로 */
+    const kick = Math.sin(ud.flyT * 1.5) * 0.06;
+    aimBoneBlend(ud, 'L_Thigh', V(-fx * 0.5 + lx * 0.16, -0.86 + kick, -fz * 0.5 + lz * 0.16), flyW);
+    aimBoneBlend(ud, 'R_Thigh', V(-fx * 0.5 - lx * 0.16, -0.86 - kick, -fz * 0.5 - lz * 0.16), flyW);
+    aimBoneBlend(ud, 'L_Calf', V(-fx * 0.85 + lx * 0.1, -0.5, -fz * 0.85 + lz * 0.1), flyW);
+    aimBoneBlend(ud, 'R_Calf', V(-fx * 0.85 - lx * 0.1, -0.5, -fz * 0.85 - lz * 0.1), flyW);
+    /* 상체를 살짝 젖혀 올려다본다 */
+    boneRot(ud, 'Spine01', -0.14 * flyW);
+    boneRot(ud, 'Head', -0.16 * flyW);
+  }
 
   /* 발끝을 바닥에 정확히 접지 (설 때) / 골반을 통나무 윗면에 앉히기 (앉을 때) */
   ud.inner.position.y = 0;
@@ -9598,7 +9714,7 @@ function addPlayer(p) {
     id: p.id, nickname: p.nickname, character: p.character,
     root, label: lab, tx: p.x, tz: p.z, tyaw: p.yaw, moving: false, pose: p.pose || 'stand', seat: -1,
     bubbleTimer: 0, isMe: p.id === 'me', isNpc: npc, accent: charById(p.character).accent, zone: p.zone || 'p',
-    tf: '', roast: 0,
+    tf: '', roast: 0, fy: 0, fl: 0,
   });
   renderPlayerList();
 }
@@ -10301,6 +10417,9 @@ net.on('state', ({ players: list }) => {
     p.zone = s.zone || 'p';
     if (s.tf !== undefined) p.tf = s.tf === 'sn' ? 'sn' : (s.tf === 'sk' ? 'sk' : '');
     if (s.roast !== undefined) p.roast = clamp(Math.round(+s.roast || 0), 0, 100);
+    /* ✨ 소원 비행 — 친구가 날고 있으면 고도(fy)만큼 띄우고 빛무리를 같이 켠다 */
+    if (s.fy !== undefined) p.fy = clamp(+s.fy || 0, 0, 40);
+    if (s.fl !== undefined) p.fl = s.fl ? 1 : 0;
     if (p.isMe) { p.root.position.x = s.x; p.root.position.z = s.z; }
     /* 광장/실내가 다르면 그리지 않는다 */
     const show = (p.zone || 'p') === (ZONE.mode === 'interior' ? 'i' : 'p');
@@ -11448,6 +11567,8 @@ function addTreeOrnament(kind, opts = {}) {
     lightTreeNow({ remote: !!opts.remote });
   }
   if (!opts.remote) publishTree();
+  /* ✨ 트리에 장식을 달았으니 소원이 이루어진 셈 — 그 자리에서 하늘로 */
+  if (!opts.remote && !opts.silent) startWishFlight({ ornament: true });
   return true;
 }
 
@@ -11511,6 +11632,457 @@ if (ornPickerEl) {
     if (e.target.closest('#ornCancel')) closeOrnPicker();
   });
 }
+
+/* =================================================================
+   ✨ 소원 비행 — 트리에 소원을 빌면 30초 동안 하늘을 난다
+   ---------------------------------------------------------------
+   · 발동: 트리 장식대에서 소원을 빌거나(✨ 소원 빌고 하늘 날기 버튼),
+     장식을 다는 순간 그 자리에서, 라운지 게시판에 소원 쪽지를 남기면
+     광장으로 나오는 순간 이어진다.
+   · 연출: 따뜻한 금빛 오라 + 몸을 도는 반짝이 입자 + 활공 자세.
+   · 조작: WASD·조이스틱으로 이동, Space/E 상승, Q/C 하강(모바일 ▲▼).
+     입력이 없으면 고도를 스스로 유지하고, 착지 2.8초 전부터 빛무리가
+     잦아들며 가장 가까운 안전한 지면으로 내려앉는다.
+   · 동기화: 위치 패킷에 fy(고도)·fl(비행)을 실어 친구 화면에도
+     날고 있는 모습과 빛무리가 보인다.
+   ================================================================= */
+const FLY = {
+  active: false, phase: 'idle', t: 0, dur: 30, rise: 1.9, landT: 2.8,
+  alt: 0, cruise: 6.4, min: 1.2, max: 15.5,
+  vx: 0, vz: 0, light: 0, bob: 0, feet: null, pending: 0, wishText: '',
+  btnUp: false, btnDown: false, camDist: null, pitch0: null, landedAt: 0,
+};
+const FLY_SPEED = 8.8;          // 활공 속도 (걷기 4.8 · 달리기 7.8 보다 살짝 빠르게)
+const FLY_ACCEL = 3.4;
+const FLY_FREE_ALT = 3.2;       // 이 고도 위로는 건물·나무·울타리를 그냥 지나간다
+const FLY_RADIUS = 38;          // 광장 밖 숲 가장자리까지는 날 수 있다
+
+const flyHudEl = document.getElementById('flyHud');
+const flyHudTextEl = document.getElementById('flyHudText');
+const flyHudBarEl = document.getElementById('flyHudBar');
+const flyHudAltEl = document.getElementById('flyHudAlt');
+const flyBtnEl = document.getElementById('flyBtn');
+const flyHintEl = document.getElementById('hint');
+const FLY_HINT_DEFAULT = flyHintEl ? flyHintEl.textContent : '';
+const treeWishPanelEl = document.getElementById('treeWishPanel');
+const treeWishInputEl = document.getElementById('treeWishInput');
+let flyBtnShown = false, treeWishOpen = false, flyHinted = false;
+
+function nicknameOfMe() {
+  return String((state.profile && state.profile.nickname) || (players.get('me') || {}).nickname || '나').slice(0, 10);
+}
+
+/* ---------- 빛무리 — 금빛 오라 + 몸을 도는 반짝이 입자 ---------- */
+const FLY_SPARK_TEX = radialTexture('rgba(255,248,226,1)', 'rgba(255,198,96,0.5)');
+function buildFlightAura(root) {
+  const g = new THREE.Group();
+  g.name = 'wish-flight-aura';
+  const halo = glowSprite(0xffc266, 3.4, 0);      // 몸을 감싸는 따뜻한 금빛
+  halo.position.y = 1.02;
+  const warm = glowSprite(0xfff0c6, 1.7, 0);      // 가슴께의 밝은 핵
+  warm.position.y = 1.05;
+  const foot = glowSprite(0xffd58a, 2.3, 0);      // 발밑에서 퍼지는 빛
+  foot.position.y = 0.12;
+  g.add(halo, warm, foot);
+  const ringMat = () => new THREE.MeshBasicMaterial({
+    color: 0xffe2a0, transparent: true, opacity: 0, blending: THREE.AdditiveBlending,
+    depthWrite: false, toneMapped: false,
+  });
+  const ring = new THREE.Mesh(new THREE.TorusGeometry(1.02, 0.024, 5, 36), ringMat());
+  ring.rotation.x = Math.PI / 2;
+  ring.position.y = 0.14;
+  const ring2 = new THREE.Mesh(new THREE.TorusGeometry(0.78, 0.018, 5, 30), ringMat());
+  ring2.rotation.x = Math.PI / 2;
+  ring2.position.y = 1.92;
+  g.add(ring, ring2);
+  const N = IS_TOUCH ? 36 : 60;
+  const pos = new Float32Array(N * 3);
+  const col = new Float32Array(N * 3);
+  const seeds = [];
+  for (let i = 0; i < N; i++) {
+    seeds.push({
+      a: rand(0, TAU), r: rand(0.5, 1.5), y: rand(0.05, 2.3),
+      sp: rand(0.7, 1.9) * (Math.random() < 0.5 ? -1 : 1),
+      rise: rand(0.22, 0.95), ph: rand(0, TAU),
+    });
+    const c = new THREE.Color(pick([0xfff3d0, 0xffd479, 0xffe9b0, 0xffc247]));
+    col[i * 3] = c.r; col[i * 3 + 1] = c.g; col[i * 3 + 2] = c.b;
+  }
+  const geo = new THREE.BufferGeometry();
+  geo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+  geo.setAttribute('color', new THREE.BufferAttribute(col, 3));
+  const mat = new THREE.PointsMaterial({
+    size: IS_TOUCH ? 0.34 : 0.3, map: FLY_SPARK_TEX, vertexColors: true, transparent: true,
+    opacity: 0, depthWrite: false, blending: THREE.AdditiveBlending,
+    sizeAttenuation: true, toneMapped: false,
+  });
+  const pts = new THREE.Points(geo, mat);
+  pts.frustumCulled = false;
+  g.add(pts);
+  root.add(g);
+  g.userData = { halo, warm, foot, ring, ring2, pts, seeds, t: 0 };
+  return g;
+}
+
+function updateFlightAura(p, dt, want) {
+  const ud = p.root.userData;
+  if (!ud) return;
+  if (want > 0.001 && !ud.flyAura) ud.flyAura = buildFlightAura(p.root);
+  const A = ud.flyAura;
+  if (!A) return;
+  const D = A.userData;
+  ud.flyAuraW = lerp(ud.flyAuraW || 0, want, Math.min(1, dt * (want > (ud.flyAuraW || 0) ? 2.8 : 3.6)));
+  const w = ud.flyAuraW;
+  A.visible = w > 0.012;
+  if (!A.visible) return;
+  D.t += dt;
+  const pulse = 0.86 + 0.14 * Math.sin(D.t * 3.1);
+  D.halo.material.opacity = 0.6 * w * pulse;
+  D.halo.scale.setScalar(3.4 * (0.94 + 0.06 * Math.sin(D.t * 2.2)));
+  D.warm.material.opacity = 0.58 * w * pulse;
+  D.foot.material.opacity = 0.4 * w * pulse;
+  D.ring.material.opacity = 0.55 * w;
+  D.ring.rotation.z += dt * 1.35;              // 도는 빛고리
+  D.ring2.material.opacity = 0.4 * w;
+  D.ring2.rotation.z -= dt * 1.9;
+  D.pts.material.opacity = 0.95 * w;
+  const arr = D.pts.geometry.attributes.position.array;
+  for (let i = 0; i < D.seeds.length; i++) {
+    const s = D.seeds[i];
+    s.a += s.sp * dt;                           // 몸 둘레를 돌고
+    s.y += s.rise * dt * 0.5;                   // 천천히 위로 떠오른다
+    if (s.y > 2.6) s.y = 0.05;
+    const rr = s.r + Math.sin(D.t * 1.7 + s.ph) * 0.16;
+    arr[i * 3] = Math.cos(s.a) * rr;
+    arr[i * 3 + 1] = s.y;
+    arr[i * 3 + 2] = Math.sin(s.a) * rr;
+  }
+  D.pts.geometry.attributes.position.needsUpdate = true;
+}
+
+/* ---------- 착지 지점 — 가장 가까운 안전한 지면 ---------- */
+function safeLandingSpot(x, z) {
+  const ok = (px, pz) => {
+    if (!Number.isFinite(px) || !Number.isFinite(pz)) return false;
+    if (Math.hypot(px, pz) > R_SNOW) return false;          // 마을 바닥 안
+    if (!walkableAt(px, pz)) return false;
+    for (const c of colliders) if (Math.hypot(px - c.x, pz - c.z) < c.r + 0.5) return false;
+    return true;
+  };
+  if (ok(x, z)) return { x, z };
+  for (let r = 0.7; r <= 16; r += 0.7) {
+    for (let k = 0; k < 20; k++) {
+      const a = (k / 20) * TAU + r * 0.55;
+      const px = x + Math.sin(a) * r, pz = z + Math.cos(a) * r;
+      if (ok(px, pz)) return { x: px, z: pz };
+    }
+  }
+  return { x: SPAWN.x, z: SPAWN.z };
+}
+
+/* ---------- 남은 시간 뱃지 ---------- */
+function syncFlyHud() {
+  if (!flyHudEl) return;
+  const remain = Math.max(0, FLY.dur - FLY.t);
+  const txt = `✨ 소원 비행 ${Math.ceil(remain)}초`;
+  if (flyHudTextEl && flyHudTextEl.textContent !== txt) flyHudTextEl.textContent = txt;
+  if (flyHudBarEl) flyHudBarEl.style.width = `${Math.round(clamp(remain / FLY.dur, 0, 1) * 100)}%`;
+  if (flyHudAltEl) {
+    const a = `${FLY.alt.toFixed(1)}m`;
+    if (flyHudAltEl.textContent !== a) flyHudAltEl.textContent = a;
+  }
+}
+
+/* ---------- 비행 시작 / 착지 ---------- */
+function startWishFlight(opts = {}) {
+  if (!state.joined || FLY.active) return false;
+  if (PHOTO.active || TRANS.busy) return false;
+  if (ZONE.mode === 'interior') {
+    /* 라운지에서 빌었다면 광장으로 나오는 순간 이어진다 */
+    FLY.pending = 180;
+    FLY.wishText = String(opts.wish || '').slice(0, 30);
+    toast('🌠 소원을 빌었어요 — 광장으로 나오면 30초 동안 하늘을 날 수 있어요 ✨', 4600);
+    return false;
+  }
+  /* 다른 행동(앉기·스케이트·눈사람·굽기·눈굴리기)은 접고 하늘로 */
+  if (SIT.active || SIT.enter > 0) standUp();
+  if (SKATE.active) stopSkate(true);
+  if (SNOWMAN.active) revertToElf(true);
+  if (ROAST.active) stopRoast(true);
+  if (ROLL.active) stopRoll(true);
+  closeOrnPicker();
+  closeTreeWishPanel();
+
+  FLY.active = true;
+  FLY.phase = 'rise';
+  FLY.t = 0;
+  FLY.dur = 30;
+  FLY.alt = Math.max(0, playerPos.y - groundY(playerPos.x, playerPos.z));
+  FLY.cruise = 6.4;
+  FLY.vx = 0; FLY.vz = 0;
+  FLY.light = 0;
+  FLY.bob = rand(0, TAU);
+  FLY.feet = null;
+  FLY.pending = 0;
+  FLY.wishText = String(opts.wish || '').slice(0, 30);
+  FLY.landedAt = 0;
+  FLY.camDist = rig.targetDist;
+  FLY.pitch0 = rig.pitch;
+  vel.set(0, 0);
+  rig.targetDist = clamp(IS_TOUCH ? 13.2 : 11.6, CAM_LO, CAM_HI);
+  rig.pitch = clamp(Math.max(rig.pitch, 0.33), -0.12, 1.15);   // 마을이 내려다보이게
+  const me = players.get('me');
+  if (me) { me.pose = 'stand'; updateFlightAura(me, 1 / 60, 1); }
+  document.body.classList.add('flying');
+  if (flyHintEl) flyHintEl.textContent = IS_TOUCH
+    ? '조이스틱으로 날기 · ▲▼ 로 고도 · 🪂 착지로 내려오기'
+    : 'WASD 로 날기 · Space/E 상승 · Q/C 하강 · 🪂 착지';
+  if (flyHudEl) { flyHudEl.classList.add('show'); flyHudEl.setAttribute('aria-hidden', 'false'); }
+  syncFlyHud();
+  spawnFloater('me', '🌠');
+  try { net.sendReaction('✨'); } catch (_) {}
+  toast(FLY.wishText
+    ? `🌠 “${FLY.wishText}” — 소원을 빌었어요! 30초 동안 하늘을 날아요 ✨`
+    : '🌠 소원을 빌었어요 — 30초 동안 하늘을 날아요 ✨', 4200);
+  addChatLine('', `✨ <b>${nicknameOfMe()}</b> 님이 소원을 빌고 하늘로 날아올랐어요`, false, true);
+  net.update({ x: playerPos.x, z: playerPos.z, yaw: playerYaw.v, moving: false, pose: 'stand', seat: -1, zone: 'p', fy: FLY.alt, fl: 1 });
+  return true;
+}
+
+function endWishFlight(silent) {
+  if (!FLY.active) return false;
+  FLY.active = false;
+  FLY.phase = 'idle';
+  FLY.t = 0;
+  FLY.light = 0;
+  FLY.feet = null;
+  FLY.alt = 0;
+  FLY.vx = 0; FLY.vz = 0;
+  playerPos.y = groundY(playerPos.x, playerPos.z);
+  vel.set(0, 0);
+  const me = players.get('me');
+  if (me) { me.root.position.copy(playerPos); me.root.rotation.y = playerYaw.v; }
+  playerLight.position.set(playerPos.x, playerPos.y + 2.6, playerPos.z);
+  if (FLY.camDist != null) rig.targetDist = clamp(FLY.camDist, CAM_LO, CAM_HI);
+  if (FLY.pitch0 != null) rig.pitch = FLY.pitch0;
+  FLY.camDist = null;
+  FLY.pitch0 = null;
+  FLY.btnUp = FLY.btnDown = false;
+  FLY.landedAt = performance.now();
+  document.body.classList.remove('flying');
+  if (flyHintEl) flyHintEl.textContent = FLY_HINT_DEFAULT;
+  if (flyHudEl) { flyHudEl.classList.remove('show'); flyHudEl.setAttribute('aria-hidden', 'true'); }
+  net.update({ x: playerPos.x, z: playerPos.z, yaw: playerYaw.v, moving: false, pose: 'stand', seat: -1, zone: 'p', fy: 0, fl: 0 });
+  if (!silent) toast('🕊️ 사뿐히 착지했어요 — 소원 비행이 끝났어요 ✨', 4200);
+  return true;
+}
+
+/* 착지 버튼·일찍 내리고 싶을 때 — 남은 시간을 착지 구간으로 당긴다 */
+function requestLanding(quiet) {
+  if (!FLY.active) return false;
+  if (FLY.phase !== 'land') {
+    FLY.phase = 'land';
+    FLY.t = Math.max(FLY.t, FLY.dur - FLY.landT);
+    FLY.feet = safeLandingSpot(playerPos.x, playerPos.z);
+  }
+  if (!quiet) toast('🪂 천천히 내려와 착지할게요', 1800);
+  return true;
+}
+
+/* ---------- 비행 한 프레임 ---------- */
+function updateFlight(dt) {
+  FLY.t += dt;
+  if (FLY.phase !== 'land' && FLY.t >= FLY.dur - FLY.landT) {
+    FLY.phase = 'land';
+    FLY.feet = safeLandingSpot(playerPos.x, playerPos.z);
+  }
+
+  /* 이동 — 걷기와 같은 손맛, 카메라 기준 */
+  let ix = 0, iz = 0;
+  if (input.keys.has('KeyW') || input.keys.has('ArrowUp')) iz += 1;
+  if (input.keys.has('KeyS') || input.keys.has('ArrowDown')) iz -= 1;
+  if (input.keys.has('KeyD') || input.keys.has('ArrowRight')) ix += 1;
+  if (input.keys.has('KeyA') || input.keys.has('ArrowLeft')) ix -= 1;
+  if (input.joy.active) { ix += input.joy.x; iz += -input.joy.y; }
+  const len = Math.hypot(ix, iz);
+  if (len > 1) { ix /= len; iz /= len; }
+  const fx = -Math.sin(rig.yaw), fz = -Math.cos(rig.yaw);
+  const rx = -fz, rz = fx;
+  let mx = fx * iz + rx * ix, mz = fz * iz + rz * ix;
+  const ml = Math.hypot(mx, mz);
+  if (ml > 0.0001) { mx /= ml; mz /= ml; }
+  const speed = FLY.phase === 'land' ? FLY_SPEED * 0.34 : FLY_SPEED;
+  FLY.vx = lerp(FLY.vx, mx * speed * (ml > 0.001 ? 1 : 0), Math.min(1, dt * FLY_ACCEL));
+  FLY.vz = lerp(FLY.vz, mz * speed * (ml > 0.001 ? 1 : 0), Math.min(1, dt * FLY_ACCEL));
+
+  const px = playerPos.x, pz = playerPos.z;
+  let nx = px + FLY.vx * dt;
+  let nz = pz + FLY.vz * dt;
+  let alt = FLY.alt;
+
+  /* 고도 — 상승·하강 키와 자동 유지 */
+  let up = 0;
+  if (input.keys.has('Space') || input.keys.has('KeyE') || FLY.btnUp) up += 1;
+  if (input.keys.has('KeyQ') || input.keys.has('KeyC') || FLY.btnDown) up -= 1;
+  if (FLY.phase === 'rise') {
+    /* 1.9초 동안 부드럽게 떠오른다 (smoothstep) */
+    const k = clamp(FLY.t / FLY.rise, 0, 1);
+    const ease = k * k * (3 - 2 * k);
+    alt = Math.max(alt, FLY.cruise * ease);
+    if (FLY.t >= FLY.rise) FLY.phase = 'cruise';
+  } else if (FLY.phase === 'land') {
+    const k = clamp((FLY.t - (FLY.dur - FLY.landT)) / FLY.landT, 0, 1);
+    const ease = k * k * (3 - 2 * k);
+    alt = lerp(alt, 0, Math.min(1, dt * (1.1 + ease * 3.4)));
+  } else {
+    if (up > 0) FLY.cruise = clamp(FLY.cruise + dt * 6.4, FLY.min, FLY.max);
+    else if (up < 0) FLY.cruise = clamp(FLY.cruise - dt * 7.6, FLY.min, FLY.max);
+    const bob = Math.sin(performance.now() * 0.0009 + FLY.bob) * 0.22;
+    alt = lerp(alt, FLY.cruise + bob, Math.min(1, dt * 2.6));
+  }
+  alt = clamp(alt, 0, FLY.max + 1.5);
+
+  /* 낮은 고도에서만 건물·울타리에 막힌다 — 높이 뜨면 상공을 그대로 지난다 */
+  if (alt < FLY_FREE_ALT) {
+    if (!walkableAt(nx, nz)) {
+      if (walkableAt(nx, pz)) nz = pz;
+      else if (walkableAt(px, nz)) nx = px;
+      else { nx = px; nz = pz; }
+    }
+    for (const c of colliders) {
+      const dx = nx - c.x, dz = nz - c.z;
+      const d = Math.hypot(dx, dz);
+      const min = c.r + 0.42;
+      if (d < min && d > 0.0001) {
+        const bxp = c.x + (dx / d) * min, bzp = c.z + (dz / d) * min;
+        if (walkableAt(bxp, bzp)) { nx = bxp; nz = bzp; }
+        else { nx = px; nz = pz; }
+      }
+    }
+  }
+  /* 광장 밖 숲 너머로는 나가지 않는다 */
+  const rr = Math.hypot(nx, nz);
+  if (rr > FLY_RADIUS) { nx = (nx / rr) * FLY_RADIUS; nz = (nz / rr) * FLY_RADIUS; }
+
+  /* 착지 중 — 가장 가까운 안전한 지면으로 스스로 미끄러진다 */
+  if (FLY.phase === 'land') {
+    if (!FLY.feet) FLY.feet = safeLandingSpot(nx, nz);
+    const dx = FLY.feet.x - nx, dz = FLY.feet.z - nz;
+    const d = Math.hypot(dx, dz);
+    if (d > 0.05) {
+      const step = Math.min(d, (2.4 + 7.0 * clamp(alt / Math.max(1, FLY.cruise), 0, 1)) * dt);
+      nx += (dx / d) * step;
+      nz += (dz / d) * step;
+    }
+  }
+
+  const dxm = nx - px, dzm = nz - pz;
+  if (Math.hypot(dxm, dzm) > 0.0006) {
+    playerYaw.v = angleLerp(playerYaw.v, Math.atan2(dxm, dzm), Math.min(1, dt * 8));
+  }
+  playerPos.x = nx;
+  playerPos.z = nz;
+  FLY.alt = alt;
+  playerPos.y = groundY(nx, nz) + alt;
+  playerLight.position.set(nx, playerPos.y + 2.6, nz);
+
+  const me = players.get('me');
+  if (me) {
+    me.root.position.copy(playerPos);
+    me.root.rotation.y = playerYaw.v;
+    me.pose = 'stand';
+  }
+  /* 빛무리 — 착지 2.8초 전부터 서서히 잦아든다 */
+  FLY.light = FLY.phase === 'land'
+    ? clamp((FLY.dur - FLY.t) / FLY.landT, 0, 1)
+    : 1;
+  if (me) updateFlightAura(me, dt, Math.max(0, FLY.light));
+  syncFlyHud();
+
+  net.update({
+    x: playerPos.x, z: playerPos.z, yaw: playerYaw.v,
+    moving: Math.hypot(FLY.vx, FLY.vz) > 0.35, pose: 'stand', seat: -1, zone: 'p',
+    fy: FLY.alt, fl: 1,
+  });
+
+  if (FLY.phase === 'land' && (FLY.t >= FLY.dur || alt < 0.06)) endWishFlight(false);
+}
+
+/* 매 프레임 — 내 빛무리 마무리 · 친구 빛무리 · 라운지에서 빌어 둔 소원 */
+function updateFlightWorld(dt) {
+  if (FLY.pending > 0) {
+    FLY.pending = Math.max(0, FLY.pending - dt);
+    if (FLY.pending > 0 && !FLY.active && state.joined && ZONE.mode !== 'interior'
+      && !PHOTO.active && !TRANS.busy) {
+      startWishFlight({ wish: FLY.wishText });
+    }
+  }
+  for (const p of players.values()) {
+    if (p.isMe && FLY.active) continue;           // 내 오라는 updateFlight 가 FLY.light 로 맞춘다
+    updateFlightAura(p, dt, p.isMe ? 0 : (p.fl ? 1 : 0));
+  }
+}
+
+/* ---------- 트리 소원 패널 ---------- */
+function openTreeWishPanel() {
+  if (!state.joined || FLY.active) return false;
+  if (ZONE.mode === 'interior') { toast('✨ 트리 소원은 광장 중앙 트리 앞에서 빌 수 있어요', 2400); return false; }
+  if (PHOTO.active || TRANS.busy) return false;
+  if (Math.hypot(playerPos.x - TREE_STAND.x, playerPos.z - TREE_STAND.z) > 3.6) {
+    toast('✨ 트리 앞으로 가까이 가 주세요', 2200);
+    return false;
+  }
+  treeWishOpen = true;
+  treeWishPanelEl.classList.add('show');
+  treeWishPanelEl.setAttribute('aria-hidden', 'false');
+  if (treeWishInputEl) {
+    treeWishInputEl.value = '';
+    setTimeout(() => { try { treeWishInputEl.focus(); } catch (_) {} }, 60);
+  }
+  return true;
+}
+function closeTreeWishPanel() {
+  treeWishOpen = false;
+  if (!treeWishPanelEl) return;
+  treeWishPanelEl.classList.remove('show');
+  treeWishPanelEl.setAttribute('aria-hidden', 'true');
+}
+function submitTreeWish(withWish) {
+  if (!treeWishOpen) return false;
+  const t = treeWishInputEl ? (treeWishInputEl.value || '').trim() : '';
+  closeTreeWishPanel();
+  if (withWish && t) {
+    addWish(t, nicknameOfMe());
+    try { net.sendWish(t); } catch (_) {}
+    markWalk('tree');
+  }
+  return startWishFlight({ wish: withWish ? t : '' });
+}
+if (flyBtnEl) flyBtnEl.addEventListener('click', () => openTreeWishPanel());
+if (treeWishPanelEl) {
+  treeWishPanelEl.addEventListener('click', (e) => {
+    if (e.target.closest('#treeWishGo')) submitTreeWish(true);
+    else if (e.target.closest('#treeWishSkip')) submitTreeWish(false);
+    else if (e.target.closest('#treeWishCancel')) closeTreeWishPanel();
+  });
+  treeWishPanelEl.addEventListener('keydown', (e) => {
+    if (e.code === 'Enter') { e.preventDefault(); submitTreeWish(true); }
+    else if (e.code === 'Escape') { e.preventDefault(); closeTreeWishPanel(); }
+  });
+}
+const flyLandBtn = document.getElementById('flyLand');
+if (flyLandBtn) flyLandBtn.addEventListener('click', () => requestLanding(false));
+function bindFlyHold(el, key) {
+  if (!el) return;
+  const on = (e) => { e.preventDefault(); FLY[key] = true; el.classList.add('on'); try { el.setPointerCapture?.(e.pointerId); } catch (_) {} };
+  const off = () => { FLY[key] = false; el.classList.remove('on'); };
+  el.addEventListener('pointerdown', on);
+  el.addEventListener('pointerup', off);
+  el.addEventListener('pointercancel', off);
+  el.addEventListener('pointerleave', off);
+}
+bindFlyHold(document.getElementById('flyUp'), 'btnUp');
+bindFlyHold(document.getElementById('flyDown'), 'btnDown');
 
 /* =================================================================
    ☕ B. 따뜻한 코코아 라운지 — 코코아 마시기 · 소원 쪽지
@@ -11827,6 +12399,10 @@ function submitWish() {
   addWish(t, nick);
   try { net.sendWish(t); } catch (_) {}
   closeWishPanel();
+  /* ✨ 라운지에서 빌어도 소원은 소원 — 광장으로 나오는 순간 30초 비행이 이어진다 */
+  FLY.pending = 180;
+  FLY.wishText = t;
+  toast('🌠 소원을 빌었어요 — 광장으로 나오면 30초 동안 하늘을 날 수 있어요 ✨', 4600);
   return true;
 }
 if (wishBtnEl) wishBtnEl.addEventListener('click', openWishPanel);
@@ -11904,7 +12480,7 @@ function updateFootprints(dt) {
     p.m.material.opacity = 0.36 * Math.pow(1 - k, 1.5);
     active++;
   }
-  if (!state.joined || PHOTO.active || ZONE.mode === 'interior' || SIT.active) return;
+  if (!state.joined || PHOTO.active || ZONE.mode === 'interior' || SIT.active || FLY.active) return;
   const moved = Math.hypot(playerPos.x - FOOT_WALK.lastX, playerPos.z - FOOT_WALK.lastZ);
   if (moved > 0.52 && active < footprintBudget()) {
     FOOT_WALK.acc += moved;
@@ -12071,12 +12647,20 @@ const treeShowBannerEl = document.getElementById('treeShowBanner');
 let treeBtnShown = false, cocoaBtnShown = false, wishBtnShown = false;
 let activityAcc = 0;
 
+/* 장소 안내 토스트 — ✨ 소원 비행에서 막 착지한 직후에는 띄우지 않는다.
+   (착지 알림이 "눈밭 — 눈덩이를 굴려 보세요" 같은 안내로 덮이던 문제) */
+function hintToast(msg, ms) {
+  if (performance.now() - (FLY.landedAt || 0) < 4600) return;
+  toast(msg, ms);
+}
+
 function updateActivityButtons(dt) {
   activityAcc += dt;
   if (activityAcc < 0.12) return;
   activityAcc = 0;
   if (!state.joined) {
     if (treeBtnShown) { treeBtnEl.classList.remove('show'); treeBtnShown = false; }
+    if (flyBtnShown && flyBtnEl) { flyBtnEl.classList.remove('show'); flyBtnShown = false; }
     if (cocoaBtnShown) { cocoaBtnEl.classList.remove('show'); cocoaBtnShown = false; }
     if (wishBtnShown) { wishBtnEl.classList.remove('show'); wishBtnShown = false; }
     if (roastBtnShown) { roastBtnEl.classList.remove('show'); roastBtnShown = false; }
@@ -12095,8 +12679,8 @@ function updateActivityButtons(dt) {
     treeBtnShown = treeNear;
     if (treeNear && !TREE_EVENT.lit) {
       const n = Math.min(TREE_EVENT.decor, 8);
-      if (n === 0) toast('🎄 장식대 — 트리에 달 장식을 골라 보세요', 2600);
-      else toast(`🎄 트리 점등 준비 ${n} / ${TREE_EVENT.goal} — 다른 친구도 함께 달 수 있어요`, 2400);
+      if (n === 0) hintToast('🎄 장식대 — 트리에 달 장식을 골라 보세요', 2600);
+      else hintToast(`🎄 트리 점등 준비 ${n} / ${TREE_EVENT.goal} — 다른 친구도 함께 달 수 있어요`, 2400);
     }
   }
   const label = TREE_EVENT.lit
@@ -12105,12 +12689,24 @@ function updateActivityButtons(dt) {
   if (treeBtnEl.textContent !== label) treeBtnEl.textContent = label;
   treeBtnEl.classList.toggle('lit', TREE_EVENT.lit);
 
+  /* ✨ 소원 비행 — 트리 앞이면 언제든(이미 장식을 달았어도) 소원을 빌고 날아오른다 */
+  const flyNear = plaza && !PHOTO.active && !TRANS.busy && !FLY.active
+    && Math.hypot(playerPos.x - TREE_STAND.x, playerPos.z - TREE_STAND.z) < 3.5;
+  if (flyBtnEl && flyNear !== flyBtnShown) {
+    flyBtnEl.classList.toggle('show', flyNear);
+    flyBtnShown = flyNear;
+    if (flyNear && !flyHinted && performance.now() - FLY.landedAt > 6000) {
+      flyHinted = true;
+      hintToast('✨ 트리 앞 — 소원을 빌면 30초 동안 하늘을 날 수 있어요', 3000);
+    }
+  }
+
   const cocoaNear = ZONE.mode === 'interior' && !PHOTO.active && !TRANS.busy && canCocoa();
   if (cocoaNear !== cocoaBtnShown) {
     cocoaBtnEl.classList.toggle('show', cocoaNear);
     cocoaBtnShown = cocoaNear;
     /* 앉은 직후엔 안내를 띄우지 않는다 — 앉을 때마다 뜨면 성가시다 */
-    if (cocoaNear && !COCOA.active && !SIT.active) toast('☕ 코코아 카운터 — 따뜻한 한 잔 어떠세요?', 2400);
+    if (cocoaNear && !COCOA.active && !SIT.active) hintToast('☕ 코코아 카운터 — 따뜻한 한 잔 어떠세요?', 2400);
   }
   const cocoaLabel = COCOA.active ? '☕ 코코아 마시는 중…' : '☕ 코코아 마시기';
   if (cocoaBtnEl.textContent !== cocoaLabel) cocoaBtnEl.textContent = cocoaLabel;
@@ -12119,7 +12715,7 @@ function updateActivityButtons(dt) {
   if (wishNear !== wishBtnShown) {
     wishBtnEl.classList.toggle('show', wishNear);
     wishBtnShown = wishNear;
-    if (wishNear) toast(`📝 소원 게시판 — 쪽지 ${WISH.list.length}장이 걸려 있어요`, 2400);
+    if (wishNear) hintToast(`📝 소원 게시판 — 쪽지 ${WISH.list.length}장이 걸려 있어요`, 2400);
   }
 
   /* 🍡 마시멜로 굽기 — 모닥불 가까이 서 있거나 통나무에 앉았을 때 */
@@ -12145,7 +12741,7 @@ function updateActivityButtons(dt) {
   if (snowShow !== snowBtnShown) {
     snowBtnEl.classList.toggle('show', snowShow);
     snowBtnShown = snowShow;
-    if (snowShow && !SNOWMAN.active) toast('⛄ 눈사람 — 다가가면 눈사람으로 변신할 수 있어요', 2400);
+    if (snowShow && !SNOWMAN.active) hintToast('⛄ 눈사람 — 다가가면 눈사람으로 변신할 수 있어요', 2400);
   }
   const snowLabel = SNOWMAN.active ? '🧝 엘프로 돌아가기' : '⛄ 눈사람으로 변신';
   if (snowBtnEl.textContent !== snowLabel) snowBtnEl.textContent = snowLabel;
@@ -12158,7 +12754,7 @@ function updateActivityButtons(dt) {
   if (skateNear !== skateBtnShown) {
     skateBtnEl.classList.toggle('show', skateNear);
     skateBtnShown = skateNear;
-    if (skateNear && !SKATE.active) toast('⛸️ 얼음 연못 — 스케이트를 신고 미끄러져 보세요', 2600);
+    if (skateNear && !SKATE.active) hintToast('⛸️ 얼음 연못 — 스케이트를 신고 미끄러져 보세요', 2600);
   }
   const skateLabel = SKATE.active ? '🥾 스케이트 벗기' : '⛸️ 스케이트 타기';
   if (skateBtnEl.textContent !== skateLabel) skateBtnEl.textContent = skateLabel;
@@ -12170,7 +12766,7 @@ function updateActivityButtons(dt) {
   if (mailNear !== mailBtnShown) {
     mailBtnEl.classList.toggle('show', mailNear);
     mailBtnShown = mailNear;
-    if (mailNear) toast('📮 산타 우체국 — 따뜻한 한 줄 편지를 보내 보세요', 2600);
+    if (mailNear) hintToast('📮 산타 우체국 — 따뜻한 한 줄 편지를 보내 보세요', 2600);
   }
 
   /* ❄️ 눈 굴리기 — 눈밭 어디서나 */
@@ -12181,7 +12777,7 @@ function updateActivityButtons(dt) {
   if (rollNear !== rollBtnShown) {
     rollBtnEl.classList.toggle('show', rollNear);
     rollBtnShown = rollNear;
-    if (rollNear && !ROLL.active) toast('❄️ 눈밭 — 눈덩이를 굴려 눈사람을 만들어 보세요', 2600);
+    if (rollNear && !ROLL.active) hintToast('❄️ 눈밭 — 눈덩이를 굴려 눈사람을 만들어 보세요', 2600);
   }
   const rollLabel = ROLL.active ? (ROLL.phase === 'done' ? '❄️ 눈사람 완성!' : `❄️ 눈 굴리는 중… ${Math.round(ROLL.prog * 100)}%`) : '❄️ 눈 굴리기';
   if (rollBtnEl.textContent !== rollLabel) rollBtnEl.textContent = rollLabel;
@@ -12191,7 +12787,7 @@ function updateActivityButtons(dt) {
   if (builtNear !== breakBtnShown) {
     breakBtnEl.classList.toggle('show', builtNear);
     breakBtnShown = builtNear;
-    if (builtNear) toast('⛄ 내가 세운 눈사람 — 부수면 눈이 흩날려요', 2400);
+    if (builtNear) hintToast('⛄ 내가 세운 눈사람 — 부수면 눈이 흩날려요', 2400);
   }
   const breakLabel = '⛄ 눈사람 부수기';
   if (breakBtnEl.textContent !== breakLabel) breakBtnEl.textContent = breakLabel;
@@ -12356,6 +12952,94 @@ window.__plazaAudit = {
   },
   gotoStand() {
     playerPos.set(TREE_STAND.x + 1.6, 0, TREE_STAND.z + 1.9);
+    playerYaw.v = Math.atan2(TREE_STAND.x - playerPos.x, TREE_STAND.z - playerPos.z);
+    const p = players.get('me'); if (p) p.root.position.copy(playerPos);
+    rig.lookAt.set(playerPos.x, 1.5, playerPos.z); rig.snap = true;
+    return [+playerPos.x.toFixed(2), +playerPos.z.toFixed(2)];
+  },
+  /* --- ✨ 소원 비행 진단 --- */
+  get fly() {
+    const me = players.get('me');
+    const ud = me && me.root.userData ? me.root.userData : null;
+    const safe = safeLandingSpot(playerPos.x, playerPos.z);
+    return {
+      active: FLY.active, phase: FLY.phase, t: +FLY.t.toFixed(2), dur: FLY.dur,
+      remain: +Math.max(0, FLY.dur - FLY.t).toFixed(2), cruise: +FLY.cruise.toFixed(2),
+      alt: +FLY.alt.toFixed(2), y: +playerPos.y.toFixed(2),
+      ground: +groundY(playerPos.x, playerPos.z).toFixed(2),
+      light: +FLY.light.toFixed(2), pending: +FLY.pending.toFixed(1), wish: FLY.wishText,
+      auraW: ud ? +(ud.flyAuraW || 0).toFixed(2) : null,
+      poseW: ud ? +(ud.fly || 0).toFixed(2) : null,
+      aura: ud && ud.flyAura ? {
+        visible: ud.flyAura.visible, children: ud.flyAura.children.length,
+        halo: +ud.flyAura.userData.halo.material.opacity.toFixed(3),
+        sparks: ud.flyAura.userData.pts.geometry.attributes.position.count,
+        sparkOpacity: +ud.flyAura.userData.pts.material.opacity.toFixed(3),
+      } : null,
+      safeLanding: { x: +safe.x.toFixed(2), z: +safe.z.toFixed(2), walkable: walkableAt(safe.x, safe.z) },
+      clearance: (() => {
+        let min = 99;
+        for (const c of colliders) min = Math.min(min, Math.hypot(playerPos.x - c.x, playerPos.z - c.z) - c.r);
+        return +min.toFixed(2);
+      })(),
+      pos: [+playerPos.x.toFixed(2), +playerPos.z.toFixed(2)],
+      cam: { dist: +rig.dist.toFixed(2), target: +rig.targetDist.toFixed(2), pitch: +rig.pitch.toFixed(2) },
+      hud: flyHudEl ? {
+        shown: flyHudEl.classList.contains('show'), text: flyHudTextEl.textContent,
+        bar: flyHudBarEl.style.width, alt: flyHudAltEl.textContent,
+      } : null,
+      btn: flyBtnEl ? { shown: flyBtnEl.classList.contains('show'), label: flyBtnEl.textContent } : null,
+      panel: treeWishPanelEl ? { shown: treeWishPanelEl.classList.contains('show'), input: treeWishInputEl ? treeWishInputEl.value : '' } : null,
+      landBtn: !!(flyLandBtn && flyLandBtn.offsetParent !== null),
+      flyingBody: document.body.classList.contains('flying'),
+    };
+  },
+  flyStart(text) { startWishFlight({ wish: text || '' }); return this.fly; },
+  flyOpenPanel() { openTreeWishPanel(); return this.fly; },
+  flySubmitWish(text) {
+    openTreeWishPanel();
+    if (treeWishInputEl) treeWishInputEl.value = text || '';
+    submitTreeWish(!!text);
+    return this.fly;
+  },
+  flyLand() { requestLanding(true); return this.fly; },
+  flyTo(x, z, alt) {
+    /* 검증용: 비행 중 위치·고도를 직접 잡아 준다 */
+    playerPos.x = x; playerPos.z = z;
+    if (alt !== undefined) { FLY.alt = clamp(alt, 0, FLY.max + 1.5); FLY.cruise = FLY.alt; }
+    playerPos.y = groundY(x, z) + FLY.alt;
+    const me = players.get('me');
+    if (me) me.root.position.copy(playerPos);
+    return this.fly;
+  },
+  flySkip(sec) {
+    /* 검증용: 비행 시간을 앞으로 감는다 (실제 프레임 계산은 그대로) */
+    FLY.t = Math.max(FLY.t, FLY.dur - Math.max(0, +(sec || 0)));
+    return this.fly;
+  },
+  /* 검증용: 위치 패킷 직렬화·수신 파서를 그대로 태워 fy/fl 이 왕복하는지 */
+  netFlightRoundTrip(fy, fl) {
+    if (!this._rt) { this._rt = { a: new LiveNetwork(state.room || 'main'), b: new LiveNetwork(state.room || 'main') }; }
+    const { a, b } = this._rt;
+    a.cid = 'rt-sender'; b.cid = 'rt-receiver';
+    let packet = null;
+    a.connected = true; a.mqtt = { publish: (t, p) => { packet = p; } };
+    a._pending = { x: 2.5, z: 3.5, yaw: 0.2, moving: true, pose: 'stand', seat: -1, zone: 'p', fy: fy === undefined ? 7.5 : fy, fl: fl === undefined ? 1 : fl };
+    a._publishState();
+    const parsed = [];
+    b.removeAllListeners && b.removeAllListeners();
+    b.on('state', (d) => parsed.push(d));
+    b.connected = true;
+    b._onMessage(`eyun/xmas-plaza/v1/${b.room}/s/rt-sender`, packet, false);
+    const peer = b.peers.get('rt-sender');
+    return {
+      packet: packet ? JSON.parse(packet) : null,
+      state: parsed[0] ? parsed[0].players[0] : null,
+      peer: peer ? { fy: peer.fy, fl: peer.fl, x: peer.x, z: peer.z } : null,
+    };
+  },
+  gotoTreeWish() {
+    playerPos.set(TREE_STAND.x + 1.2, 0, TREE_STAND.z + 2.0);
     playerYaw.v = Math.atan2(TREE_STAND.x - playerPos.x, TREE_STAND.z - playerPos.z);
     const p = players.get('me'); if (p) p.root.position.copy(playerPos);
     rig.lookAt.set(playerPos.x, 1.5, playerPos.z); rig.snap = true;
@@ -12637,10 +13321,14 @@ function resetCamera() {
 function updatePlayer(dt) {
   if (!state.joined) return;
   if (PHOTO.active) {
-    net.update({ x:playerPos.x,z:playerPos.z,yaw:playerYaw.v,moving:false,pose:'stand',seat:-1,zone:'p',pp:PHOTO.pose });
+    if (FLY.active) endWishFlight(true);      // 포토 모드에서는 사춴히 내려놓는다
+    net.update({ x:playerPos.x,z:playerPos.z,yaw:playerYaw.v,moving:false,pose:'stand',seat:-1,zone:'p',pp:PHOTO.pose, fy:0, fl:0 });
     return;
   }
   if (TRANS.busy) return;                  // 문을 여닫는 동안은 움직이지 않는다
+
+  /* ✨ 소원 비행 — 30초 동안은 하늘 이동 로직이 몸을 맡는다 */
+  if (FLY.active) { updateFlight(dt); return; }
 
   /* --- 모닥불 앉기: 이동 입력이 들어오면 먼저 일어난다 --- */
   if (SIT.active && anyMoveInput()) standUp();
@@ -12902,6 +13590,7 @@ window.addEventListener('keydown', (e) => {
   if (e.code !== 'KeyE' && e.code !== 'KeyF') return;
   const t = e.target;
   if (t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA')) return;
+  if (FLY.active) return;                 // ✨ 비행 중에는 앉기 키를 쓰지 않는다
   if (!SIT.near && !SIT.active) return;
   /* 서 있을 때 F 는 문 키에 맡긴다 — 자리 앞에서 F 로 앉는 동작은 E 로 옮겼다 */
   if (e.code === 'KeyF' && !SIT.active) return;
@@ -14162,7 +14851,9 @@ function animateAvatar(p, dt) {
     const k = Math.min(1, dt * 9);
     p.root.position.x = lerp(p.root.position.x, p.tx, k);
     p.root.position.z = lerp(p.root.position.z, p.tz, k);
-    p.root.position.y = lerp(p.root.position.y, groundY(p.root.position.x, p.root.position.z), Math.min(1, dt * 9));
+    /* ✨ 소원 비행 중인 친구 — 받은 고도(fy)만큼 띄워서 활공한다 */
+    const airY = groundY(p.root.position.x, p.root.position.z) + (p.fy || 0);
+    p.root.position.y = lerp(p.root.position.y, airY, Math.min(1, dt * (p.fl ? 5.5 : 9)));
     p.root.rotation.y = angleLerp(p.root.rotation.y, p.tyaw, Math.min(1, dt * 8));
   }
 
@@ -14186,6 +14877,8 @@ function animateAvatar(p, dt) {
   ud.skateWant = (p.isMe ? SKATE.active : p.tf === 'sk') && seatIdx < 0;
   if (p.isMe) ud.skatePhase = SKATE.phase;
   ud.pushWant = (p.isMe && ROLL.active) ? (ROLL.push || 0) : 0;
+  /* ✨ 소원 비행 자세 — 내 캐릭터는 FLY 상태, 친구는 fl 패킷 */
+  ud.flyWant = p.isMe ? (FLY.active ? 1 : 0) : (p.fl ? 1 : 0);
   updateAvatarPose(ud, p.root, speed, dt);
 }
 
@@ -14360,6 +15053,7 @@ function tick(dt) {
   updateFarMode();
   updateDoorUI();
   for (const p of players.values()) animateAvatar(p, dt);
+  updateFlightWorld(dt);
 
   /* 컨텍스트 유실 감시 — 이벤트를 놓쳐도(브라우저·GPU 사정) 매 프레임 확인해 복구로 넘긴다 */
   if (!ctxLost) {
@@ -14949,7 +15643,7 @@ window.__plaza = {
     if (p) p.root.position.copy(playerPos);
     return [+playerPos.x.toFixed(2), +playerPos.z.toFixed(2)];
   },
-  get remotePoses() { return [...players.values()].filter((p) => !p.isMe).map((p) => ({ id: p.id, pose: p.pose, sit: +(p.root.userData && p.root.userData.sit || 0).toFixed(2), x: +p.root.position.x.toFixed(2), z: +p.root.position.z.toFixed(2), y: +p.root.position.y.toFixed(2) })); },
+  get remotePoses() { return [...players.values()].filter((p) => !p.isMe).map((p) => ({ id: p.id, pose: p.pose, sit: +(p.root.userData && p.root.userData.sit || 0).toFixed(2), fly: +(p.root.userData && p.root.userData.fly || 0).toFixed(2), fl: p.fl || 0, fy: +(p.fy || 0).toFixed(2), x: +p.root.position.x.toFixed(2), z: +p.root.position.z.toFixed(2), y: +p.root.position.y.toFixed(2) })); },
   /* 캡처용: 한 프레임을 즉시 렌더 (스틸 이미지 저장 시 사용) */
   pause() { renderer.setAnimationLoop(null); },
   /* 캡처용: 프레임을 n 번 계산만 하고 마지막에 한 번 그린다 (소프트웨어 렌더 환경에서 빠르다) */
@@ -14989,6 +15683,15 @@ window.__plaza = {
   cocoa() { return window.__plazaAudit.cocoa(); },
   stopCocoa() { return window.__plazaAudit.stopCocoa(); },
   wish(t) { return window.__plazaAudit.wish(t); },
+  get fly() { return window.__plazaAudit.fly; },
+  flyStart(t) { return window.__plazaAudit.flyStart(t); },
+  flyLand() { return window.__plazaAudit.flyLand(); },
+  flyTo(x, z, a) { return window.__plazaAudit.flyTo(x, z, a); },
+  flySkip(s) { return window.__plazaAudit.flySkip(s); },
+  netFlightRoundTrip(fy, fl) { return window.__plazaAudit.netFlightRoundTrip(fy, fl); },
+  flyOpenPanel() { return window.__plazaAudit.flyOpenPanel(); },
+  flySubmitWish(t) { return window.__plazaAudit.flySubmitWish(t); },
+  gotoTreeWish() { return window.__plazaAudit.gotoTreeWish(); },
   audioToggle(on) { return audioToggle(on); },
   /* --- 3차: 🍡 마시멜로 굽기 · ⛄ 눈사람 변신 진단 --- */
   get roastState() {
@@ -15043,6 +15746,7 @@ window.__plaza = {
       parsed: parsed.map((e) => ({ ev: e.ev, d: e.d })),
       peer: p ? {
         id: p.id, tf: p.tf, roast: p.roast, pose: p.pose, zone: p.zone,
+        fy: p.fy || 0, fl: p.fl || 0,
         snowW: ud ? +(ud.snowW || 0).toFixed(2) : null,
         snowVisible: ud && ud.snowRoot ? ud.snowRoot.visible : null,
         skewerVisible: ud && ud.roast && ud.roast.skewer ? ud.roast.skewer.visible : null,
@@ -15059,7 +15763,7 @@ window.__plaza = {
     return {
       tf: s.tf || '', rs: +s.rs || 0, pose: s.pose || 'stand',
       moving: !!s.moving, zone: s.zone || 'p', seat: s.seat === undefined ? -1 : s.seat,
-      x: +s.x.toFixed(2), z: +s.z.toFixed(2),
+      x: +s.x.toFixed(2), z: +s.z.toFixed(2), fy: +(+s.fy || 0).toFixed(2), fl: s.fl ? 1 : 0,
     };
   },
   gotoSnowman(i) {
