@@ -972,6 +972,60 @@
     .q-btn b{font-size:11.5px}
     .q-btn span{font-size:8.5px}
   }
+
+/* November polish: compact lobby, quiet HUD and guided exploration. */
+#joinModal .card{min-width:0;max-height:calc(100dvh - 36px);overflow-x:hidden;scrollbar-gutter:stable}
+#joinModal .card::before{inset:0}
+#joinModal .preview{display:none}
+#joinModal .hint2{margin-top:8px}
+#joinModal .sub{margin-bottom:10px}
+#joinModal .card{padding:16px 22px}#joinModal label.lb{margin-bottom:5px}#joinModal .hint2{display:none}
+.char-card .thumb{height:130px}
+.room-row input,#chatInput{min-width:0}
+.brand{flex-shrink:0}.brand p{display:none}
+#hud{align-items:center;gap:10px}
+.hud-right{min-width:0;width:auto;gap:6px;flex-wrap:nowrap}
+#treeHud{position:fixed;top:calc(66px + var(--safe-t));left:16px;max-width:240px;min-width:0;pointer-events:none}
+#treeHud.lit{opacity:.78}
+#visitorBadge{display:none}
+#chatForm{display:none}#chatForm.open{display:flex}
+#chatLog{top:auto;opacity:0;pointer-events:none;transition:opacity .25s;bottom:calc(84px + var(--safe-b))}
+body.chatting #chatLog,body.chat-peek #chatLog{opacity:1;pointer-events:auto}
+body:not(.chatting) #chatLog{max-height:100px}
+#walkCard{position:fixed;z-index:24;left:16px;top:calc(120px + var(--safe-t));width:240px;max-width:calc(100vw - 32px);padding:10px 12px;color:var(--txt);font-size:12px}
+#walkCard summary{cursor:pointer;font-weight:800;color:var(--gold);padding:4px 0;list-style:none}
+#walkCard summary::after{content:'＋';float:right}#walkCard[open] summary::after{content:'−'}
+#walkCard p{font-size:11px;line-height:1.5;color:var(--txt-dim);margin:6px 0}
+#walkCard button{width:100%;text-align:left;padding:9px 10px;margin-top:5px;background:rgba(255,255,255,.06);border:1px solid var(--line);border-radius:9px;color:var(--txt);font:inherit;cursor:pointer}
+#walkCard button[aria-pressed=true]{border-color:var(--gold);background:rgba(255,212,121,.12)}
+#walkCard button.done::after{content:' ✓';color:#8ce3b0}
+#walkNav[hidden]{display:none}#walkNav{display:flex;align-items:center;gap:8px;margin-top:8px;min-height:32px;color:#ffe6ad}
+#walkArrow{font-size:22px;display:inline-block}#walkHint{font-size:11px;line-height:1.4}
+body.photomode #walkCard{display:none!important}
+#shotRow button.on{background:rgba(255,212,121,.22);border-color:var(--gold)}
+#photoBar{max-width:calc(100vw - 24px)}
+#photoSave{display:block;margin-top:8px;padding:10px;border-radius:9px;background:#ffd479;color:#282038;text-align:center;font-size:12px;font-weight:800;text-decoration:none}
+#photoPreview{max-height:45dvh;overflow-y:auto}#photoPreview img{max-height:28dvh;object-fit:contain}
+#photoHud .ph-top{max-width:calc(100vw - 24px);text-align:center}
+@media(max-width:1000px){
+ #hud .badge{font-size:11px;padding:0 9px}.brand h1{font-size:15px}.brand-mark{font-size:21px}
+}
+@media(max-width:600px){
+ #hud{padding:calc(8px + var(--safe-t)) 10px 8px;flex-wrap:wrap}
+ .hud-right{gap:5px;margin-left:auto}.hud-right .icon-btn{width:34px;height:34px}
+ #hud .brand{width:auto}.brand-mark{display:none}.brand h1{font-size:13px}
+ #netStatus{position:fixed;top:calc(51px + var(--safe-t));right:10px;height:28px!important;font-size:10px!important}
+ #treeHud{top:calc(51px + var(--safe-t));left:10px;height:28px;max-width:165px;font-size:10px}
+ #walkCard{left:10px;top:calc(88px + var(--safe-t));width:210px;padding:8px 10px}
+ #walkCard:not([open]){width:160px}
+ #joinModal{padding:10px}#joinModal .card{max-height:calc(100dvh - 20px);padding:16px 14px}
+ .char-card .thumb{height:118px}.char-card .ds{display:none}
+ #chatForm.open{width:calc(100% - 24px);left:12px;transform:none}
+ #chatLog{width:min(300px,calc(100vw - 24px));left:12px}
+ aside.panel{max-height:calc(100dvh - 150px);overflow-y:auto;top:calc(88px + var(--safe-t))}
+}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;transition-duration:.01ms!important}}
+
 </style>
 </head>
 <body>
@@ -1032,6 +1086,15 @@
   <p style="margin:0"><b>BGM</b> · 우측 상단 🔇 버튼으로 캐롤 켜기/끄기 (외부 음원 없이 브라우저 신스로 연주)</p>
 </aside>
 
+<details id="walkCard" class="panel hidden">
+  <summary>겨울 마을 산책 <span id="walkCount">0/3</span></summary>
+  <p>가고 싶은 곳을 골라 보세요. 화살표는 목적지 방향과 직선 거리를 알려줘요.</p>
+  <button type="button" data-walk="tree" aria-pressed="false">🎄 내 장식 남기기</button>
+  <button type="button" data-walk="cocoa" aria-pressed="false">☕ 코코아 한 잔</button>
+  <button type="button" data-walk="photo" aria-pressed="false">📸 기념사진 만들기</button>
+  <div id="walkNav" hidden><span id="walkArrow">↑</span><span id="walkHint"></span></div>
+  <p id="walkReward">세 가지 추억을 모아 보세요.</p>
+</details>
 <!-- ================= 채팅 ================= -->
 <div id="chatLog" class="panel"><div class="head">광장 채팅</div></div>
 <form id="chatForm" autocomplete="off">
@@ -1200,8 +1263,13 @@
 
 <!-- ================= 포토 모드 ================= -->
 <div id="photoHud" aria-hidden="true">
-  <div class="ph-top">📸 포토 모드 · '원래 시점'을 누르면 드래그로 시점을 움직일 수 있어요</div>
+  <div class="ph-top">📸 구도와 포즈를 골라 추억을 남겨요 · 자유 시점에서는 드래그로 회전</div>
   <div id="photoBar">
+    <div class="pb-row" id="shotRow" role="group" aria-label="사진 구도">
+      <button type="button" data-shot="postcard">🏔 마을 엽서</button>
+      <button type="button" data-shot="friends">👥 친구들과 한 컷</button>
+      <button type="button" data-shot="portrait">🧣 나의 겨울 사진</button>
+    </div>
     <div class="pb-row" id="poseRow">
       <button type="button" data-pose="stand" class="on">🧍 서기</button>
       <button type="button" data-pose="wave">👋 손흔들기</button>
@@ -1220,7 +1288,8 @@
   <div id="photoFlash"></div>
   <div id="photoPreview">
     <img id="photoPreviewImg" alt="방금 찍은 사진" />
-    <p id="photoPreviewText">사진이 저장되었습니다</p>
+    <p id="photoPreviewText">사진을 확인하고 저장해 주세요</p>
+    <a id="photoSave" download>PNG 저장</a>
   </div>
 </div>
 
@@ -1783,6 +1852,23 @@ function joinBytes(arrays) {
  * 실시간 네트워크 — 같은 방 코드로 들어온 사람(최대 10명)과
  * 위치·회전·걷기 모션·채팅·리액션을 실제로 주고받는다.
  */
+
+function validPhotoPose(value) {
+  return ['wave','jump','heart'].includes(value) ? value : 'stand';
+}
+function mergeOrnamentEntries(left, right) {
+  const entries = new Map();
+  for (const e of [...(Array.isArray(left) ? left : []), ...(Array.isArray(right) ? right : [])]) {
+    if (!e || typeof e.id !== 'string' || !/^[a-zA-Z0-9:_-]{1,90}$/.test(e.id) || !['star','bell','flake','ribbon'].includes(e.kind)) continue;
+    const prev = entries.get(e.id);
+    if (!prev || e.kind < prev.kind) entries.set(e.id, { id:e.id, kind:e.kind });
+  }
+  return [...entries.values()].sort((a,b) => a.id < b.id ? -1 : a.id > b.id ? 1 : 0).slice(0,8);
+}
+function legacyOrnaments(kinds) {
+  return (Array.isArray(kinds) ? kinds : []).slice(0,8).map((kind,i) => ({id:'legacy:'+i,kind}));
+}
+
 class LiveNetwork extends NetworkAdapter {
   constructor(room) {
     super();
@@ -1916,6 +2002,7 @@ class LiveNetwork extends NetworkAdapter {
       this.emit('tree', {
         remote: true, decor: +m.d || 0, lit: !!m.lit,
         kinds: Array.isArray(m.k) ? m.k.slice(0, 8) : [],
+        entries: Array.isArray(m.entries) ? mergeOrnamentEntries([], m.entries) : null,
         nickname: String(m.n || '엘프').slice(0, 10),
       });
       return;
@@ -1976,7 +2063,8 @@ class LiveNetwork extends NetworkAdapter {
         /* 3차 — 눈사람 변신(tf) · 마시멜로 굽기 진행률(rs) */
         peer.tf = m.tf === 'sn' ? 'sn' : (m.tf === 'sk' ? 'sk' : '');
         peer.roast = clamp(Math.round(+m.rs || 0), 0, 100);
-        this.emit('state', { players: [{ id: m.id, x: peer.x, z: peer.z, yaw: peer.yaw, moving: peer.moving, pose: peer.pose, seat: peer.seat, zone: peer.zone, tf: peer.tf, roast: peer.roast }] });
+        peer.photoPose = validPhotoPose(m.pp);
+        this.emit('state', { players: [{ id: m.id, x: peer.x, z: peer.z, yaw: peer.yaw, moving: peer.moving, pose: peer.pose, seat: peer.seat, zone: peer.zone, tf: peer.tf, roast: peer.roast, photoPose: peer.photoPose }] });
       }
     }
   }
@@ -2026,6 +2114,7 @@ class LiveNetwork extends NetworkAdapter {
   _publishState() {
     if (!this.connected || !this.mqtt || !this._pending) return;
     const s = this._pending;
+    this._lastPhotoPose = validPhotoPose(s.pp);
     this._lastPubAt = performance.now();
     this._lastState = { x: s.x, z: s.z, yaw: s.yaw, moving: !!s.moving, pose: s.pose || 'stand', seat: s.seat === undefined ? -1 : s.seat, zone: s.zone || 'p', tf: s.tf === 'sn' ? 'sn' : '', rs: clamp(Math.round(+s.rs || 0), 0, 100) };
     this.seq = (this.seq + 1) % 100000;
@@ -2033,7 +2122,7 @@ class LiveNetwork extends NetworkAdapter {
       t: 'pos', id: this.cid, n: this.profile.nickname, c: this.profile.character,
       x: +s.x.toFixed(2), z: +s.z.toFixed(2), y: +s.yaw.toFixed(2),
       mv: s.moving ? 1 : 0, p: s.pose || 'stand', si: s.seat === undefined ? -1 : s.seat,
-      zn: s.zone === 'i' ? 'i' : 'p', q: this.seq,
+      zn: s.zone === 'i' ? 'i' : 'p', q: this.seq, pp: validPhotoPose(s.pp),
       tf: s.tf === 'sn' ? 'sn' : (s.tf === 'sk' ? 'sk' : ''), rs: clamp(Math.round(+s.rs || 0), 0, 100),
     }));
   }
@@ -2043,7 +2132,8 @@ class LiveNetwork extends NetworkAdapter {
     if (!this.connected) return;
     const now = performance.now();
     const L = this._lastState;
-    const moved = (!!s.moving !== !!L.moving)
+    const moved = validPhotoPose(s.pp) !== (this._lastPhotoPose || 'stand')
+      || (!!s.moving !== !!L.moving)
       || (s.pose || 'stand') !== (L.pose || 'stand')
       || (s.zone || 'p') !== (L.zone || 'p')
       || (s.tf === 'sn' ? 'sn' : (s.tf === 'sk' ? 'sk' : '')) !== (L.tf || '')
@@ -2079,7 +2169,7 @@ class LiveNetwork extends NetworkAdapter {
     const msg = {
       t: 'tree', id: this.cid, n: this.profile.nickname,
       d: Math.max(0, Math.min(8, +state.decor || 0)),
-      lit: !!state.lit, k: (state.kinds || []).slice(0, 8), ts: Date.now(),
+      lit: !!state.lit, k: (state.kinds || []).slice(0, 8), entries: mergeOrnamentEntries([], state.entries), ts: Date.now(),
     };
     if (this.connected && this.mqtt) {
       this.mqtt.publish(`${this.base}/e/tree`, JSON.stringify(msg), true);
@@ -9475,6 +9565,7 @@ function addChatLine(nickname, text, mine, sys) {
     div.appendChild(s);
   }
   chatLog.appendChild(div);
+  peekChat();
   while (chatLog.children.length > 90) chatLog.removeChild(chatLog.children[1]);
   chatLog.scrollTop = chatLog.scrollHeight;
 }
@@ -9582,14 +9673,14 @@ function renderNetStatus() {
   const s = lastNetState || { state: 'idle' };
   netStatusEl.classList.remove('live', 'demo', 'err');
   const txt = netStatusText;
-  const others = Math.max(0, players.size - (players.has('me') ? 1 : 0));
+  const others = [...players.values()].filter(p => !p.isMe && !p.isNpc).length;
   /* 좁은 화면에서는 배지가 한 줄에 모이도록 짧은 문구를 쓴다 (전체 상태는 title 에 남는다) */
   const narrow = isNarrowHud();
   if (s.state === 'live') {
     netStatusEl.classList.add('live');
     txt.textContent = narrow
-      ? (others > 0 ? `연결 ${others}명` : '연결됨')
-      : (others > 0 ? `친구와 연결됨 (${others}명)` : '친구와 연결됨 (0명)');
+      ? (others > 0 ? `친구 ${others}명` : '친구 대기 중')
+      : (others > 0 ? `친구와 연결됨 (${others}명)` : '온라인 · 친구 대기 중');
     netStatusEl.title = `실시간 연결 · 방 ${s.room || state.room} · 나를 뺀 접속자 ${others}명`;
     panelNoteEl.textContent = '같은 방 코드로 들어온 사람과 실시간으로 함께 걸어요. 아래 버튼으로 초대 링크를 복사해 보내면 바로 만날 수 있습니다.';
   } else if (s.state === 'connecting' || s.state === 'retry') {
@@ -10065,6 +10156,7 @@ function finishEntry(nick) {
   setTimeout(() => document.getElementById('hint').classList.add('fade'), 7000);
 
   warmOtherCharacters(state.profile.character);   // 나머지 엘프는 뒤에서 조용히
+  startWalkCard();
   treeOnJoin();                                  // 같은 방의 트리 점등 상태·소원 쪽지 되살리기
 }
 
@@ -10120,6 +10212,7 @@ net.on('state', ({ players: list }) => {
     if (!p) continue;
     p.tx = s.x; p.tz = s.z; p.tyaw = s.yaw;
     p.pose = s.pose || 'stand';
+    p.photoPose = validPhotoPose(s.photoPose);
     p.moving = !!s.moving && p.pose !== 'sit';
     p.seat = s.seat === undefined ? -1 : s.seat;
     p.zone = s.zone || 'p';
@@ -10158,13 +10251,26 @@ chatForm.addEventListener('submit', (e) => {
   }
 });
 /* 채팅 입력창 열림/닫힘 — body.chatting 으로 우측 액션 버튼을 입력창 위로 올린다 */
+let chatPeekTimer = 0;
+function peekChat() {
+  document.body.classList.add('chat-peek');
+  clearTimeout(chatPeekTimer);
+  chatPeekTimer = setTimeout(() => document.body.classList.remove('chat-peek'), 5500);
+}
 function setChatOpen(open) {
   chatForm.classList.toggle('open', open);
   document.body.classList.toggle('chatting', open);
   btnChat.classList.toggle('on', open);
+  btnChat.setAttribute('aria-expanded', String(open));
+  if (!open) chatInput.blur();
   if (open) { chatInput.focus(); chatLog.scrollTop = chatLog.scrollHeight; }
 }
 
+document.addEventListener('keydown', (e) => {
+  if (!state.joined || PHOTO.active || /INPUT|TEXTAREA|SELECT/.test(e.target.tagName)) return;
+  if (e.code === 'Enter') { e.preventDefault(); setChatOpen(true); }
+  if (e.code === 'Escape') setChatOpen(false);
+});
 /* 리액션 */
 document.querySelectorAll('.emoji-btn').forEach((b) => {
   b.addEventListener('click', () => {
@@ -10227,7 +10333,7 @@ btnBgm.addEventListener('click', () => {
 const PHOTO_SPOT = { x: 0.9, z: 8.6 };
 const PHOTO_CAM = { pos: new THREE.Vector3(), look: new THREE.Vector3() };
 const PHOTO = {
-  active: false, pose: 'stand', frame: true, timer: 3, camMode: 'preset',
+  active: false, pose: 'stand', frame: true, timer: 3, camMode: 'preset', composition: 'friends',
   saved: null, busy: false, shots: 0, near: false, lastStats: null, lastUrl: '',
 };
 const btnPhotoEl = document.getElementById('btnPhoto');
@@ -10322,6 +10428,28 @@ function buildPhotoZone() {
    · 화각을 조금 넓혀(PHOTO_FOV) 친구 여러 명이 서도 함께 들어온다. */
 const PHOTO_FOV = 68;
 function photoCameraTarget(outPos, outLook) {
+  if (PHOTO.composition !== 'postcard') {
+    const group = PHOTO.composition === 'friends'
+      ? [...players.values()].filter(p => !p.isNpc && (p.zone || 'p') === 'p' && Math.hypot(p.root.position.x - playerPos.x, p.root.position.z - playerPos.z) < 7)
+      : [players.get('me')].filter(Boolean);
+    let x = playerPos.x, z = playerPos.z, spread = 0;
+    if (group.length) {
+      x = group.reduce((a,p) => a + p.root.position.x, 0) / group.length;
+      z = group.reduce((a,p) => a + p.root.position.z, 0) / group.length;
+      spread = Math.max(...group.map(p => Math.hypot(p.root.position.x-x,p.root.position.z-z)));
+    }
+    const angle = Math.atan2(z, x), portrait = PHOTO.composition === 'portrait';
+    const half = Math.min(THREE.MathUtils.degToRad(camera.fov / 2), Math.atan(Math.tan(THREE.MathUtils.degToRad(camera.fov / 2)) * camera.aspect));
+    const distance = portrait ? Math.max(2.25, 0.85 / Math.tan(half)) : Math.max(4.1, (spread + 1.35) / Math.tan(half));
+    let px = x + Math.cos(angle) * distance, pz = z + Math.sin(angle) * distance;
+    for (const turn of [0, .35, -.35, .7, -.7, 1.2, -1.2]) {
+      const a = angle + turn, cx = x + Math.cos(a)*distance, cz = z + Math.sin(a)*distance;
+      if (walkableAt(cx,cz) && !colliders.some(c => Math.hypot(cx-c.x,cz-c.z) < c.r+.4)) { px=cx; pz=cz; break; }
+    }
+    outPos.set(px, groundY(x,z) + (portrait ? 1.65 : 2.0), pz);
+    outLook.set(x, groundY(x,z) + (portrait ? 1.12 : 1.05), z);
+    return;
+  }
   const cx = playerPos.x, cz = playerPos.z;
   let dx = cx, dz = cz;                      // 트리(0,0) → 캐릭터 방향
   const d0 = Math.hypot(dx, dz);
@@ -10374,9 +10502,13 @@ function photoCameraTarget(outPos, outLook) {
 }
 
 function syncPhotoUi() {
+  document.querySelectorAll('[data-shot]').forEach(b => {
+    const on = b.dataset.shot === PHOTO.composition;
+    b.classList.toggle('on', on); b.setAttribute('aria-pressed', String(on));
+  });
   if (poseRowEl) [...poseRowEl.children].forEach((b) => b.classList.toggle('on', b.dataset.pose === PHOTO.pose));
   if (photoCamBtn) {
-    photoCamBtn.textContent = PHOTO.camMode === 'preset' ? '↩ 원래 시점' : '🎬 포토 구도';
+    photoCamBtn.textContent = PHOTO.camMode === 'preset' ? '↩ 자유 시점' : '🎬 선택한 구도';
     photoCamBtn.classList.toggle('on', PHOTO.camMode === 'free');
   }
   if (photoFrameBtn) photoFrameBtn.classList.toggle('on', PHOTO.frame);
@@ -10512,11 +10644,11 @@ function updatePhotoFacing(dt) {
 /* --- 포즈 반영 (매 프레임 · 애니메이션 포즈 위에 덧씌움) --- */
 const _photoUp = new THREE.Vector3(0, 1, 0);
 const _photoDir = new THREE.Vector3();
-function updatePhotoPose(dt) {
-  const p = players.get('me');
+function updatePhotoPose(dt, p = players.get('me')) {
   if (!p || !p.root.userData || !p.root.userData.bones) return;
   const ud = p.root.userData;
-  const want = PHOTO.active && PHOTO.pose !== 'stand' ? 1 : 0;
+  const pose = p.isMe ? (PHOTO.active ? PHOTO.pose : 'stand') : validPhotoPose(p.photoPose);
+  const want = pose !== 'stand' ? 1 : 0;
   ud.photoW = lerp(ud.photoW === undefined ? 0 : ud.photoW, want, Math.min(1, dt * 7));
   const w = ud.photoW;
   const settle = () => {
@@ -10526,13 +10658,13 @@ function updatePhotoPose(dt) {
   };
   if (w < 0.004) { settle(); return; }
   const t = elapsed;
-  const dir = (x, y, z) => _photoDir.set(x, y, z).applyAxisAngle(_photoUp, playerYaw.v);
-  if (PHOTO.pose === 'wave') {
+  const dir = (x, y, z) => _photoDir.set(x, y, z).applyAxisAngle(_photoUp, p.root.rotation.y);
+  if (pose === 'wave') {
     settle();
     aimBoneBlend(ud, 'R_Upperarm', dir(-0.52, 0.84, 0.14), w);
     aimBoneBlend(ud, 'R_Forearm', dir(-0.3 + Math.sin(t * 7) * 0.22, 0.9, 0.1), w);
     boneRotZ(ud, 'Head', Math.sin(t * 2.4) * 0.05 * w);
-  } else if (PHOTO.pose === 'jump') {
+  } else if (pose === 'jump') {
     /* 🙌 점프 — 높이를 2배 이상(0.5 → 1.08m) 올리고 웅크리기 → 도약 → 착지까지
        한 호흡으로 붙였다. 발이 바닥을 뚫지 않도록 내려가는 대신 무릎을 굽혀
        충격을 먹고(발끝 접지는 아래 updateAvatarPose 가 계속 맞춘다),
@@ -10589,10 +10721,10 @@ function updatePhotoPose(dt) {
     aimBoneBlend(ud, 'R_Forearm', dir(-fOut, fUp, 0.12), w);
     boneRot(ud, 'Spine01', -0.05 * tuck * w + 0.05 * squat * w);
     boneRot(ud, 'Head', 0.05 * up * w);
-  } else if (PHOTO.pose === 'heart') {
+  } else if (pose === 'heart') {
     settle();
     const A = HEART_AIM;
-    const fy = playerYaw.v;
+    const fy = p.root.rotation.y;
     const bx = Math.sin(fy), bz = Math.cos(fy);        // 몸이 보는 앞
     const ox = Math.cos(fy), oz = -Math.sin(fy);        // 몸의 왼쪽(+)
     const aim = (f, u, o) => _photoDir.set(bx * f + ox * o, u, bz * f + oz * o);
@@ -10603,7 +10735,7 @@ function updatePhotoPose(dt) {
     aimBoneBlend(ud, 'R_Forearm', aim(A.faFwd, A.faUp, A.faIn), w);
     boneRotZ(ud, 'Head', -0.08 * w);
   }
-  if (photoHeart) {
+  if (p.isMe && photoHeart) {
     const s = 0.52 + Math.sin(t * 5.4) * 0.05;
     photoHeart.scale.set(s, s, 1);
     photoHeart.position.y = 2.02 + Math.sin(t * 3.1) * 0.05;
@@ -10740,19 +10872,16 @@ function publishPhoto(shot, st) {
     const d = new Date();
     const p = (n) => String(n).padStart(2, '0');
     const stamp = `${d.getFullYear()}${p(d.getMonth() + 1)}${p(d.getDate())}-${p(d.getHours())}${p(d.getMinutes())}${p(d.getSeconds())}`;
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `xmas-plaza-${stamp}.png`;
-    document.body.appendChild(a);
-    a.click();
-    a.remove();
+    const saveLink = document.getElementById('photoSave');
+    saveLink.href = url;
+    saveLink.download = `xmas-plaza-${stamp}.png`;
     photoPreviewImg.src = url;
-    photoPreviewText.textContent = `📸 저장 완료 · ${shot.W}×${shot.H} PNG`;
+    photoPreviewText.textContent = `📸 사진 준비 · ${shot.W}×${shot.H} PNG`;
     photoPreviewEl.classList.add('show');
     clearTimeout(photoPreviewTimer);
-    photoPreviewTimer = setTimeout(() => photoPreviewEl.classList.remove('show'), 7000);
+    photoCountEl.classList.remove('show');
   }
-  PHOTO.shots++;
+  if (url) { PHOTO.shots++; markWalk('photo'); }
   return { w: shot.W, h: shot.H, bytes: url ? url.length : 0, stats: st };
 }
 
@@ -10798,6 +10927,12 @@ async function shutterPress() {
 }
 
 /* --- 버튼 · 키 --- */
+document.getElementById('shotRow').addEventListener('click', (e) => {
+  const b = e.target.closest('[data-shot]');
+  if (!b) return;
+  PHOTO.composition = b.dataset.shot;
+  setPhotoCamMode('preset');
+});
 if (btnPhotoEl) btnPhotoEl.addEventListener('click', () => { enterPhotoMode(); });
 if (btnCamResetEl) btnCamResetEl.addEventListener('click', () => { resetCamera(); });
 if (poseRowEl) {
@@ -10873,7 +11008,7 @@ const TREE_ORNS_INFO = {
 const TREE_KINDS = ['star', 'bell', 'flake', 'ribbon'];
 
 const TREE_EVENT = {
-  decor: 0, goal: 2, lit: false, mine: 0, kinds: [],
+  decor: 0, goal: 2, lit: false, mine: 0, kinds: [], entries: [],
   glow: 0, showOn: false, showAge: 0, npcTimer: 0, npcUsed: false,
   orns: [], lastRemote: '', lightAt: 0, shows: 0,
 };
@@ -11116,7 +11251,7 @@ function updateTreeHud() {
 
 function refreshTreeGoal() {
   const others = [...players.values()].filter((p) => !p.isMe && !p.isNpc).length;
-  const goal = (net.mode === 'live' && others > 0) ? Math.max(3, others + 1) : 2;
+  const goal = (net.mode === 'live' && others > 0) ? Math.min(8, Math.max(3, others + 1)) : 2;
   if (goal !== TREE_EVENT.goal) {
     TREE_EVENT.goal = goal;
     updateTreeHud();
@@ -11132,7 +11267,7 @@ function treeStoreKey() { return 'xmas-tree-v1:' + (state.room || 'main'); }
 function saveTreeState() {
   try {
     localStorage.setItem(treeStoreKey(), JSON.stringify({
-      kinds: TREE_EVENT.kinds.slice(0, 8), lit: TREE_EVENT.lit,
+      kinds: TREE_EVENT.kinds.slice(0, 8), entries: TREE_EVENT.entries, lit: TREE_EVENT.lit,
     }));
   } catch (_) {}
 }
@@ -11140,7 +11275,8 @@ function restoreTreeState() {
   let saved = null;
   try { saved = JSON.parse(localStorage.getItem(treeStoreKey()) || 'null'); } catch (_) {}
   if (!saved || !Array.isArray(saved.kinds)) return;
-  saved.kinds.slice(0, 8).forEach((k, i) => {
+  TREE_EVENT.entries = mergeOrnamentEntries([], saved.entries || legacyOrnaments(saved.kinds));
+  TREE_EVENT.entries.map(e => e.kind).forEach((k, i) => {
     if (TREE_KINDS.indexOf(k) < 0) return;
     applyOrnament(i, k);
     TREE_EVENT.decor = i + 1;
@@ -11167,7 +11303,7 @@ function startTreeShow(opts = {}) {
   TREE_EVENT.showAge = 0;
   TREE_EVENT.shows++;
   treeShowBannerEl.classList.add('show');
-  toast(opts.replay ? '🎉 트리 점등식을 다시 보여드려요' : '🎉 트리 점등식! 트리가 황금빛으로 빛나요 ✨', 3400);
+  toast(opts.replay ? '🎉 나에게만 점등식을 다시 보여드려요' : '🎉 트리 점등식! 트리가 황금빛으로 빛나요 ✨', 3400);
   if (!opts.replay) {
     addChatLine('', '🎄 <b>트리 점등식</b> — 모두의 장식으로 트리에 불이 들어왔어요 ✨', false, true);
     playTreeChime();
@@ -11185,7 +11321,7 @@ function lightTreeNow(opts = {}) {
 }
 
 function publishTree() {
-  try { net.sendTree({ decor: TREE_EVENT.decor, lit: TREE_EVENT.lit, kinds: TREE_EVENT.kinds }); } catch (_) {}
+  try { net.sendTree({ decor: TREE_EVENT.decor, lit: TREE_EVENT.lit, kinds: TREE_EVENT.kinds, entries: TREE_EVENT.entries }); } catch (_) {}
 }
 
 /* --- 장식 달기 --- */
@@ -11195,10 +11331,9 @@ function addTreeOrnament(kind, opts = {}) {
     if (!opts.silent) toast('🎄 트리가 장식으로 가득 찼어요', 2200);
     return false;
   }
-  const i = TREE_EVENT.decor;
-  applyOrnament(i, k);
-  TREE_EVENT.decor = i + 1;
-  if (!opts.remote) TREE_EVENT.mine++;
+  const id = Date.now().toString(36) + ':' + crypto.randomUUID();
+  applyTreeEntries(mergeOrnamentEntries(TREE_EVENT.entries, [{id, kind:k}]));
+  if (!opts.remote) { TREE_EVENT.mine++; markWalk('tree'); }
   updateTreeHud();
   saveTreeState();
   if (!opts.remote) {
@@ -11216,30 +11351,29 @@ function addTreeOrnament(kind, opts = {}) {
 }
 
 /* 같은 방의 다른 화면(장식 개수·점등 상태)을 그대로 받아들인다 */
+function applyTreeEntries(entries) {
+  if (JSON.stringify(entries) === JSON.stringify(TREE_EVENT.entries)) return false;
+  for (const g of TREE_EVENT.orns) {
+    if (!g) continue;
+    TREE_ORNS_G.remove(g);
+    g.traverse(o => { if (o.isMesh && o.geometry) o.geometry.dispose(); if (o.isSprite && o.material) o.material.dispose(); });
+  }
+  TREE_EVENT.entries = entries;
+  TREE_EVENT.orns = []; TREE_EVENT.kinds = []; TREE_EVENT.decor = entries.length;
+  entries.forEach((e,i) => applyOrnament(i,e.kind));
+  return true;
+}
 function onRemoteTree(m) {
   if (!m) return;
-  const remoteDecor = Math.min(8, +m.decor || 0);
-  const kinds = Array.isArray(m.kinds) ? m.kinds : [];
-  let changed = false;
-  for (let i = TREE_EVENT.decor; i < remoteDecor; i++) {
-    const k = TREE_KINDS.indexOf(kinds[i]) >= 0 ? kinds[i] : 'star';
-    applyOrnament(i, k);
-    TREE_EVENT.decor = i + 1;
-    changed = true;
-  }
-  if (changed && remoteDecor > 0) {
-    toast(`🎄 ${m.nickname || '친구'} 님이 트리에 장식을 달았어요 (${TREE_EVENT.decor} / ${TREE_EVENT.goal})`, 2600);
-  }
-  if (m.lit && !TREE_EVENT.lit) {
-    lightTreeNow({ remote: true });
-    changed = true;
-  }
-  /* 상대 화면에서 이미 목표를 채웠는데 lit 표시가 빠져 있으면 여기서 마저 점등 */
-  if (!TREE_EVENT.lit && TREE_EVENT.decor >= TREE_EVENT.goal && TREE_EVENT.decor > 0) {
-    lightTreeNow({ remote: true });
-    changed = true;
+  const incoming = mergeOrnamentEntries([], m.entries || legacyOrnaments(m.kinds));
+  const merged = mergeOrnamentEntries(TREE_EVENT.entries, incoming);
+  const changed = applyTreeEntries(merged);
+  if (m.lit || TREE_EVENT.decor >= TREE_EVENT.goal) {
+    if (!TREE_EVENT.lit && TREE_EVENT.decor > 0) lightTreeNow({remote:true});
   }
   if (changed) { updateTreeHud(); saveTreeState(); }
+  // Reconcile the retained snapshot once; identical unions do not echo forever.
+  if (JSON.stringify(merged) !== JSON.stringify(incoming)) publishTree();
 }
 
 /* --- 장식 고르기 패널 --- */
@@ -11264,7 +11398,7 @@ function closeOrnPicker() {
 const treeBtnEl = document.getElementById('treeBtn');
 function treeButtonAction() {
   if (!state.joined) return;
-  if (TREE_EVENT.lit) { startTreeShow({ replay: true }); return; }
+  if (TREE_EVENT.lit && TREE_EVENT.decor >= 8) { markWalk('tree'); startTreeShow({ replay: true }); return; }
   openOrnPicker();
 }
 if (treeBtnEl) treeBtnEl.addEventListener('click', treeButtonAction);
@@ -11368,6 +11502,7 @@ function startCocoa() {
   COCOA.active = true;
   COCOA.t = 0;
   COCOA.count++;
+  markWalk('cocoa');
   toast(COCOA_LINES[(COCOA.count - 1) % COCOA_LINES.length], 2800);
   try { net.sendReaction('☕'); } catch (_) {}
   if (SIT.active) { /* 앉아서도 마실 수 있다 */ }
@@ -11864,7 +11999,7 @@ function updateActivityButtons(dt) {
     }
   }
   const label = TREE_EVENT.lit
-    ? '🎉 트리 점등식 다시 보기'
+    ? (TREE_EVENT.decor < 8 ? '🎄 내 장식도 남기기' : '🎉 점등식 감상 · 나에게만 다시 보기')
     : `🎄 트리 장식 달기 (${Math.min(TREE_EVENT.decor, 8)}/${TREE_EVENT.goal})`;
   if (treeBtnEl.textContent !== label) treeBtnEl.textContent = label;
   treeBtnEl.classList.toggle('lit', TREE_EVENT.lit);
@@ -11971,7 +12106,7 @@ function updateTreeEvent(dt) {
   const gl = TREE_EVENT.glow;
   applyTreeGlow(gl);
   if (tree && tree.star && tree.star.material) {
-    tree.star.material.emissiveIntensity = TREE_LIGHT_BASE.star * (1 + gl * 1.15)
+    tree.star.material.emissiveIntensity = TREE_LIGHT_BASE.star * (1 + gl * 0.65)
       + Math.sin(performance.now() * 0.0016) * 0.3 * (1 + gl);
   }
   /* 장식이 나타날 때 톡 튀어나오는 느낌 */
@@ -12065,7 +12200,7 @@ function updateTreeEvent(dt) {
 
 /* 같은 방에 들어왔을 때 — 저장된 점등 상태·소원 쪽지를 되살린다 */
 function treeOnJoin() {
-  TREE_EVENT.decor = 0; TREE_EVENT.kinds = []; TREE_EVENT.lit = false;
+  TREE_EVENT.decor = 0; TREE_EVENT.kinds = []; TREE_EVENT.entries = []; TREE_EVENT.lit = false;
   TREE_EVENT.mine = 0; TREE_EVENT.glow = 0; TREE_EVENT.npcTimer = 0; TREE_EVENT.npcUsed = false;
   TREE_EVENT.orns = [];
   if (TREE_ORNS_G) TREE_ORNS_G.clear();
@@ -12400,7 +12535,10 @@ function resetCamera() {
 
 function updatePlayer(dt) {
   if (!state.joined) return;
-  if (PHOTO.active) return;                 // 포토 모드에서는 이동을 잠근다
+  if (PHOTO.active) {
+    net.update({ x:playerPos.x,z:playerPos.z,yaw:playerYaw.v,moving:false,pose:'stand',seat:-1,zone:'p',pp:PHOTO.pose });
+    return;
+  }
   if (TRANS.busy) return;                  // 문을 여닫는 동안은 움직이지 않는다
 
   /* --- 모닥불 앉기: 이동 입력이 들어오면 먼저 일어난다 --- */
@@ -14045,7 +14183,7 @@ function tick(dt) {
   updateFloaters(dt);
   updatePhotoZone(dt);
   updatePhotoFacing(dt);
-  updatePhotoPose(dt);
+  for (const p of players.values()) updatePhotoPose(dt, p);
   /* 3차 — 마시멜로 굽기 자세 · 눈사람 몸 · 변신 파티클 */
   updateRoastAll(dt);
   updateSnowAvatars(dt);
@@ -14054,6 +14192,7 @@ function tick(dt) {
   updateBursts(dt);
   updateSecondWave(dt);
   updateLabels();
+  updateWalkGuide(dt);
 
   /* 접속자 패널의 위치 표시(광장/오두막) — 0.4초마다 달라졌는지 확인해 다시 그린다 */
   rosterAcc += dt;
@@ -14138,6 +14277,67 @@ function revealLobby() {
   if (autoJoin && state.profile.nickname) setTimeout(() => { try { joinForm.requestSubmit(); } catch (_) {} }, 340);
 }
 setTimeout(revealLobby, 240);
+
+
+const WALK = { selected:null, done:{}, acc:0 };
+const walkCard = document.getElementById('walkCard');
+function walkKey() { return 'xmas-walk-v1:' + state.room; }
+function renderWalk() {
+  const count = ['tree','cocoa','photo'].filter(k => WALK.done[k]).length;
+  document.getElementById('walkCount').textContent = count + '/3';
+  document.getElementById('walkReward').textContent = count === 3 ? '✨ 오늘의 겨울 추억을 모두 모았어요!' : '세 가지 추억을 모아 보세요.';
+  walkCard.querySelectorAll('[data-walk]').forEach(b => {
+    b.classList.toggle('done', !!WALK.done[b.dataset.walk]);
+    b.setAttribute('aria-pressed', String(b.dataset.walk === WALK.selected));
+  });
+}
+function markWalk(key) {
+  if (WALK.done[key]) return;
+  WALK.done[key] = true;
+  try { localStorage.setItem(walkKey(), JSON.stringify(WALK.done)); } catch (_) {}
+  renderWalk();
+}
+function startWalkCard() {
+  try { WALK.done = JSON.parse(localStorage.getItem(walkKey()) || '{}') || {}; } catch (_) { WALK.done = {}; }
+  walkCard.classList.remove('hidden');
+  walkCard.open = window.innerWidth > 1000;
+  renderWalk();
+}
+walkCard.addEventListener('click', e => {
+  const b = e.target.closest('[data-walk]');
+  if (!b) return;
+  WALK.selected = WALK.selected === b.dataset.walk ? null : b.dataset.walk;
+  renderWalk(); updateWalkGuide(1);
+});
+function updateWalkGuide(dt) {
+  WALK.acc += dt;
+  if (WALK.acc < .15 || !state.joined) return;
+  WALK.acc = 0;
+  const nav = document.getElementById('walkNav');
+  nav.hidden = !WALK.selected;
+  if (!WALK.selected) return;
+  let target, hint;
+  if (ZONE.mode === 'interior' && WALK.selected !== 'cocoa') {
+    document.getElementById('walkHint').textContent = 'F 또는 나가기 버튼으로 광장에 나가세요';
+    document.getElementById('walkArrow').style.visibility = 'hidden'; return;
+  }
+  if (WALK.selected === 'tree') { target=TREE_STAND; hint=TREE_EVENT.lit ? '이미 밝혀진 트리에도 내 추억을 남겨요' : '가까이 가서 트리 장식 달기'; }
+  if (WALK.selected === 'photo') { target=PHOTO_SPOT; hint='카메라 버튼 → 포즈 선택 → 촬영'; }
+  if (WALK.selected === 'cocoa') {
+    if (ZONE.mode === 'interior') { target=cocoaSpot(); hint='카운터 앞에서 코코아 마시기'; }
+    else {
+      const door=[...HOUSE_DOORS].sort((a,b)=>Math.hypot(a.stand.x-playerPos.x,a.stand.z-playerPos.z)-Math.hypot(b.stand.x-playerPos.x,b.stand.z-playerPos.z))[0];
+      target=door && door.stand; hint='문 앞에서 F · 모든 문은 라운지로 이어져요';
+    }
+  }
+  if (!target) return;
+  const dx=target.x-playerPos.x,dz=target.z-playerPos.z,d=Math.hypot(dx,dz);
+  const fx=rig.lookAt.x-camera.position.x,fz=rig.lookAt.z-camera.position.z;
+  const angle=Math.atan2(-fz*dx+fx*dz,fx*dx+fz*dz);
+  const arrow=document.getElementById('walkArrow');
+  arrow.style.visibility=d<2.8?'hidden':'visible'; arrow.style.transform=`rotate(${angle}rad)`;
+  document.getElementById('walkHint').textContent=(d<2.8?'도착! ':Math.round(d)+'m · ')+hint;
+}
 
 /* 6초가 지나도 모듈이 시작되지 않았다면(CDN 실패) 로딩 화면에 안내를 남긴다 */
 setTimeout(() => {
